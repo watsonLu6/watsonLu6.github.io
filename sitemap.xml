@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://watsonlu6.github.io/Ceph%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E8%B0%83%E8%AF%95/</loc>
+    
+    <lastmod>2024-07-27</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://watsonlu6.github.io/Ceph_librados_api%E4%BD%BF%E7%94%A8/</loc>
     
     <lastmod>2024-07-27</lastmod>
