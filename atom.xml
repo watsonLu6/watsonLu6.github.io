@@ -6,7 +6,7 @@
   <link href="https://watsonlu6.github.io/atom.xml" rel="self"/>
   
   <link href="https://watsonlu6.github.io/"/>
-  <updated>2024-07-13T15:48:21.670Z</updated>
+  <updated>2024-07-27T02:20:10.481Z</updated>
   <id>https://watsonlu6.github.io/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Ceph体系架构</title>
+    <link href="https://watsonlu6.github.io/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/"/>
+    <id>https://watsonlu6.github.io/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/</id>
+    <published>2024-07-27T02:19:42.000Z</published>
+    <updated>2024-07-27T02:20:10.481Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>Ceph 官方定义</strong><br>Ceph is a unified, distributed storage system designed for excellent performance, reliability and scalability.(Ceph 是一种为优秀的性能、可靠性和可扩展性而设计的统一的、分布式的存储系统。)</p><p><strong>Ceph 设计思路</strong></p><ul><li><strong>充分发挥存储设备自身的计算能力。</strong> 采用具有计算能力的设备作为存储系统的存储节点。</li><li><strong>去除所有的中心点。</strong> 解决单点故障点和当系统规模扩大时出现的规模和性能瓶颈问题。</li></ul><p> <strong>Ceph的设计哲学</strong></p><ul><li>每个组件必须可扩展  </li><li>不存在单点故障</li><li>解决方案必须是基于软件的</li><li>可摆脱专属硬件的束缚即可运行在常规硬件上 </li><li>推崇自我管理</li></ul><p><strong>Ceph体系结构</strong><br>首先作为一个存储系统，Ceph在物理上必然包含一个存储集群，以及这个存储集群的应用或客户端。Ceph客户端又需要一定的协议与Ceph存储集群进行交互，Ceph的逻辑层次演化如图所示。<br><img src="https://i-blog.csdnimg.cn/blog_migrate/c04e3ea15cb33a06b86790919e8021b1.jpeg" alt="在这里插入图片描述"><br><strong>OSD</strong>：主要功能包括存储数据，处理数据的复制、恢复、回补、平衡数据分布，并将一些相关数据提供给Ceph Monitor。一个Ceph的存储集群，至少需要两个Ceph OSD来实现active+clean健康状态和有效的保存数据的双副本。一旦应用程序向ceph集群发出写操作，数据就以对象的形式存储在OSD中，OSD是Ceph集群中存储实际用户数据的唯一组件。通常，一个OSD守护进程绑定到集群中的一个物理磁盘。因此，通常来说，Ceph集群中物理磁盘的总数与在每个物理磁盘上存储用户数据的OSD守护进程的总数相同。</p><p><strong>MON</strong>：Ceph的监控器，主要功能是维护整个集群健康状态，提供一致性的决策。</p><p><strong>MDS</strong>：主要保存的是Ceph文件系统的元数据。（Ceph的块存储和对象存储都不需要Ceph MDS）</p><p><strong>RADOS</strong>：Ceph基于可靠的、自动化的、分布式的对象存储(<strong>R</strong>eliabl,<strong>A</strong>utonomous,<strong>D</strong>istributed <strong>O</strong>bject <strong>S</strong>torage, <strong>RADOS</strong> )提供了一个可无限扩展的存储集群，RADOS是Ceph最为关键的技术，它是一个支持海量存储对象的分布式对象存储系统。RADOS层本身就是一个完整的对象存储系统，事实上，所有存储在Ceph系统中的用户数据最终都是由这一层来存储。RADOS层确保数据始终保持一致，他执行数据复制、故障检测和恢复，以及跨集群节点的数据迁移和再平衡。 RADOS集群主要由两种节点组成：<em><strong>为数众多的OSD</strong></em>，负责完成数据存储和维护；<em><strong>若干个Monitor</strong></em>，负责完成系统状态检测和维护。OSD和Monion之间互相传递节点的状态信息，共同得出系统的总体运行状态，并保存在一个全局数据结构中，即所谓的集群运行图(Cluster Map )里。集群运行图与RADOS提供的特定算法相配合，便实现了Ceph的许多优秀特性。</p><p><strong>Librados</strong>：Librados库实际上是对RADOS进行抽象和封装，并向上层提供API，支持PHP、Ruby、Java、Python、C和C++编程语言。它为Ceph存储集群（RADOS）提供了本机接口，并为其他服务提供基础，如RBD、RGW和CephFS，这些服务构建在Librados之上，Librados还支持从应用程序直接访问RADOS，没有HTTP开销。</p><p><strong>RBD</strong>：RBD提供了一个标准的块设备接口，常用于在虚拟化的场景下为虚拟机创建存储卷，Red Hat已经将RBD驱动集成在QEMU&#x2F;KVM中，以提高虚拟机的访问性能。</p><p><strong>RADOS GW</strong>：Ceph对象网关RADOS GW提供对象存储服务，是一个构建在Librados库之上的对象存储接口，为应用访问Ceph集群提供了一个与Amazon S3和OpenStack Swift兼容的RESTful风格的 网关。</p><p><strong>Ceph FS</strong>：Ceph文件系统提供了一个符合posix标准的文件系统，它使用Ceph存储集群在文件系统上存储用户数据。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;Ceph 官方定义&lt;/strong&gt;&lt;br&gt;Ceph is a unified, distributed storage system designed for excellent performance, reliability and scalabili</summary>
+      
+    
+    
+    
+    <category term="云存储" scheme="https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/"/>
+    
+    <category term="Ceph" scheme="https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/"/>
+    
+    
+    <category term="云存储" scheme="https://watsonlu6.github.io/tags/%E4%BA%91%E5%AD%98%E5%82%A8/"/>
+    
+    <category term="Ceph" scheme="https://watsonlu6.github.io/tags/Ceph/"/>
+    
+  </entry>
   
   <entry>
     <title>块存储_文件系统存储_对象存储的区别</title>
