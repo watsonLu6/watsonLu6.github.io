@@ -1,3 +1,5 @@
+https://watsonlu6.github.io/Ceph_librados_api%E4%BD%BF%E7%94%A8/
+https://watsonlu6.github.io/Ceph_librados%E4%BB%8B%E7%BB%8D/
 https://watsonlu6.github.io/Ceph_Bufferlist%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E4%BD%BF%E7%94%A8/
 https://watsonlu6.github.io/Ceph%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96/
 https://watsonlu6.github.io/hello-world/
