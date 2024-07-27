@@ -17,24 +17,24 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>Ceph体系架构 | watson Lu&#39;blogs</title>
-  <meta name="description" content="Ceph 官方定义Ceph is a unified, distributed storage system designed for excellent performance, reliability and scalability.(Ceph 是一种为优秀的性能、可靠性和可扩展性而设计的统一的、分布式的存储系统。) Ceph 设计思路  充分发挥存储设备自身的计算能力。 采用具有计算能力的设">
+  <title>Ceph数据读写过程 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Ceph数据读写过程一个大规模分布式存储系统，必须要能够解决两个最基本的问题，即”我应该把数据写到什么地方”与“我之前把数据写到什么地方了” ，因此会涉及数据如何寻址的问题。Ceph寻址流程如图所示。   File:此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象” Object:Objec">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Ceph体系架构">
-<meta property="og:url" content="https://watsonlu6.github.io/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:title" content="Ceph数据读写过程">
+<meta property="og:url" content="https://watsonlu6.github.io/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/index.html">
 <meta property="og:site_name" content="watson&#39;blogs">
-<meta property="og:description" content="Ceph 官方定义Ceph is a unified, distributed storage system designed for excellent performance, reliability and scalability.(Ceph 是一种为优秀的性能、可靠性和可扩展性而设计的统一的、分布式的存储系统。) Ceph 设计思路  充分发挥存储设备自身的计算能力。 采用具有计算能力的设">
+<meta property="og:description" content="Ceph数据读写过程一个大规模分布式存储系统，必须要能够解决两个最基本的问题，即”我应该把数据写到什么地方”与“我之前把数据写到什么地方了” ，因此会涉及数据如何寻址的问题。Ceph寻址流程如图所示。   File:此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象” Object:Objec">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://watsonlu6.github.io/images/Ceph%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84.jpg">
-<meta property="article:published_time" content="2024-07-27T02:19:42.000Z">
-<meta property="article:modified_time" content="2024-07-27T03:02:38.498Z">
+<meta property="og:image" content="https://watsonlu6.github.io/images/Ceph%E5%AF%BB%E5%9D%80.png">
+<meta property="article:published_time" content="2024-07-27T03:06:37.000Z">
+<meta property="article:modified_time" content="2024-07-27T03:13:50.751Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="云存储">
 <meta property="article:tag" content="Ceph">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://watsonlu6.github.io/images/Ceph%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84.jpg">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/Ceph%E5%AF%BB%E5%9D%80.png">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://watsonlu6.github.io/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/index.html">
+  <link rel="canonical" href="https://watsonlu6.github.io/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/index.html">
   
     <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
   
@@ -331,14 +331,14 @@
   
 <main class="main" role="main">
   <div class="content">
-  <article id="post-Ceph体系架构" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-Ceph数据读写过程" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
         
   
     <h1 class="article-title" itemprop="name">
-      Ceph体系架构
+      Ceph数据读写过程
     </h1>
   
 
@@ -346,8 +346,8 @@
       <div class="article-meta">
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
-	<a href="/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="article-date">
-	  <time datetime="2024-07-27T02:19:42.000Z" itemprop="datePublished">2024-07-27</time>
+	<a href="/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/" class="article-date">
+	  <time datetime="2024-07-27T03:06:37.000Z" itemprop="datePublished">2024-07-27</time>
 	</a>
 </span>
         
@@ -365,34 +365,37 @@
 
         
 
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/#comments" class="article-comment-link">评论</a></span>
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/#comments" class="article-comment-link">评论</a></span>
         
       </div>
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <p><strong>Ceph 官方定义</strong><br>Ceph is a unified, distributed storage system designed for excellent performance, reliability and scalability.(Ceph 是一种为优秀的性能、可靠性和可扩展性而设计的统一的、分布式的存储系统。)</p>
-<p><strong>Ceph 设计思路</strong></p>
+        <h2 id="Ceph数据读写过程"><a href="#Ceph数据读写过程" class="headerlink" title="Ceph数据读写过程"></a>Ceph数据读写过程</h2><p>一个大规模分布式存储系统，必须要能够解决两个最基本的问题，即”我应该把数据写到什么地方”与“我之前把数据写到什么地方了” ，因此会涉及数据如何寻址的问题。Ceph寻址流程如图所示。<br> <img src="/images/Ceph%E5%AF%BB%E5%9D%80.png"></p>
 <ul>
-<li><strong>充分发挥存储设备自身的计算能力。</strong> 采用具有计算能力的设备作为存储系统的存储节点。</li>
-<li><strong>去除所有的中心点。</strong> 解决单点故障点和当系统规模扩大时出现的规模和性能瓶颈问题。</li>
+<li><strong>File</strong>:此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象”</li>
+<li><strong>Object</strong>:Object是RADOS所看到的“对象” 。Object与File的区别是， Object的最大尺寸由RADOS限定(通常为2MB或4MB) ，以便实现底层存储的组织管理。因此，当上层应用向RADOS存入尺寸很大的File时，需要将File切分成统一大小的一系列Objet (最后一个的大小可以不同)进行存储。</li>
+<li><strong>PG</strong> ( Placement Group ) :顾名思义， PG的用途是对Object的存储进行组织和位置映射的。具体而言，一个PG负责组织若干个Object，但一个Obiect只能被映射到一个PG中，即PG和Object之间是“一对多”的映射关系。同时，一个PG会被映射到n个OSD上，而每个OSD上都会承载大量的PG，即PG和OSD之间是“多对多”的映射关系。在实践当中，n至少为2，如果用于生产环境，则至少为3。一个OSD上的PG可达到数百个。事实上， PG数量的设置关系到数据分布的均匀性问题</li>
+<li><strong>OSD</strong>: OSD的数量事实上也关系到系统的数据分布均匀性，因此不应该太少。在实践当中，至少也应该是数百个的量级才有助于Ceph系统发挥其应有的优势。</li>
 </ul>
-<p> <strong>Ceph的设计哲学</strong></p>
+<ol>
+<li><p><strong>File-&gt;Object映射</strong><br> 这次映射的目的是，将用户要操作的File映射为RADOS能够处理的Object，其十分简单，本质上就是按照Object的最大尺寸对File进行切分，相当于磁盘阵列中的条带化过程。这种切分的好处有两个:一是让大小不限的File变成具有一致的最大尺寸、可以被RADOS高效管理的Object;二是让对单一File实施的串行处理变为对多个Object实施的并行化处理。<br> 每一个切分后产生的Object将获得唯一的oid,即Object ID,其产生方式也是线性映射,极其简单。图7-5中, ino是待操作File的元数据,可以简单理解为该File的唯一ID. ono则是由该File切分产生的某个Object的序号。而oid就是将这个序号简单连缀在该File D之后得到的。举例而言,如果1个ID为filename的File被切分成了3个Object,则其Object序号依次为0、1和2,而最终得到的oid就依次为fiename0、Filename1和filename2.<br>这里隐含的问题是, ino的唯一性必须得到保证,否则后续的映射将无法正确进行。</p>
+</li>
+<li><p><strong>Object →PG映射</strong><br>在File被映射为1个或多个Object之后,就需要将每个Object独立地映射到1个PG中去。这个映射过程也很简单,如图所示,其计算公式如下:<br>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<strong>Hash(oid) &amp; mask -&gt; pgid</strong><br>由此可见,其计算由两步组成。首先,使用Ceph系统指定的一个静态哈希算法计算oid的哈希值,将oid映射为一个近似均匀分布的伪随机值。然后,将这个伪随机值和mask按位相与,得到最终的PG序号(pgid) 。根据RADOS的设计,给定PG的总数为m(m应该为2的整数幂),则mask的值为m-1。因此,哈希值计算和按位与操作的整体结果事实上是从所有m个PG中近似均匀地随机选择1个。基于这一机制,当有大量Object和大量PG时, RADOS能够保证Object和PG之间的近似均匀映射。又因为Object是由File切分而来的,大部分Object的尺寸相同,因此,这一映射最终保证了各个PG中存储的Object的总数据量近似均匀。<br>这里反复强调了“大量” ,意思是只有当Object和PG的数量较多时,这种伪随机关系的近似均匀性才能成立, Ceph的数据存储均匀性才有保证。为保证“大量”的成立,一方面, Object的最大尺寸应该被合理配置,以使得同样数量的File能够被切分成更多的Object;另一方面, Ceph也推荐PG总数应该为OSD总数的数百倍,以保证有足够数量的PG可供映射。</p>
+</li>
+<li><p><strong>PG→ OSD映射</strong><br>第3次映射就是将作为Object的逻辑组织单元的PG映射到数据的实际存储单元OSD上。如图所示, RADOS采用一个名为CRUSH的算法,将pgid代入其中,然后得到一组共n个OSD。这n个OSD共同负责存储和维护一个PG中的所有Objecto前面提到过, n的数值可以根据实际应用中对于可靠性的需求而配置,在生产环境下通常为3。具体到每个OSD,则由其上运行的OSD Daemon负责执行映射到本地的Object在本地文件系统中的存储、访问、元数据维护等操作。和<code>Object →PG</code>映射中采用的哈希算法不同, CRUSH算法的结果不是绝对不变的,而会受到其他因素的影响。其影响因素主要有两个。</p>
+</li>
+</ol>
 <ul>
-<li>每个组件必须可扩展  </li>
-<li>不存在单点故障</li>
-<li>解决方案必须是基于软件的</li>
-<li>可摆脱专属硬件的束缚即可运行在常规硬件上 </li>
-<li>推崇自我管理</li>
+<li>一是当前系统状态,也就是在前面有所提及的集群运行图。当系统中的OSD状态、数量发生变化时,集群运行图也可能发生变化,而这种变化将会影响到PG与OSD之间的映射关系。</li>
+<li>二是存储策略配置。这里的策略主要与安全相关。利用策略配置,系统管理员可以指定承载同一个PG的3个OSD分别位于数据中心的不同服务器或机架上,从而进一步改善存储的可靠性。<br>因此,只有在系统状态和存储策略都不发生变化的时候, PG和OSD之间的映射关系才是固定不变的。在实际使用中,策略一经配置通常不会改变。而系统状态的改变或是因为设备损坏,或是因为存储集群规模扩大。好在Ceph本身提供了对这种变化的自动化支持,因而,即便PG与OSD之间的映射关系发生了变化,也并不会对应用产生影响。事实上, Ceph正是利用了CRUSH算法的动态特性,可以将一个PG根据需要动态迁移到不同的OSD组合上,从而自动化地实现高可靠性、数据分布再平衡等特性。</li>
 </ul>
-<p><strong>Ceph体系结构</strong><br>首先作为一个存储系统，Ceph在物理上必然包含一个存储集群，以及这个存储集群的应用或客户端。Ceph客户端又需要一定的协议与Ceph存储集群进行交互，Ceph的逻辑层次演化如图所示。<br><img src="/images/Ceph%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84.jpg"><br><strong>OSD</strong>：主要功能包括存储数据，处理数据的复制、恢复、回补、平衡数据分布，并将一些相关数据提供给Ceph Monitor。一个Ceph的存储集群，至少需要两个Ceph OSD来实现active+clean健康状态和有效的保存数据的双副本。一旦应用程序向ceph集群发出写操作，数据就以对象的形式存储在OSD中，OSD是Ceph集群中存储实际用户数据的唯一组件。通常，一个OSD守护进程绑定到集群中的一个物理磁盘。因此，通常来说，Ceph集群中物理磁盘的总数与在每个物理磁盘上存储用户数据的OSD守护进程的总数相同。</p>
-<p><strong>MON</strong>：Ceph的监控器，主要功能是维护整个集群健康状态，提供一致性的决策。</p>
-<p><strong>MDS</strong>：主要保存的是Ceph文件系统的元数据。（Ceph的块存储和对象存储都不需要Ceph MDS）</p>
-<p><strong>RADOS</strong>：Ceph基于可靠的、自动化的、分布式的对象存储(<strong>R</strong>eliabl,<strong>A</strong>utonomous,<strong>D</strong>istributed <strong>O</strong>bject <strong>S</strong>torage, <strong>RADOS</strong> )提供了一个可无限扩展的存储集群，RADOS是Ceph最为关键的技术，它是一个支持海量存储对象的分布式对象存储系统。RADOS层本身就是一个完整的对象存储系统，事实上，所有存储在Ceph系统中的用户数据最终都是由这一层来存储。RADOS层确保数据始终保持一致，他执行数据复制、故障检测和恢复，以及跨集群节点的数据迁移和再平衡。 RADOS集群主要由两种节点组成：<em><strong>为数众多的OSD</strong></em>，负责完成数据存储和维护；<em><strong>若干个Monitor</strong></em>，负责完成系统状态检测和维护。OSD和Monion之间互相传递节点的状态信息，共同得出系统的总体运行状态，并保存在一个全局数据结构中，即所谓的集群运行图(Cluster Map )里。集群运行图与RADOS提供的特定算法相配合，便实现了Ceph的许多优秀特性。</p>
-<p><strong>Librados</strong>：Librados库实际上是对RADOS进行抽象和封装，并向上层提供API，支持PHP、Ruby、Java、Python、C和C++编程语言。它为Ceph存储集群（RADOS）提供了本机接口，并为其他服务提供基础，如RBD、RGW和CephFS，这些服务构建在Librados之上，Librados还支持从应用程序直接访问RADOS，没有HTTP开销。</p>
-<p><strong>RBD</strong>：RBD提供了一个标准的块设备接口，常用于在虚拟化的场景下为虚拟机创建存储卷，Red Hat已经将RBD驱动集成在QEMU&#x2F;KVM中，以提高虚拟机的访问性能。</p>
-<p><strong>RADOS GW</strong>：Ceph对象网关RADOS GW提供对象存储服务，是一个构建在Librados库之上的对象存储接口，为应用访问Ceph集群提供了一个与Amazon S3和OpenStack Swift兼容的RESTful风格的 网关。</p>
-<p><strong>Ceph FS</strong>：Ceph文件系统提供了一个符合posix标准的文件系统，它使用Ceph存储集群在文件系统上存储用户数据。</p>
+<p>之所以在此次映射中使用CRUSH算法,而不使用其他哈希算法,<code>一方面</code>原因是CRUSH算法具有上述可配置特性,可以根据管理员的配置参数决定OSD的物理位置映射策略;<code>另一方面</code>原因是CRUSH算法具有特殊的“稳定性” ,也即,当系统中加入新的OSD,导致系统规模增大时,大部分PG与OSD之间的映射关系不会发生改变,只有少部分PG的映射关系会发生变化并引发数据迁移。这种可配置性和稳定性都不是普通哈希算法所能提供的。因此, CRUSH算法的设计也是Ceph的核心内容之一。<br>至此为止, Ceph通过3次映射,完成了从File到Object. Object到PG,PG再到OSD的整个映射过程。从整个过程可以看到,这里没有任何的全局性查表操作需求。至于唯一的全局性数据结构:集群运行图。它的维护和操作都是轻量级的,不会对系统的可扩展性、性能等因素造成影响。</p>
+<p><strong>接下来的一个问题是:为什么需要引人PG并在Object与OSD之间增加一层映射呢？</strong><br>可以想象一下,如果没有PG这一层映射,又会怎么样呢?在这种情况下,一定需要采用某种算法,将Object直接映射到一组OSD上。如果这种算法是某种固定映射的哈希算法,则意味着一个Object将被固定映射在一组OSD上,当其中一个或多个OSD损坏时, Object无法被自动迁移至其他OSD上(因为映射函数不允许),当系统为了扩容新增了OSD时, Object也无法被再平衡到新的OSD上(同样因为映射函数不允许)。这些限制都违背了Ceph系统高可靠性、高自动化的设计初衷。<br>如果采用一个动态算法(如仍然采用CRUSH算法)来完成这一映射,似乎是可以避免由静态映射而导致的问题的。但是,其结果将是各个OSD所处理的本地元数据量暴增,由此带来的计算复杂度和维护工作量也是难以承受的。<br>例如,在Ceph的现有机制中,一个OSD平时需要和与其共同承载同一个PG的其他OSD交换信息,以确定各自是否工作正常,是否需要进行维护操作。由于一个OSD上大约承载数百个PG,每个PG内通常有3个OSD,因此,在一段时间内,一个OSD大约需要进行数百次至数千次OSD信息交换。<br>然而,如果没有PG的存在,则一个OSD需要和与其共同承载同一个Object的其他OSD交换信息。由于每个OSD上承载的Object可能高达数百万个,因此,同样长度的一段时间内,一个OSD大约需要进行的OSD间信息交换将暴涨至数百万次乃至数千万次。而这种状态维护成本显然过高。<br>综上所述,引入PG的好处至少有两方面:<code>一方面</code>实现了Object和OSD之间的动态映射,从而为Ceph的可靠性、自动化等特性的实现留下了空间;<code>另一方面</code>也有效简化了数据的存储组织,大大降低了系统的维护与管理成本。</p>
+<p>Ceph的读&#x2F;写操作采用<strong>Primary-Replica</strong>模型，客户端只向Object所对应OSD set的Primary OSD发起读&#x2F;写请求，这保证了数据的强一致性。当Primary OSD收到Object的写请求时，它负责把数据发送给其他副本，只有这个数据被保存在所有的OSD上时，Primary OSD才应答Object的写请求，这保证了副本的一致性。</p>
+<p><strong>写入数据</strong><br>这里以Object写入为例，假定一个PG被映射到3个OSD上。Object写入流程如图所示。<br> ![]](Ceph数据读写过程.jpg)</p>
+<p>当某个客户端需要向Ceph集群写入一个File时，首先需要在本地完成前面所述的<a target="_blank" rel="noopener" href="https://blog.csdn.net/lhc121386/article/details/113428189">寻址流程</a>，将File变为一个Object，然后找出存储该Object的一组共3个OSD，这3个OSD具有各自不同的序号，序号最靠前的那个OSD就是这一组中的Primary OSD，而后两个则依次Secondary OSD和Tertiary OSD。<br>找出3个OSD后，客户端将直接和Primary OSD进行通信，发起写入操作(<strong>步骤1</strong>)。 Primary OSD收到请求后，分别向Secondary OSD和Tertiary OSD发起写人操作(<strong>步骤2</strong>和<strong>步骤3</strong>)。当Secondary OSD和Tertiary OSD各自完成写入操作后，将分别向Primary OSD发送确认信息(<strong>步骤4</strong>和<strong>步骤5</strong>)。当Primary OSD确认其他两个OSD的写入完成后，则自己也完成数据写入，并向客户端确认Object写入操作完成(<strong>步骤6</strong>)。<br>之所以采用这样的写入流程，本质上是为了保证写入过程中的可靠性，尽可能避免出现数据丢失的情况。同时，由于客户端只需要向Primary OSD发送数据，因此在互联网使用场景下的外网带宽和整体访问延迟又得到了一定程度的优化。<br>当然，这种可靠性机制必然导致较长的延迟，特别是，如果等到所有的OSD都将数据写入磁盘后再向客户端发送确认信号，则整体延迟可能难以忍受。因此， <strong>Ceph可以分两次向客户端进行确认。当各个OSD都将数据写入内存缓冲区后，就先向客户端发送一次确认，此时客户端即可以向下执行。待各个OSD都将数据写入磁盘后，会向客户端发送一个最终确认信号，此时客户端可以根据需要删除本地数据。</strong><br>分析上述流程可以看出，在正常情况下，客户端可以独立完成OSD寻址操作，而不必依赖于其他系统模块。因此，大量的客户端可以同时和大量的OSD进行并行操作。同时，如果一个File被切分成多个Object，这多个Object也可被并行发送至多个OSD上。<br>从OSD的角度来看，由于同一个OSD在不同的PG中的角色不同，因此，其工作压力也可以被尽可能均匀地分担，从而避免单个OSD变成性能瓶颈。</p>
+<p><strong>读取数据</strong><br>如果需要读取数据，客户端只需完成同样的<a target="_blank" rel="noopener" href="https://blog.csdn.net/lhc121386/article/details/113428189">寻址过程</a>，并直接和Primary OSD联系。<strong>在目前的Ceph设计中，被读取的数据默认由Primary OSD提供</strong>，但也可以设置允许从其他OSD中获取，以分散读取压力从而提高性能。</p>
 
       
     </div>
@@ -402,7 +405,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://watsonlu6.github.io/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" title="Ceph体系架构" target="_blank" rel="external">https://watsonlu6.github.io/Ceph体系架构/</a>
+      <a href="https://watsonlu6.github.io/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/" title="Ceph数据读写过程" target="_blank" rel="external">https://watsonlu6.github.io/Ceph数据读写过程/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -448,13 +451,9 @@
   
   <ul class="pager pull-left">
     
-    <li class="prev">
-      <a href="/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/" title="Ceph数据读写过程"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
-    </li>
-    
     
     <li class="next">
-      <a href="/%E5%9D%97%E5%AD%98%E5%82%A8-%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8-%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E7%9A%84%E5%8C%BA%E5%88%AB/" title="块存储_文件系统存储_对象存储的区别"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" title="Ceph体系架构"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
