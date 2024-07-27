@@ -18,17 +18,17 @@
   
   
   <title>Ceph数据读写过程 | watson Lu&#39;blogs</title>
-  <meta name="description" content="Ceph数据读写涉及的对象一个大规模分布式存储系统，必须要能够解决两个最基本的问题，即”我应该把数据写到什么地方”与“我之前把数据写到什么地方了” ，因此会涉及数据如何寻址的问题。Ceph寻址流程如图所示。   File:此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象” Object:Ob">
+  <meta name="description" content="Ceph数据映射过程在一个大规模分布式存储系统中，需要解决两个核心问题：“我应该把数据写到哪里？”和“我之前把数据存储在了哪里？”。这就引出了数据寻址的问题。Ceph 的寻址流程可以如下描述。   File：此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象” Object： 在 RADOS（">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Ceph数据读写过程">
 <meta property="og:url" content="https://watsonlu6.github.io/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/index.html">
 <meta property="og:site_name" content="watson&#39;blogs">
-<meta property="og:description" content="Ceph数据读写涉及的对象一个大规模分布式存储系统，必须要能够解决两个最基本的问题，即”我应该把数据写到什么地方”与“我之前把数据写到什么地方了” ，因此会涉及数据如何寻址的问题。Ceph寻址流程如图所示。   File:此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象” Object:Ob">
+<meta property="og:description" content="Ceph数据映射过程在一个大规模分布式存储系统中，需要解决两个核心问题：“我应该把数据写到哪里？”和“我之前把数据存储在了哪里？”。这就引出了数据寻址的问题。Ceph 的寻址流程可以如下描述。   File：此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象” Object： 在 RADOS（">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://watsonlu6.github.io/images/Ceph%E5%AF%BB%E5%9D%80.png">
 <meta property="og:image" content="https://watsonlu6.github.io/images/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B.jpg">
 <meta property="article:published_time" content="2024-07-27T03:06:37.000Z">
-<meta property="article:modified_time" content="2024-07-27T03:16:36.100Z">
+<meta property="article:modified_time" content="2024-07-27T03:41:44.848Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="云存储">
 <meta property="article:tag" content="Ceph">
@@ -372,27 +372,54 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="Ceph数据读写涉及的对象"><a href="#Ceph数据读写涉及的对象" class="headerlink" title="Ceph数据读写涉及的对象"></a>Ceph数据读写涉及的对象</h2><p>一个大规模分布式存储系统，必须要能够解决两个最基本的问题，即”我应该把数据写到什么地方”与“我之前把数据写到什么地方了” ，因此会涉及数据如何寻址的问题。Ceph寻址流程如图所示。<br> <img src="/images/Ceph%E5%AF%BB%E5%9D%80.png"></p>
+        <h2 id="Ceph数据映射过程"><a href="#Ceph数据映射过程" class="headerlink" title="Ceph数据映射过程"></a>Ceph数据映射过程</h2><p>在一个大规模分布式存储系统中，需要解决两个核心问题：“我应该把数据写到哪里？”和“我之前把数据存储在了哪里？”。这就引出了数据寻址的问题。Ceph 的寻址流程可以如下描述。<br> <img src="/images/Ceph%E5%AF%BB%E5%9D%80.png"></p>
 <ul>
-<li><strong>File</strong>:此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象”</li>
-<li><strong>Object</strong>:Object是RADOS所看到的“对象” 。Object与File的区别是， Object的最大尺寸由RADOS限定(通常为2MB或4MB) ，以便实现底层存储的组织管理。因此，当上层应用向RADOS存入尺寸很大的File时，需要将File切分成统一大小的一系列Objet (最后一个的大小可以不同)进行存储。</li>
-<li><strong>PG</strong> ( Placement Group ) :顾名思义， PG的用途是对Object的存储进行组织和位置映射的。具体而言，一个PG负责组织若干个Object，但一个Obiect只能被映射到一个PG中，即PG和Object之间是“一对多”的映射关系。同时，一个PG会被映射到n个OSD上，而每个OSD上都会承载大量的PG，即PG和OSD之间是“多对多”的映射关系。在实践当中，n至少为2，如果用于生产环境，则至少为3。一个OSD上的PG可达到数百个。事实上， PG数量的设置关系到数据分布的均匀性问题</li>
-<li><strong>OSD</strong>: OSD的数量事实上也关系到系统的数据分布均匀性，因此不应该太少。在实践当中，至少也应该是数百个的量级才有助于Ceph系统发挥其应有的优势。</li>
+<li><strong>File</strong>：此处的File就是用户需要存储或访问的文件。对于一个基于Ceph开发的对象存储应用而言，这个File也就对应于应用中的“对象” ，也就是用户直接操作的“对象”</li>
+<li><strong>Object：</strong> 在 RADOS（Reliable Autonomic Distributed Object Store）中，”对象” 是指系统中存储的基本单位。与 File 的不同之处在于，Object 的最大尺寸受到 RADOS 的限制，通常为 2MB 或 4MB。这一限制是为了优化底层存储的管理和组织。因此，当上层应用向 RADOS 存储一个较大的 File 时，需要将其拆分成多个统一大小的 Object（最后一个 Object 的大小可能不同）进行存储。</li>
+<li><strong>PG（Placement Group）：</strong> 顾名思义，PG 用于组织对象的存储并映射其位置。具体来说，一个 PG 负责管理多个对象，而每个对象只能映射到一个 PG 中，即 PG 和对象之间是“一对多”的映射关系。同时，一个 PG 会被映射到多个 OSD（Object Storage Device）上，通常 n 至少为 2，而在生产环境中，n 通常至少为 3。每个 OSD 上会承载大量的 PG，可能达到数百个。PG 的数量设置直接影响数据的分布均匀性，因此在实际配置中需要谨慎考虑。</li>
+<li><strong>OSD（Object Storage Device）：</strong> OSD 是 Ceph 中用于存储数据的对象存储设备。OSD 的数量对系统的数据分布均匀性有直接影响，因此不宜过少。为了充分发挥 Ceph 系统的优势，通常需要配置至少数百个 OSD。</li>
 </ul>
 <ol>
-<li><p><strong>File-&gt;Object映射</strong><br> 这次映射的目的是，将用户要操作的File映射为RADOS能够处理的Object，其十分简单，本质上就是按照Object的最大尺寸对File进行切分，相当于磁盘阵列中的条带化过程。这种切分的好处有两个:一是让大小不限的File变成具有一致的最大尺寸、可以被RADOS高效管理的Object;二是让对单一File实施的串行处理变为对多个Object实施的并行化处理。<br> 每一个切分后产生的Object将获得唯一的oid,即Object ID,其产生方式也是线性映射,极其简单。图7-5中, ino是待操作File的元数据,可以简单理解为该File的唯一ID. ono则是由该File切分产生的某个Object的序号。而oid就是将这个序号简单连缀在该File D之后得到的。举例而言,如果1个ID为filename的File被切分成了3个Object,则其Object序号依次为0、1和2,而最终得到的oid就依次为fiename0、Filename1和filename2.<br>这里隐含的问题是, ino的唯一性必须得到保证,否则后续的映射将无法正确进行。</p>
+<li><p><strong>File → Object映射</strong><br> 这个映射过程的目的是将用户操作的 File 转换为 RADOS 能够处理的 Object。这个过程相对简单，本质上就是按照 Object 的最大尺寸对 File 进行切分，类似于磁盘阵列中的条带化（striping）过程。这种切分有两个主要好处：</p>
+<ul>
+<li>将大小不定的 File 转换为具有一致最大尺寸的 Object，使得 RADOS 能够更高效地管理这些数据。</li>
+<li>将对单一 File 的串行处理转变为对多个 Object 的并行处理，从而提高处理效率。</li>
+</ul>
+<p> 每一个切分后的 Object 将获得一个唯一的 Object ID (oid)，其生成方式非常简单，是一种线性映射。具体来说，<code>ino</code> 表示待操作 File 的元数据，可以简单理解为该 File 的唯一 ID；<code>ono</code> 则是由该 File 切分产生的某个 Object 的序号。而 <code>oid</code> 就是将这个序号简单地附加在该 File 的 ID 之后得到的。举个例子，如果一个 ID 为 <code>filename</code> 的 File 被切分成了 3 个 Object，那么其 Object 的序号依次为 0、1 和 2，最终得到的 oid 就依次为 <code>filename0</code>、<code>filename1</code> 和 <code>filename2</code>。</p>
+<p> 这里有一个隐含的问题，即 <code>ino</code> 的唯一性必须得到保证，否则后续的映射将无法正确进行。</p>
 </li>
-<li><p><strong>Object →PG映射</strong><br>在File被映射为1个或多个Object之后,就需要将每个Object独立地映射到1个PG中去。这个映射过程也很简单,如图所示,其计算公式如下:<br>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Hash(oid) &amp; mask -&gt; pgid<br>由此可见,其计算由两步组成。首先,使用Ceph系统指定的一个静态哈希算法计算oid的哈希值,将oid映射为一个近似均匀分布的伪随机值。然后,将这个伪随机值和mask按位相与,得到最终的PG序号(pgid) 。根据RADOS的设计,给定PG的总数为m(m应该为2的整数幂),则mask的值为m-1。因此,哈希值计算和按位与操作的整体结果事实上是从所有m个PG中近似均匀地随机选择1个。基于这一机制,当有大量Object和大量PG时, RADOS能够保证Object和PG之间的近似均匀映射。又因为Object是由File切分而来的,大部分Object的尺寸相同,因此,这一映射最终保证了各个PG中存储的Object的总数据量近似均匀。<br>这里反复强调了“大量” ,意思是只有当Object和PG的数量较多时,这种伪随机关系的近似均匀性才能成立, Ceph的数据存储均匀性才有保证。为保证“大量”的成立,一方面, Object的最大尺寸应该被合理配置,以使得同样数量的File能够被切分成更多的Object;另一方面, Ceph也推荐PG总数应该为OSD总数的数百倍,以保证有足够数量的PG可供映射。</p>
+<li><p><strong>Object → PG 映射</strong><br> 当一个 File 被映射为一个或多个 Object 后，需要将每个 Object 独立地映射到一个 PG 中。这个过程相对简单，具体计算过程如下：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hash(oid) &amp; mask -&gt; pgid</span><br></pre></td></tr></table></figure>
+<p> 这个计算过程分为两步：</p>
+<ol>
+<li>使用 Ceph 系统指定的静态哈希算法计算 oid 的哈希值，将 oid 转换为一个近似均匀分布的伪随机值。</li>
+<li>将这个伪随机值与 mask 进行按位与操作，得到最终的 PG 序号 (pgid)。</li>
+</ol>
+<p> 根据 RADOS 的设计，PG 的总数为 m（m 应该为 2 的整数幂），则 mask 的值为 m - 1。哈希值计算和按位与操作的结果就是从所有 m 个 PG 中近似均匀地随机选择一个。这种机制保证了在大量 Object 和大量 PG 存在的情况下，Object 和 PG 之间的映射近似均匀。由于 Object 是由 File 切分而来，大部分 Object 的尺寸相同，因此这一映射最终保证了各个 PG 中存储的 Object 的总数据量的近似均匀性。</p>
+<p> 这里强调“大量”是因为，只有在 Object 和 PG 数量较多时，这种伪随机关系的近似均匀性才有效，Ceph 的数据存储均匀性才能得到保障。为了确保这一点，一方面，Object 的最大尺寸应该被合理配置，以使得相同数量的 File 能被切分成更多的 Object；另一方面，Ceph 建议 PG 的总数应为 OSD 总数的数百倍，以确保有足够数量的 PG 供映射使用。</p>
 </li>
-<li><p><strong>PG→ OSD映射</strong><br>第3次映射就是将作为Object的逻辑组织单元的PG映射到数据的实际存储单元OSD上。如图所示, RADOS采用一个名为CRUSH的算法,将pgid代入其中,然后得到一组共n个OSD。这n个OSD共同负责存储和维护一个PG中的所有Objecto前面提到过, n的数值可以根据实际应用中对于可靠性的需求而配置,在生产环境下通常为3。具体到每个OSD,则由其上运行的OSD Daemon负责执行映射到本地的Object在本地文件系统中的存储、访问、元数据维护等操作。和<code>Object →PG</code>映射中采用的哈希算法不同, CRUSH算法的结果不是绝对不变的,而会受到其他因素的影响。其影响因素主要有两个。</p>
+<li><p><strong>PG → OSD 映射</strong><br> 第三次映射是将作为对象逻辑组织单元的 PG 映射到实际存储单元 OSD 上。RADOS 使用了一种称为 CRUSH（Controlled Replication Under Scalable Hashing）的算法，将 <code>pgid</code> 代入其中，然后得到一组包含 n 个 OSD。这 n 个 OSD 共同负责存储和维护一个 PG 中的所有对象。通常，n 的值根据实际应用中的可靠性需求而定，在生产环境下通常为 3。具体到每个 OSD，由其上运行的 OSD Daemon 负责执行映射到本地的对象在本地文件系统中的存储、访问、元数据维护等操作。</p>
+<p> 与对象到 PG 的映射中采用的哈希算法不同，CRUSH 算法的结果并非绝对不变，而会受到其他因素的影响，主要有两个：</p>
+<ol>
+<li><p><strong>当前系统状态</strong>：即集群运行图。当系统中的 OSD 状态或数量发生变化时，集群运行图可能会改变，这将影响 PG 与 OSD 之间的映射关系。</p>
+</li>
+<li><p><strong>存储策略配置</strong>：这与数据的安全性相关。系统管理员可以通过策略配置指定承载同一个 PG 的 3 个 OSD 分别位于数据中心的不同服务器或机架上，从而提高存储的可靠性。</p>
 </li>
 </ol>
-<ul>
-<li>一是当前系统状态,也就是在前面有所提及的集群运行图。当系统中的OSD状态、数量发生变化时,集群运行图也可能发生变化,而这种变化将会影响到PG与OSD之间的映射关系。</li>
-<li>二是存储策略配置。这里的策略主要与安全相关。利用策略配置,系统管理员可以指定承载同一个PG的3个OSD分别位于数据中心的不同服务器或机架上,从而进一步改善存储的可靠性。<br>因此,只有在系统状态和存储策略都不发生变化的时候, PG和OSD之间的映射关系才是固定不变的。在实际使用中,策略一经配置通常不会改变。而系统状态的改变或是因为设备损坏,或是因为存储集群规模扩大。好在Ceph本身提供了对这种变化的自动化支持,因而,即便PG与OSD之间的映射关系发生了变化,也并不会对应用产生影响。事实上, Ceph正是利用了CRUSH算法的动态特性,可以将一个PG根据需要动态迁移到不同的OSD组合上,从而自动化地实现高可靠性、数据分布再平衡等特性。</li>
-</ul>
-<p>之所以在此次映射中使用CRUSH算法,而不使用其他哈希算法,<code>一方面</code>原因是CRUSH算法具有上述可配置特性,可以根据管理员的配置参数决定OSD的物理位置映射策略;<code>另一方面</code>原因是CRUSH算法具有特殊的“稳定性” ,也即,当系统中加入新的OSD,导致系统规模增大时,大部分PG与OSD之间的映射关系不会发生改变,只有少部分PG的映射关系会发生变化并引发数据迁移。这种可配置性和稳定性都不是普通哈希算法所能提供的。因此, CRUSH算法的设计也是Ceph的核心内容之一。<br>至此为止, Ceph通过3次映射,完成了从File到Object. Object到PG,PG再到OSD的整个映射过程。从整个过程可以看到,这里没有任何的全局性查表操作需求。至于唯一的全局性数据结构:集群运行图。它的维护和操作都是轻量级的,不会对系统的可扩展性、性能等因素造成影响。</p>
-<p><strong>接下来的一个问题是:为什么需要引人PG并在Object与OSD之间增加一层映射呢？</strong><br>可以想象一下,如果没有PG这一层映射,又会怎么样呢?在这种情况下,一定需要采用某种算法,将Object直接映射到一组OSD上。如果这种算法是某种固定映射的哈希算法,则意味着一个Object将被固定映射在一组OSD上,当其中一个或多个OSD损坏时, Object无法被自动迁移至其他OSD上(因为映射函数不允许),当系统为了扩容新增了OSD时, Object也无法被再平衡到新的OSD上(同样因为映射函数不允许)。这些限制都违背了Ceph系统高可靠性、高自动化的设计初衷。<br>如果采用一个动态算法(如仍然采用CRUSH算法)来完成这一映射,似乎是可以避免由静态映射而导致的问题的。但是,其结果将是各个OSD所处理的本地元数据量暴增,由此带来的计算复杂度和维护工作量也是难以承受的。<br>例如,在Ceph的现有机制中,一个OSD平时需要和与其共同承载同一个PG的其他OSD交换信息,以确定各自是否工作正常,是否需要进行维护操作。由于一个OSD上大约承载数百个PG,每个PG内通常有3个OSD,因此,在一段时间内,一个OSD大约需要进行数百次至数千次OSD信息交换。<br>然而,如果没有PG的存在,则一个OSD需要和与其共同承载同一个Object的其他OSD交换信息。由于每个OSD上承载的Object可能高达数百万个,因此,同样长度的一段时间内,一个OSD大约需要进行的OSD间信息交换将暴涨至数百万次乃至数千万次。而这种状态维护成本显然过高。<br>综上所述,引入PG的好处至少有两方面:<code>一方面</code>实现了Object和OSD之间的动态映射,从而为Ceph的可靠性、自动化等特性的实现留下了空间;<code>另一方面</code>也有效简化了数据的存储组织,大大降低了系统的维护与管理成本。</p>
+<p> 因此，只有在系统状态和存储策略都不发生变化时，PG 和 OSD 之间的映射关系才是固定的。在实际使用中，策略配置通常一经设定就不会改变。而系统状态的变化可能是由于设备损坏或存储集群规模的扩大。好在 Ceph 提供了对这些变化的自动化支持，因此，即便 PG 与 OSD 之间的映射关系发生变化，也不会对应用产生影响。实际上，Ceph 利用 CRUSH 算法的动态特性，可以根据需要将一个 PG 动态迁移到不同的 OSD 组合上，从而自动实现高可靠性和数据分布再平衡等特性。</p>
+<p> 选择 CRUSH 算法而非其他哈希算法的原因有两点：</p>
+<ol>
+<li><strong>可配置性</strong>：CRUSH 算法具有可配置特性，可以根据管理员的配置参数决定 OSD 的物理位置映射策略。</li>
+<li><strong>稳定性</strong>：CRUSH 算法具有特殊的“稳定性”，即当系统中加入新的 OSD 导致系统规模增大时，大部分 PG 与 OSD 之间的映射关系不会改变，只有少部分 PG 的映射关系会发生变化并引发数据迁移。这种特性使得系统在扩展时能够保持相对稳定，避免了普通哈希算法可能带来的大规模数据迁移问题。</li>
+</ol>
+</li>
+</ol>
+<p>至此为止，Ceph通过3次映射，完成了从File到Object、Object到PG、PG再到OSD的整个映射过程。从整个过程可以看到，这里没有任何的全局性查表操作需求。至于唯一的全局性数据结构：集群运行图。它的维护和操作都是轻量级的，不会对系统的可扩展性、性能等因素造成影响。</p>
+<p><strong>接下来的一个问题是:为什么需要引人PG并在Object与OSD之间增加一层映射呢？</strong><br>可以想象一下，如果没有 PG 这一层的映射，会是什么情况？在这种情况下，需要采用某种算法将 Object 直接映射到一组 OSD 上。如果这种算法是某种固定映射的哈希算法，这就意味着一个 Object 将被固定映射在一组 OSD 上。当其中一个或多个 OSD 损坏时，Object 无法自动迁移到其他 OSD 上（因为映射函数不允许），而当系统为了扩容新增 OSD 时，Object 也无法被再平衡到新的 OSD 上（同样因为映射函数不允许）。这些限制违背了 Ceph 系统高可靠性和高自动化的设计初衷。</p>
+<p>即便使用一个动态算法（如 CRUSH 算法）来完成这一映射，似乎可以避免静态映射带来的问题。但这样会导致各个 OSD 处理的本地元数据量大幅增加，计算复杂度和维护工作量也会大幅上升。</p>
+<p>例如，在 Ceph 的现有机制中，一个 OSD 通常需要与其他承载同一个 PG 的 OSD 交换信息，以确定各自是否工作正常或是否需要进行维护。由于每个 OSD 承载约数百个 PG，而每个 PG 通常有 3 个 OSD，因此，在一定时间内，一个 OSD 大约需要进行数百次至数千次的信息交换。</p>
+<p>然而，如果没有 PG 存在，一个 OSD 需要与其他承载同一个 Object 的 OSD 交换信息。由于每个 OSD 可能承载高达数百万个 Object，在同样时间内，一个 OSD 大约需要进行数百万次甚至数千万次的信息交换。这种状态维护成本显然过高。</p>
+<p>综上所述，引入 PG 有至少两方面的好处：一方面，实现了 Object 和 OSD 之间的动态映射，为 Ceph 的可靠性和自动化等特性的实现提供了可能；另一方面，有效简化了数据的存储组织，大大降低了系统的维护和管理成本。</p>
 <h2 id="Ceph数据读写过程"><a href="#Ceph数据读写过程" class="headerlink" title="Ceph数据读写过程"></a>Ceph数据读写过程</h2><p>Ceph的读&#x2F;写操作采用<strong>Primary-Replica</strong>模型，客户端只向Object所对应OSD set的Primary OSD发起读&#x2F;写请求，这保证了数据的强一致性。当Primary OSD收到Object的写请求时，它负责把数据发送给其他副本，只有这个数据被保存在所有的OSD上时，Primary OSD才应答Object的写请求，这保证了副本的一致性。</p>
 <p><strong>写入数据</strong><br>这里以Object写入为例，假定一个PG被映射到3个OSD上。Object写入流程如图所示。<br> <img src="/images/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B.jpg"></p>
 <p>当某个客户端需要向Ceph集群写入一个File时，首先需要在本地完成前面所述的<a target="_blank" rel="noopener" href="https://blog.csdn.net/lhc121386/article/details/113428189">寻址流程</a>，将File变为一个Object，然后找出存储该Object的一组共3个OSD，这3个OSD具有各自不同的序号，序号最靠前的那个OSD就是这一组中的Primary OSD，而后两个则依次Secondary OSD和Tertiary OSD。<br>找出3个OSD后，客户端将直接和Primary OSD进行通信，发起写入操作(<strong>步骤1</strong>)。 Primary OSD收到请求后，分别向Secondary OSD和Tertiary OSD发起写人操作(<strong>步骤2</strong>和<strong>步骤3</strong>)。当Secondary OSD和Tertiary OSD各自完成写入操作后，将分别向Primary OSD发送确认信息(<strong>步骤4</strong>和<strong>步骤5</strong>)。当Primary OSD确认其他两个OSD的写入完成后，则自己也完成数据写入，并向客户端确认Object写入操作完成(<strong>步骤6</strong>)。<br>之所以采用这样的写入流程，本质上是为了保证写入过程中的可靠性，尽可能避免出现数据丢失的情况。同时，由于客户端只需要向Primary OSD发送数据，因此在互联网使用场景下的外网带宽和整体访问延迟又得到了一定程度的优化。<br>当然，这种可靠性机制必然导致较长的延迟，特别是，如果等到所有的OSD都将数据写入磁盘后再向客户端发送确认信号，则整体延迟可能难以忍受。因此， <strong>Ceph可以分两次向客户端进行确认。当各个OSD都将数据写入内存缓冲区后，就先向客户端发送一次确认，此时客户端即可以向下执行。待各个OSD都将数据写入磁盘后，会向客户端发送一个最终确认信号，此时客户端可以根据需要删除本地数据。</strong><br>分析上述流程可以看出，在正常情况下，客户端可以独立完成OSD寻址操作，而不必依赖于其他系统模块。因此，大量的客户端可以同时和大量的OSD进行并行操作。同时，如果一个File被切分成多个Object，这多个Object也可被并行发送至多个OSD上。<br>从OSD的角度来看，由于同一个OSD在不同的PG中的角色不同，因此，其工作压力也可以被尽可能均匀地分担，从而避免单个OSD变成性能瓶颈。</p>
