@@ -25,12 +25,45 @@
 <meta property="og:site_name" content="watson&#39;blogs">
 <meta property="og:description" content="线程池和工作队列是紧密相连的，基本流程就是将任务送入到对应的工作队列中，线程池中的线程从工作队列中取出任务并进行处理。Ceph 为了支持高并发读写，源码设计中大量采用线程池来进行io的推进。Ceph的线程池实现了多种不同的工作队列。一般情况下，一个线程池对应一个类型的工作队列。在要求不高的情况下，也可以一个线程池对应多种类型的工作队列，让线程池处理不同类型的任务。 mutex的实现src&amp;#x2F">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B01.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B02.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B03.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B04.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B05.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B06.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B07.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B08.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B09.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B010.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B011.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B012.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B013.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B014.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B015.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B016.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B017.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B018.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B019.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B020.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B021.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B022.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B023.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B024.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B025.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B026.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B027.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B028.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B029.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B030.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B031.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B032.png">
 <meta property="article:published_time" content="2021-08-27T14:26:42.000Z">
-<meta property="article:modified_time" content="2024-07-28T09:50:20.891Z">
+<meta property="article:modified_time" content="2024-07-28T10:16:50.698Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="云存储">
 <meta property="article:tag" content="Ceph">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B01.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://watsonlu6.github.io/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/index.html">
   
@@ -370,40 +403,76 @@
     <div class="article-entry marked-body" itemprop="articleBody">
       
         <p>线程池和工作队列是紧密相连的，基本流程就是将任务送入到对应的工作队列中，线程池中的线程从工作队列中取出任务并进行处理。Ceph 为了支持高并发读写，源码设计中大量采用线程池来进行io的推进。Ceph的线程池实现了多种不同的工作队列。一般情况下，一个线程池对应一个类型的工作队列。在要求不高的情况下，也可以一个线程池对应多种类型的工作队列，让线程池处理不同类型的任务。</p>
-<p>mutex的实现<br>src&#x2F;common&#x2F;mutex.h</p>
-<p>condition variable的实现<br>src&#x2F;common&#x2F;cond.h</p>
-<p>线程的实现<br>       Ceph中线程的在src&#x2F;common&#x2F;Thread.h中定义<br>       线程编程接口中，一个线程在创建时调用pthread_create函数来传入entry函数，杀死线程调用pthread_kill函数，当线程被杀死之后，必须调用pthread_join函数来进行线程资源的回收，如果不调用此函数，就会出现类似zombie process。如果要想让系统自己回收线程资源，就要将线程与父线程分离即调用pthread_detach。通过接口对比，src&#x2F;common&#x2F;Thread.h中定义的class thread，实际上是Ceph自己封装了一个线程类，这个线程类其实就是对Linux线程接口的一层封装。</p>
-<p>   Ceph中所有要用的线程必须继承Thread类，通过查找发现如下一些线程：<br>    1. Accepter.h (src\msg)：class Accepter : public Thread  &#x2F;&#x2F;用来socket bind的线程,   accepter线程入口函数里定义了poll的网络通讯结构，用来放入管道<br>    2. Admin_socket.h (src\common)：class AdminSocket : public Thread<br>    3. Ceph_context.cc (src\common)：class CephContextServiceThread : public Thread<br>    4. DispatchQueue.h (src\msg):  class DispatchThread : public Thread   &#x2F;&#x2F;用来进行消息分发的线程，  在simpleMessenger中有dispatch_queue成员变量,<br>    5. FileJournal.h (src\os):  class Writer : public Thread     &#x2F;&#x2F;用来进行写数据到journal中的线程<br>    6. FileJournal.h (src\os):  class WriteFinisher : public Thread   &#x2F;&#x2F;当用aio异步模式写数据到journal完成后，此线程用来接管其他剩余操作<br>    7. FileStore.h (src\os):  struct SyncThread : public Thread    &#x2F;&#x2F;用来同步数据执行同步的线程，主要是将已经完成的journal的序列号写入到文件中<br>    8. Finisher.h (src\common):  struct FinisherThread : public Thread   &#x2F;&#x2F;公用的finisher线程，用来查看某些特定的操作是否结束，结束后进行后续处理工作<br>    9. MDLog.h (src\mds):  class ReplayThread : public Thread<br>    10. OSD.h (src\osd):  struct T_Heartbeat : public Thread   &#x2F;&#x2F;维系osd进程之间互相心跳连接的线程<br>    11. OutputDataSocket.h (src\common):class OutputDataSocket : public Thread<br>    12. Pipe.h (src\msg): class Reader : public Thread   &#x2F;&#x2F;用来处理所有对socket的读操作，由acepter线程将socket accept以后打入到SimpleMessenger::dispatch_queue中交由此线程处理<br>    13. Pipe.h (src\msg): class Writer : public Thread   &#x2F;&#x2F;用来处理所有对socket的写操作，由acepter线程将socket accept以后打入到SimpleMessenger::dispatch_queue中交由此线程处理<br>    14. Pipe.h (src\msg):    class DelayedDelivery: public Thread    &#x2F;&#x2F;用来处理所有对socket的延时操作<br>    15. Signal_handler.cc (src\global)：struct SignalHandler : public Thread<br>    16. SimpleMessenger.h (src\msg):  class ReaperThread : public Thread &#x2F;&#x2F;用来进行消息通信的主要线程 reaper是用来在通讯完成时拆除管道，其中成员有accepter线程（用来bind，accept socket文件放入管道），还有dispatch_queue线程<br>    17. Throttle.cc (src\test\common):  class Thread_get : public Thread<br>    18. Timer.cc (src\common)：class SafeTimerThread : public Thread<br>    19. WorkQueue.h (src\common):  struct WorkThread : public Thread<br>可以将这些线程分为四类线程<br>    1. 普通类线程：<br>           使用此类线程类直接申明继承自Thread，重写一个entry函数，在进程启动最初时，调用了create函数创建了线程，同时使用它的人必须自己定义消息队列。上面大部分线程都是此类，比如FileJournal::write_thread就是一个FileJournal::Writer类对象，它自己定义了消息队列FileJournal::writeq<br>    2. SafeTimerThread类线程:<br>           此类线程使用者可以直接申明一个SafeTimer成员变量，因为SafeTimer中已经封装了SafeTimerThread类和一个消息队列（成员是Context回调类），并完成了entry函数的逻辑流程。使用者使用方法，就是设置回调函数，通过SafeTimer::add_event_after函数将钩子埋入，等待规定时间到达后执行。<br>    3. FinisherThread类线程:<br>            此类线程使用者可以直接申明一个Finisher成员变量，因为Finsher中已经封装了FinisherThread类和一个消息队列（成员是Context回调类），并完成entry函数的逻辑流程。使用者使用方法，就是设置回调函数，通过Finisher::queue函数将钩子埋入，等待某类操作完成后执行。<br>    4. ThreadPool内部线程：<br>            这类线程由于是具体工作类线程，所以他们一般都是以线程池形式一下创建多个。ThreadPool类内部有多个线程set&lt;WorkThread*&gt;和多个消息队列vector&lt;WorkQueue_*&gt;组成。工作流程就是线程不断的轮询从队列中拿去数据进行操作。</p>
-<p>可以看到Ceph线程的所有接口都只是对相应的Linux接口的封装。继承其的子类主要在于实现entry()函数：</p>
-<p>线程池的实现<br>    Ceph中线程池的在src&#x2F;common&#x2F;WorkQueue.h中定义<br>       线程池和工作队列其实是密不可分的，从Ceph的代码中也可以看出来。让任务推入工作队列，而线程池中的线程负责从工作队列中取出任务进行处理。工作队列和线程池的关系，类似于狡兔和走狗的关系，正是因为有任务，所以才需要雇佣线程来完成任务，没有了狡兔，走狗也就失去了存在的意义。而线程必须要可以从工作队列中认领任务并完成，这就类似于猎狗要有追捕狡兔的功能。正因为两个数据结构拥有如此紧密的关系，因此，Ceph中他们的相关函数都位于WorkQueue.cc和WorkQueue.h中。<br>void ThreadPool::start()<br>      函数ThreadPool::start()用来启动线程池，其在加锁的情况下，调用函数start_threads()，start_threads()检查当前的线程数，如果小于配置的线程池线程数，就创建新的工作线程。</p>
-<p>struct WorkThread : public Thread</p>
-<p>ThreadPool::worker()<br>        线程池的关键在于线程的主函数做的事情。首先是工作线程。线程池中会有很多的WorkThread，它的基类就是Thread。线程的主函数为pool-&gt;worker，即ThreadPool::worker函数。其entry函数其实就是调用线程池的worker函数进行具体的工作。<br>       ThreadPool::worker函数内定义了WorkThread类线程的操作逻辑。基本流程就是轮询所有WorkQueue_，当发现某种类型WorkQueue_中有数据时拿出，然后依次调用该WorkQueue_自己定义的函数_void_process和_void_process_finish等函数来顺序执行操作。（worker函数的主要实现其实很常规，就是遍历work_queues，从其中找出每一个消息队列实例，并调用WorkQueue_自己定义的函数_void_process和_void_process_finish等函数来顺序执行操作。）</p>
-<pre><code>   线程池是支持动态调整线程个数的。所谓调整，有两种可能性，一种是线程个数增加，一种线程个数减少。当添加OSD的时候，数据会重分布，恢复的速度可以调节，其中一个重要的参数为osd-max-recovery-threads，该值修改可以实时生效。
-</code></pre>
-<p>ThreadPool::join_old_threads()<br>       线程本身是一个loop，不停地处理WorkQueue中的任务，在一个loop的开头，线程个数是否超出了配置的个数，如果超出了，就需要自杀，所谓自杀即将自身推送到_old_threads中，然后跳出loop，直接返回了。线程池中的其他兄弟在busy-loop开头的join_old_threads函数会判断是否存在自杀的兄弟，如果存在的话，执行join，为兄弟收尸。</p>
-<p>ThreadPool::start_threads()<br>       start_threads函数不仅仅可以用在初始化时启动所有工作线程，而且可以用于动态增加，它会根据配置要求的线程数_num_threads和当前线程池中线程的个数，来创建WorkThread，当然了，他会调整线程的io优先级。</p>
-<p>ThreadPool::handle_conf_change()<br>       线程池的线程个数如果不够用，也可以动态的增加，通过配置的变化来做到：</p>
-<p>ThreadPool::pause()<br>       线程池的工作线程，绝大部分时间内，自然是busy－loop中处理工作队列上的任务，但是有一种场景是，需要让工作暂时停下来，停止工作，不要处理WorkQueue中的任务。线程池提供了一个标志为_pause,只要_pause不等于0，那么线程池中线程就在loop中就不会处理工作队列中的任务，而是空转。为了能够及时的醒来，也不是sleep，而是通过条件等待，等待执行的时间。<br>        当下达pause指令的时候，很可能线程池中的某几个线程正在处理工作队列中的任务，这种情况下并不是立刻就能停下的，只有处理完手头的任务，在下一轮loop中检查_pause标志位才能真正地停下。那么pause指令就面临选择，要不要等工作线程WorkThread处理完手头的任务。pause函数是等，pauser_new函数并不等，pause_new函数只负责设置标志位，当其返回的时候，某几个线程可能仍然在处理工作队列中的任务。</p>
-<p>struct WorkQueue_<br>      在ThreadPool这个类中，set&lt;WorkThread*&gt; _threads保存着线程池中的多个线程，vector&lt;WorkQueue_*&gt; work_queues保存着线程池中的待线程处理的消息队列。整个线程池的原理思想比较简单就是生成一定数目的线程，然后线程从队列中遍历获取队列实例，调用实例自带的处理函数_void_process和_void_process_finish处理。 ThreadPool中的WorkQueue_，这是一种抽象的类，只定义了一个队列应该有的一些特定的函数，这些函数几乎都是虚函数，目的是为了调用到自己三个子类BatchWorkQueue、WorkQueueVal、WorkQueue自己定义的函数。而在三个子类中对应函数_void_process、_void_process_finish中又分别调用了使用者自己继承它们而自己实现的具体操作函数如_process,_process_finish。存放在work_queues里面的WorkQueue_类：</p>
-<p>这是一个纯虚基类，也就是说不同的线程池要实现自己的队列，继承WorkQueues_并且实现其接口。线程池已经有4个纯虚基类继承这个类：<br>    • BatchWorkQueue<br>    批量处理队列</p>
-<pre><code>• WorkQueueVal
-存值队列
-
-• WorkQueue
-存指针队列
-
-• PointerWQ
-存指针队列
-</code></pre>
-<p>add_work_queue()<br>remove_work_queue()<br>ThreadPool中的add_work_queue和remove_work_queue就是用来建立和移除与WorkQueue关联的函数</p>
-<p>TPHandle<br>       超时检查，每次线程函数执行时，都会设置一个grace超时时间，当线程执行超过该时间，就认为是unhealthy的状态。当执行时间超过suicide_grace时，OSD就会产生断言而导致自杀。heartbeat_handle_d记录了相关信息，并把该结构添加到HeartbeatMap的系统链表中保存。OSD会有一个定时器，定时检查是否超时。</p>
-<p>线程池使用步骤<br> 先创建线程池，然后创建WorkQueue的时候，将线程池作为参数传递给WorkQueue，就能建立关系。<br>    1.声明线程池成员ThreadPool <em><em>tp<br>    2.声明队列类型ThreadPool::WorkQueue</em></em>_wq<br>    3.重写WorkQueue中对应函数_void_process,_void_process_finish<br>    4.调用*_tp.add_work_queue(*_wq)将队列传入</p>
-<p>基本线程池扩展<br>在Ceph中有不少线程池会实现继承以上基类：<br>ThreadPool op_tp<br>    处理client请求</p>
-<p>struct recovery_tp<br>    处理recovery_tp操作</p>
-<p>struct command_tp<br>    处理命令行来的操作</p>
-<p>ShardedThreadPool<br>       Ceph还实现了另外一种线程池ShardedThreadPool，这种线程池与上面的线程池不同之处在于这种线程池是多线程共享队列的方式。只有一个队列，多个线程同时对这个队列进行处理。</p>
-<p>SharededWQ<br>shardedThreadPool类型线程池内部有个比较重要的消息队列SharededWQ，该队列将多种OP放入其中</p>
-<p>Ceph 在实际使用中，会用到这种线程池</p>
+<h2 id="mutex的实现"><a href="#mutex的实现" class="headerlink" title="mutex的实现"></a>mutex的实现</h2><p>src&#x2F;common&#x2F;mutex.h<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B01.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B02.png"></p>
+<p>condition variable的实现<br>src&#x2F;common&#x2F;cond.h<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B03.png"></p>
+<p><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B04.png"></p>
+<h2 id="线程的实现"><a href="#线程的实现" class="headerlink" title="线程的实现"></a>线程的实现</h2><p>Ceph中线程的在src&#x2F;common&#x2F;Thread.h中定义<br>线程编程接口中，一个线程在创建时调用pthread_create函数来传入entry函数，杀死线程调用pthread_kill函数，当线程被杀死之后，必须调用pthread_join函数来进行线程资源的回收，如果不调用此函数，就会出现类似zombie process。如果要想让系统自己回收线程资源，就要将线程与父线程分离即调用pthread_detach。通过接口对比，src&#x2F;common&#x2F;Thread.h中定义的class thread，实际上是Ceph自己封装了一个线程类，这个线程类其实就是对Linux线程接口的一层封装。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B05.png"></p>
+<p>Ceph中所有要用的线程必须继承Thread类，通过查找发现如下一些线程：</p>
+<ol>
+<li>Accepter.h (src\msg)：class Accepter : public Thread  &#x2F;&#x2F;用来socket bind的线程,   accepter线程入口函数里定义了poll的网络通讯结构，用来放入管道</li>
+<li>Admin_socket.h (src\common)：class AdminSocket : public Thread</li>
+<li>Ceph_context.cc (src\common)：class CephContextServiceThread : public Thread</li>
+<li>DispatchQueue.h (src\msg):  class DispatchThread : public Thread   &#x2F;&#x2F;用来进行消息分发的线程，  在simpleMessenger中有dispatch_queue成员变量,</li>
+<li>FileJournal.h (src\os):  class Writer : public Thread     &#x2F;&#x2F;用来进行写数据到journal中的线程</li>
+<li>FileJournal.h (src\os):  class WriteFinisher : public Thread   &#x2F;&#x2F;当用aio异步模式写数据到journal完成后，此线程用来接管其他剩余操作</li>
+<li>FileStore.h (src\os):  struct SyncThread : public Thread    &#x2F;&#x2F;用来同步数据执行同步的线程，主要是将已经完成的journal的序列号写入到文件中</li>
+<li>Finisher.h (src\common):  struct FinisherThread : public Thread   &#x2F;&#x2F;公用的finisher线程，用来查看某些特定的操作是否结束，结束后进行后续处理工作</li>
+<li>MDLog.h (src\mds):  class ReplayThread : public Thread </li>
+<li>OSD.h (src\osd):  struct T_Heartbeat : public Thread   &#x2F;&#x2F;维系osd进程之间互相心跳连接的线程</li>
+<li>OutputDataSocket.h (src\common):class OutputDataSocket : public Thread</li>
+<li>Pipe.h (src\msg): class Reader : public Thread   &#x2F;&#x2F;用来处理所有对socket的读操作，由acepter线程将socket accept以后打入到SimpleMessenger::dispatch_queue中交由此线程处理</li>
+<li>Pipe.h (src\msg): class Writer : public Thread   &#x2F;&#x2F;用来处理所有对socket的写操作，由acepter线程将socket accept以后打入到SimpleMessenger::dispatch_queue中交由此线程处理</li>
+<li>Pipe.h (src\msg):    class DelayedDelivery: public Thread    &#x2F;&#x2F;用来处理所有对socket的延时操作</li>
+<li>Signal_handler.cc (src\global)：struct SignalHandler : public Thread </li>
+<li>SimpleMessenger.h (src\msg):  class ReaperThread : public Thread &#x2F;&#x2F;用来进行消息通信的主要线程 reaper是用来在通讯完成时拆除管道，其中成员有accepter线程（用来bind，accept socket文件放入管道），还有dispatch_queue线程</li>
+<li>Throttle.cc (src\test\common):  class Thread_get : public Thread </li>
+<li>Timer.cc (src\common)：class SafeTimerThread : public Thread </li>
+<li>WorkQueue.h (src\common):  struct WorkThread : public Thread</li>
+</ol>
+<p>可以将这些线程分为四类线程</p>
+<ol>
+<li>普通类线程：<br> 使用此类线程类直接申明继承自Thread，重写一个entry函数，在进程启动最初时，调用了create函数创建了线程，同时使用它的人必须自己定义消息队列。上面大部分线程都是此类，比如FileJournal::write_thread就是一个FileJournal::Writer类对象，它自己定义了消息队列FileJournal::writeq</li>
+<li>SafeTimerThread类线程:<br> 此类线程使用者可以直接申明一个SafeTimer成员变量，因为SafeTimer中已经封装了SafeTimerThread类和一个消息队列（成员是Context回调类），并完成了entry函数的逻辑流程。使用者使用方法，就是设置回调函数，通过SafeTimer::add_event_after函数将钩子埋入，等待规定时间到达后执行。</li>
+<li>FinisherThread类线程:<br> 此类线程使用者可以直接申明一个Finisher成员变量，因为Finsher中已经封装了FinisherThread类和一个消息队列（成员是Context回调类），并完成entry函数的逻辑流程。使用者使用方法，就是设置回调函数，通过Finisher::queue函数将钩子埋入，等待某类操作完成后执行。</li>
+<li>ThreadPool内部线程：<br> 这类线程由于是具体工作类线程，所以他们一般都是以线程池形式一下创建多个。ThreadPool类内部有多个线程set&lt;WorkThread*&gt;和多个消息队列vector&lt;WorkQueue_*&gt;组成。工作流程就是线程不断的轮询从队列中拿去数据进行操作。</li>
+</ol>
+<p>可以看到Ceph线程的所有接口都只是对相应的Linux接口的封装。继承其的子类主要在于实现entry()函数：<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B06.png"></p>
+<p><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B07.png"></p>
+<p><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B08.png"></p>
+<h2 id="线程池的实现"><a href="#线程池的实现" class="headerlink" title="线程池的实现"></a>线程池的实现</h2><p>Ceph中线程池的在src&#x2F;common&#x2F;WorkQueue.h中定义<br>线程池和工作队列其实是密不可分的，从Ceph的代码中也可以看出来。让任务推入工作队列，而线程池中的线程负责从工作队列中取出任务进行处理。工作队列和线程池的关系，类似于狡兔和走狗的关系，正是因为有任务，所以才需要雇佣线程来完成任务，没有了狡兔，走狗也就失去了存在的意义。而线程必须要可以从工作队列中认领任务并完成，这就类似于猎狗要有追捕狡兔的功能。正因为两个数据结构拥有如此紧密的关系，因此，Ceph中他们的相关函数都位于WorkQueue.cc和WorkQueue.h中。</p>
+<p><strong>void ThreadPool::start()</strong><br>函数ThreadPool::start()用来启动线程池，其在加锁的情况下，调用函数start_threads()，start_threads()检查当前的线程数，如果小于配置的线程池线程数，就创建新的工作线程。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B09.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B010.png"></p>
+<p><strong>struct WorkThread : public Thread</strong><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B011.png"></p>
+<p><strong>ThreadPool::worker()</strong><br>线程池的关键在于线程的主函数做的事情。首先是工作线程。线程池中会有很多的WorkThread，它的基类就是Thread。线程的主函数为pool-&gt;worker，即ThreadPool::worker函数。其entry函数其实就是调用线程池的worker函数进行具体的工作。</p>
+<p>ThreadPool::worker函数内定义了WorkThread类线程的操作逻辑。基本流程就是轮询所有WorkQueue_，当发现某种类型WorkQueue_中有数据时拿出，然后依次调用该WorkQueue_自己定义的函数_void_process和_void_process_finish等函数来顺序执行操作。（worker函数的主要实现其实很常规，就是遍历work_queues，从其中找出每一个消息队列实例，并调用WorkQueue_自己定义的函数_void_process和_void_process_finish等函数来顺序执行操作。）<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B012.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B013.png"></p>
+<p>线程池是支持动态调整线程个数的。所谓调整，有两种可能性，一种是线程个数增加，一种线程个数减少。当添加OSD的时候，数据会重分布，恢复的速度可以调节，其中一个重要的参数为osd-max-recovery-threads，该值修改可以实时生效。</p>
+<p><strong>ThreadPool::join_old_threads()</strong><br>线程本身是一个loop，不停地处理WorkQueue中的任务，在一个loop的开头，线程个数是否超出了配置的个数，如果超出了，就需要自杀，所谓自杀即将自身推送到_old_threads中，然后跳出loop，直接返回了。线程池中的其他兄弟在busy-loop开头的join_old_threads函数会判断是否存在自杀的兄弟，如果存在的话，执行join，为兄弟收尸。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B014.png"></p>
+<p><strong>ThreadPool::start_threads()</strong><br>start_threads函数不仅仅可以用在初始化时启动所有工作线程，而且可以用于动态增加，它会根据配置要求的线程数_num_threads和当前线程池中线程的个数，来创建WorkThread，当然了，他会调整线程的io优先级。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B015.png"></p>
+<p><strong>ThreadPool::handle_conf_change()</strong><br>线程池的线程个数如果不够用，也可以动态的增加，通过配置的变化来做到：<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B016.png"></p>
+<p><strong>ThreadPool::pause()</strong><br>线程池的工作线程，绝大部分时间内，自然是busy－loop中处理工作队列上的任务，但是有一种场景是，需要让工作暂时停下来，停止工作，不要处理WorkQueue中的任务。线程池提供了一个标志为_pause,只要_pause不等于0，那么线程池中线程就在loop中就不会处理工作队列中的任务，而是空转。为了能够及时的醒来，也不是sleep，而是通过条件等待，等待执行的时间。</p>
+<p>当下达pause指令的时候，很可能线程池中的某几个线程正在处理工作队列中的任务，这种情况下并不是立刻就能停下的，只有处理完手头的任务，在下一轮loop中检查_pause标志位才能真正地停下。那么pause指令就面临选择，要不要等工作线程WorkThread处理完手头的任务。pause函数是等，pauser_new函数并不等，pause_new函数只负责设置标志位，当其返回的时候，某几个线程可能仍然在处理工作队列中的任务。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B017.png"></p>
+<p><strong>struct WorkQueue_</strong><br>在ThreadPool这个类中，set&lt;WorkThread*&gt; _threads保存着线程池中的多个线程，vector&lt;WorkQueue_*&gt; work_queues保存着线程池中的待线程处理的消息队列。整个线程池的原理思想比较简单就是生成一定数目的线程，然后线程从队列中遍历获取队列实例，调用实例自带的处理函数_void_process和_void_process_finish处理。 ThreadPool中的WorkQueue_，这是一种抽象的类，只定义了一个队列应该有的一些特定的函数，这些函数几乎都是虚函数，目的是为了调用到自己三个子类BatchWorkQueue、WorkQueueVal、WorkQueue自己定义的函数。而在三个子类中对应函数_void_process、_void_process_finish中又分别调用了使用者自己继承它们而自己实现的具体操作函数如_process,_process_finish。存放在work_queues里面的WorkQueue_类：<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B018.png"></p>
+<p>这是一个纯虚基类，也就是说不同的线程池要实现自己的队列，继承WorkQueues_并且实现其接口。线程池已经有4个纯虚基类继承这个类：</p>
+<ul>
+<li>BatchWorkQueue<br>  批量处理队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B019.png"></li>
+<li>WorkQueueVal<br>  存值队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B020.png"></li>
+<li>WorkQueue<br>  存指针队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B021.png"></li>
+<li>PointerWQ<br>  存指针队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B022.png"></li>
+</ul>
+<p><strong>add_work_queue()&#x2F;remove_work_queue()</strong><br>ThreadPool中的add_work_queue和remove_work_queue就是用来建立和移除与WorkQueue关联的函数<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B023.png"></p>
+<p><strong>TPHandle</strong><br>超时检查，每次线程函数执行时，都会设置一个grace超时时间，当线程执行超过该时间，就认为是unhealthy的状态。当执行时间超过suicide_grace时，OSD就会产生断言而导致自杀。heartbeat_handle_d记录了相关信息，并把该结构添加到HeartbeatMap的系统链表中保存。OSD会有一个定时器，定时检查是否超时。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B024.png"></p>
+<p>线程池使用步骤<br>先创建线程池，然后创建WorkQueue的时候，将线程池作为参数传递给WorkQueue，就能建立关系。</p>
+<ol>
+<li>声明线程池成员ThreadPool *_tp</li>
+<li>声明队列类型ThreadPool::WorkQueue_*_wq</li>
+<li>重写WorkQueue中对应函数_void_process,_void_process_finish</li>
+<li>调用*_tp.add_work_queue(*_wq)将队列传入</li>
+</ol>
+<h2 id="基本线程池扩展"><a href="#基本线程池扩展" class="headerlink" title="基本线程池扩展"></a>基本线程池扩展</h2><p>在Ceph中有不少线程池会实现继承以上基类：<br>ThreadPool op_tp: 处理client请求<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B025.png"></p>
+<p>struct recovery_tp: 处理recovery_tp操作<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B026.png"></p>
+<p>struct command_tp: 处理命令行来的操作<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B027.png"></p>
+<p>ShardedThreadPool: Ceph还实现了另外一种线程池ShardedThreadPool，这种线程池与上面的线程池不同之处在于这种线程池是多线程共享队列的方式。只有一个队列，多个线程同时对这个队列进行处理。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B028.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B029.png"></p>
+<p>SharededWQ: shardedThreadPool类型线程池内部有个比较重要的消息队列SharededWQ，该队列将多种OP放入其中<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B030.png"></p>
+<p>Ceph 在实际使用中，会用到这种线程池<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B031.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B032.png"></p>
 
       
     </div>
