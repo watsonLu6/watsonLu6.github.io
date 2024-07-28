@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph_Cache-Tier源码实现 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Cache Tier架构Ceph存储集群如果采用廉价的PC和传统的机械硬盘进行搭建，磁盘的访问速度受到了一定的限制，无法达到理想的IOPS性能水平。为了优化系统的IO性能，可以考虑添加快速的存储设备作为缓存，以减少数据的访问延时。其中，Cache Tier分层存储机制是一种常见的解决方案，在Ceph服务端缓存中被广泛使用，可以有效提升后端存储层的I&#x2F;O性能。Cache Tier需要创建一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph_Cache-Tier源码实现">
+<meta property="og:url" content="https://watsonlu6.github.io/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="Cache Tier架构Ceph存储集群如果采用廉价的PC和传统的机械硬盘进行搭建，磁盘的访问速度受到了一定的限制，无法达到理想的IOPS性能水平。为了优化系统的IO性能，可以考虑添加快速的存储设备作为缓存，以减少数据的访问延时。其中，Cache Tier分层存储机制是一种常见的解决方案，在Ceph服务端缓存中被广泛使用，可以有效提升后端存储层的I&#x2F;O性能。Cache Tier需要创建一">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B01.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B02.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B03.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B04.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B05.jpg">
+<meta property="article:published_time" content="2024-07-28T12:45:54.000Z">
+<meta property="article:modified_time" content="2024-07-28T13:14:58.491Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">13</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">3</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.5px;">Ceph</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">七月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">四月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" class="title">Ceph_Cache-Tier源码实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-07-28T12:45:54.000Z" itemprop="datePublished">2024-07-28</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/" class="title">缓存基础与Ceph分层存储</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-28T11:59:00.000Z" itemprop="datePublished">2022-04-28</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/" class="title">Ceph线程池实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-08-27T14:26:42.000Z" itemprop="datePublished">2021-08-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B0/" class="title">Ceph_rbd客户端实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-08-15T14:26:55.000Z" itemprop="datePublished">2021-08-15</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/" class="title">Ceph_crush算法实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-08-02T14:26:17.000Z" itemprop="datePublished">2021-08-02</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Ceph-Cache-Tier源码实现" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph_Cache-Tier源码实现
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" class="article-date">
+	  <time datetime="2024-07-28T12:45:54.000Z" itemprop="datePublished">2024-07-28</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="Cache-Tier架构"><a href="#Cache-Tier架构" class="headerlink" title="Cache Tier架构"></a>Cache Tier架构</h2><p>Ceph存储集群如果采用廉价的PC和传统的机械硬盘进行搭建，磁盘的访问速度受到了一定的限制，无法达到理想的IOPS性能水平。为了优化系统的IO性能，可以考虑添加快速的存储设备作为缓存，以减少数据的访问延时。其中，Cache Tier分层存储机制是一种常见的解决方案，在Ceph服务端缓存中被广泛使用，可以有效提升后端存储层的I&#x2F;O性能。Cache Tier需要创建一个由高速且昂贵的存储设备（如SSD）组成的存储池作为缓存层，以及一个相对廉价的设备组成的后端存储池作为经济存储层。缓存层使用多副本模式，存储层可以使用多副本或纠删码模式。<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0.png" alt="Cache Tier"><br>Ceph的缓存分层理论基础是数据存在热点，数据访问不均匀。通常，80%的应用只访问20%的数据，这20%的数据被称为热点数据。为了减少响应时间，可以将热点数据保存到性能较高的存储设备（如固态硬盘）中。在Cache Tiering中，有一个分层代理，当保存在缓存层的数据变冷或不再活跃时，该代理会将这些数据刷到存储层，并将其从缓存层中移除。这种操作称为刷新或逐出。在客户端读写数据时，Ceph的对象处理器负责决定对象存储的位置，而Cache Tier则决定何时将缓存层中的对象刷回后端存储层。对于写操作，请求到达缓存层后，完成写操作后直接应答客户端，之后由缓存层的代理线程负责将数据写入存储层。对于读操作，如果命中缓存层，直接在缓存层读取，否则可以重定向到存储层访问。如果数据近期有访问过，说明比较热，可以提升到缓存层中。对于Ceph客户端来说，缓存层和后端存储层是完全透明的。所有Ceph客户端都可以使用缓存层，因此Cache Tier具有提升块设备、Ceph对象存储、Ceph文件系统和原生绑定的I&#x2F;O性能的潜力。</p>
+<h4 id="Cache-Tier数据结构"><a href="#Cache-Tier数据结构" class="headerlink" title="Cache Tier数据结构"></a>Cache Tier数据结构</h4><p>由于 Tier cache 在 Ceph 中的存在形式是存储池，pg_pool_t保存了存储池的相关属性。(src&#x2F;osd&#x2F;osd_type.h&#x2F;struct pg_pool_t)</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">set&lt;<span class="type">uint64_t</span>&gt; tiers;   <span class="comment">//如果当前pool是一个basePool，tiers就记录改basepool的cachePool层，一个base pool可以设置多个cachePool</span></span><br><span class="line"><span class="type">int64_t</span> tier_of;            <span class="comment">//如果当前pool是一个cachePool，那么tier_of记录了该cachePool的basePool</span></span><br><span class="line"><span class="type">int64_t</span> read_tier;       <span class="comment">//设置basePool的读缓存层，根据Ceph不同的Cache Tier模式来设置</span></span><br><span class="line"><span class="type">int64_t</span> write_tier;      <span class="comment">//设置basePool的写缓存层，根据Ceph不同的Cache Tier模式来设置</span></span><br><span class="line"><span class="type">cache_mode_t</span> cache_mode;  <span class="comment">//设置Cache Tier模式</span></span><br><span class="line"><span class="type">uint64_t</span> target_max_bytes;   <span class="comment">//设置了cachePool的最大字节数</span></span><br><span class="line"><span class="type">uint64_t</span> target_max_objects; <span class="comment">//设置了cachePool的最大对象数量</span></span><br><span class="line"><span class="type">uint32_t</span> cache_target_dirty_ratio_micro;   <span class="comment">// 目标脏数据率：当脏数据比例达到这个值，后台 agent 开始 flush 数据</span></span><br><span class="line"><span class="type">uint32_t</span> cache_target_dirty_high_ratio_micro;   <span class="comment">// 高目标脏数据率：当脏数据比例达到这个值，后台 agent 开始高速 flush 数据</span></span><br><span class="line"><span class="type">uint32_t</span> cache_target_full_ratio_micro;   <span class="comment">// 数据满的比率：当数据达到这个比例时，认为数据已满，需要进行缓存淘汰</span></span><br><span class="line"><span class="type">uint32_t</span> cache_min_flush_age;      <span class="comment">// 对象在 cache 中被刷入到 storage 层的最小时间</span></span><br><span class="line"><span class="type">uint32_t</span> cache_min_evict_age;   <span class="comment">// 对象在 cache 中被淘汰的最小时间</span></span><br><span class="line">HitSet::Params hit_set_params; <span class="comment">// HitSet 相关参数</span></span><br><span class="line"><span class="type">uint32_t</span> hit_set_period;     <span class="comment">// 每间隔 hit_set_period 一段时间，系统重新产生一个新的 hit_set 对象来记录对象的缓存统计信息</span></span><br><span class="line"><span class="type">uint32_t</span> hit_set_count;      <span class="comment">// 记录系统保存最近的多少个 hit_set 记录</span></span><br><span class="line"><span class="type">bool</span> use_gmt_hitset;        <span class="comment">// hitset archive 对象的命名规则 </span></span><br><span class="line"><span class="type">uint32_t</span> hit_set_grade_decay_rate;    <span class="comment">//当前hit_set在对象温度计数上具有最高优先级，后续hit_set的优先级比预hit_set衰减此参数</span></span><br><span class="line"><span class="type">uint32_t</span> hit_set_search_last_n;      <span class="comment">//为温度累积，最多N次hit_sets</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="读写IO"><a href="#读写IO" class="headerlink" title="读写IO"></a>读写IO</h4><p><strong>Add Cache</strong><br>在 ceph&#x2F;src&#x2F;mon&#x2F;OSDMonitor.cc 中实现了 add-cache 命令，从命令行中获取对应的参数并绑定 Tier 关系</p>
+<p><strong>选择 Cache Pool</strong><br>Cache Tier的应用主要体现在计算OSD的过程中，通过判断basepool的参数，来决定是否要更新targetpool：读操作时，如果有read_tier，则更新为read_tier pool；写操作时，如果有write_tier，则更新为write_tier pool。read_tier和write_tier与pool是否开启Cache Tier有关。</p>
+<p>在 ceph&#x2F;src&#x2F;osdc&#x2F;Objecter.cc&#x2F;Objecter::_calc_target中指定目标存储池为 Cache Pool，设置之后由后续的代码在该 Pool 中执行 Crush 算法。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//首先根据base_oloc.pool获取pool信息，获取pg_pool_t对象   </span></span><br><span class="line"><span class="type">const</span> <span class="type">pg_pool_t</span> *pi = osdmap-&gt;<span class="built_in">get_pg_pool</span>(t-&gt;base_oloc.pool);</span><br><span class="line"><span class="comment">// apply tiering 根据读写操作，分别设置需要操作的 tier</span></span><br><span class="line">t-&gt;target_oid = t-&gt;base_oid;         #base_oid        <span class="comment">//读取的对象              #target_oid;          //最终读取的目标对象</span></span><br><span class="line">t-&gt;target_oloc = t-&gt;base_oloc;     #base_oloc       <span class="comment">//对象的pool信息      #//target_oloc      //最终目标对象的pool信息</span></span><br><span class="line"><span class="keyword">if</span> ((t-&gt;flags &amp; CEPH_OSD_FLAG_IGNORE_OVERLAY) == <span class="number">0</span>) &#123;</span><br><span class="line"><span class="comment">//检查cache tier，如果是读操作，并且有读缓存，就设置t-&gt;target_oloc.pool为该pool的read_tier值。</span></span><br><span class="line"><span class="keyword">if</span> (is_read &amp;&amp; pi-&gt;<span class="built_in">has_read_tier</span>())</span><br><span class="line">    t-&gt;target_oloc.pool = pi-&gt;read_tier;</span><br><span class="line">    <span class="comment">//如果是写操作，并且有写缓存，就设置t-&gt;target_oloc.pool为该pool的write_tier值。</span></span><br><span class="line"><span class="keyword">if</span> (is_write &amp;&amp; pi-&gt;<span class="built_in">has_write_tier</span>())</span><br><span class="line">        t-&gt;target_oloc.pool = pi-&gt;write_tier;</span><br><span class="line">pi = osdmap-&gt;<span class="built_in">get_pg_pool</span>(t-&gt;target_oloc.pool);</span><br><span class="line"><span class="keyword">if</span> (!pi) &#123;</span><br><span class="line">    t-&gt;osd = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">return</span> RECALC_OP_TARGET_POOL_DNE;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>osd 先接收到客户端发送来的请求，然后OSD::dequeue_op()调用 PrimaryLogPG:: do_request()——&gt;PrimaryLogPG::do_op()中处理，这都是正常的一个 pool 处理请求的流程，在 do_op 中来看看不同于其他普通 pool 的处理。如果开启了Cache Tier，将会在do_op中执行以下操作：</p>
+<ol>
+<li>首先判断hit_set中是否包含待操作的对象（hit_set-&gt;contains(obc-&gt;obs.oi.soid)），如果不包含，则把对象添加到hit_set中。添加对象后，如果hit_set满了，或者hit_set超时，则调用hit_set_persist()。</li>
+<li>执行agent_choose_mode()，设置agent相关参数，如flush_mode、num_objects、num_bytes等。</li>
+<li>执行maybe_handle_cache()。这里处理cache执行逻辑。</li>
+<li>如果maybe_handle_cache()中调用maybe_handle_cache_detail()，如果成功处理了op请求，则直接return，否则会继续执行后续操作（说明不需要从datapool读取数据或者转发请求到datapool，可以直接在此osd命中查询的对象），由本OSD执行读取操作。<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B01.png" alt="Cache Tier"></li>
+</ol>
+<h4 id="HitSet"><a href="#HitSet" class="headerlink" title="HitSet"></a>HitSet</h4><p>在 write back&#x2F;read forward&#x2F;read proxy 模式下需要 HitSet 来记录缓存命中。</p>
+<p>HitSet 用于跟踪和统计对象的访问行为，记录对象是否存在缓存中。定义了一个缓存查找到抽象接口，目前提供了三种实现方式：ExplicitHashHitSet，ExplicitObjectHitSet，BloomHitSet</p>
+<p>ceph&#x2F;src&#x2F;osd&#x2F;HitSet.h 定义了抽象接口，同时该头文件中包含了具体的 HitSet 实现</p>
+<ul>
+<li><strong>ExplicitHashHitSet</strong><ul>
+<li>ceph&#x2F;src&#x2F;osd&#x2F;HitSet.h&#x2F;class ExplicitHashHitSet</li>
+<li>基于对象的 32 位 HASH 值的 set 来记录对象的命中，每个对象占用 4 bytes 内存空间</li>
+<li>优点：空间占用相对较少，但需要根据 HASH 进行全局的扫描遍历比较</li>
+</ul>
+</li>
+<li><strong>ExplicitObjectHitSet</strong><ul>
+<li>ceph&#x2F;src&#x2F;osd&#x2F;HitSet.h&#x2F;class ExplicitObjectHitSet</li>
+<li>使用一个基于 ceph&#x2F;src&#x2F;common&#x2F;hobject 的 set 来记录对象的命中，占用的内存取决于对象的关键信息的大小</li>
+<li>使用内存中缓存数据结构来进行判断带来的优点就是实现相对简单直观，但占用的内存空间相对较大</li>
+</ul>
+</li>
+<li><strong>BloomHitSet</strong><ul>
+<li>ceph&#x2F;src&#x2F;osd&#x2F;HitSet.h&#x2F;class BloomHitSet</li>
+<li>采用了压缩的 Bloom Filter 的方式来记录对象是否在缓存中，进一步减少了内存占用空间</li>
+</ul>
+</li>
+</ul>
+<h3 id="Cache-Tier的初始化"><a href="#Cache-Tier的初始化" class="headerlink" title="Cache Tier的初始化"></a>Cache Tier的初始化</h3><ul>
+<li>src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::hit_set_setup()用来创建并初始化HisSet对象</li>
+<li>src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::agent_setup()完成agent相关的初始化工作</li>
+</ul>
+<h2 id="Cache-Pool-请求处理"><a href="#Cache-Pool-请求处理" class="headerlink" title="Cache Pool 请求处理"></a>Cache Pool 请求处理</h2><p>Cache 的相关请求处理可以通过do_op()进行梳理，主要包含了 agent_choose_mode()和 maybe_handle_cache() 两个主要方法。(src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;do_op(OpRequestRef &amp;))</p>
+<p><strong>agent_choose_mode(bool restart, OpRequestRef op)</strong></p>
+<ul>
+<li>src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;agent_choose_mode</li>
+<li>该函数主要计算一个 PG 的 flush_mode 和 evic_mode 的参数值。</li>
+<li>返回值如果为 True，表明该请求 Op 被重新加入请求队列（由于 EvictMode 为 Full），其他情况返回 false。</li>
+</ul>
+<p><strong>maybe_handle_cache(…)</strong></p>
+<ul>
+<li>src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;maybe_handle_cache()调用maybe_handle_cache_detail(）</li>
+<li>处理有关cache的读写请求</li>
+</ul>
+<p>图解maybe_handle_cache_detail()缓存策略<br>将以上缓存策略的处理流程转换为流程图如下所示（注：流程细节随着Ceph版本的迭代已经有锁改变，此处重点关注最终的调用）<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B02.png" alt="Cache Tier"><br>针对其中涉及到的几个封装好的方法的操作： do_cache_redirect， do_proxy_read， do_proxy_write，promote_object<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B03.png" alt="Cache Tier"></p>
+<ul>
+<li><strong>do_cache_redirect</strong> ：客户端请求cache pool，cache pool告诉客户端你应该去base pool中请求，客户端收到应答后，再次发送请求到base pool中请求数据，由base pool告诉客户端请求完成。</li>
+<li><strong>do_proxy_read</strong>：客户端发送读请求到cache pool，但是未命中，则cache pool自己会发送请求到base pool中，获取数据后，由cache pool将数据发送给客户端，完成读请求。但是值得注意的是，虽然cache pool读取到了该object，但不会保存在cache pool中，下次请求仍然需要调用函数promote_objectbasePool读取该对象请求，然后写入cachePool中。</li>
+<li><strong>do_proxy_write</strong>：直接写数据到basePool中，同样，cachePool中并没有该数据对象，还需要后续调用promote_object函数把数据对象从basePool中读到cachePool中。</li>
+<li><strong>promote_object</strong>：当客户端发送请求到cache pool中，但是cache pool未命中，cache pool会选择将该object从base pool中提升到cache pool中，然后在cache pool进行读写操作，操作完成后告知客户端请求完成，在cache pool会缓存该object，下次直接在cache中处理，和proxy_read存在的区别。构造PromoteCallback回调函数，然后调用函数start_copyk拷贝函数。</li>
+</ul>
+<p>无论是 Proxy Read 还是 Promote Object 操作最终都是调用了 objecter 的 read 方法来从base storage层读取对象数据</p>
+<h4 id="Cache-flush-evict"><a href="#Cache-flush-evict" class="headerlink" title="Cache flush &amp; evict"></a>Cache flush &amp; evict</h4><p>cachePool空间不够时，需要选择一些脏数据对象会刷到数据层，即flush操作；将一些clean对象从缓存层剔除，以释放更多的缓存空间，即evict操作。这两种操作都是在后台线程完成的。<strong>flush操作和evict操作算法的好坏决定了Cache Tier的缓存命中率</strong>。evict是针对cachepool中已经过期或过冷的数据，只需要把它从cachepool中删除即可，evict操作通常会影响缓存命中率。flush是把脏数据刷新到storagePool，flush操作通常不会直接影响缓存命中率。flush操作是将缓存中的数据写回到持久存储介质中，从而保证数据的一致性，但并不会直接影响缓存的访问，脏数据是只保存在cachePool中，经过修改后，还未写入storagePool的数据。</p>
+<p><strong>数据结构</strong><br>src&#x2F;osd&#x2F;osd.h&#x2F;OSDServices ：定义了 AgentThread 后台线程，用于完成 flush 和 evict 操作：一是把脏对象从cachePool层适时地会刷到basePool层；二是从cachePool层剔除掉一些不经常访问的clean对象。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Mutex agent_lock;     <span class="comment">// agent 线程锁，保护下面所有数据结构</span></span><br><span class="line">Cond agent_cond;     <span class="comment">// 线程相应的条件变量</span></span><br><span class="line">map&lt;<span class="type">uint64_t</span>, set&lt;PGRef&gt; &gt; agent_queue;   <span class="comment">// agent线程的工作队列，保存了OSD中所有归属于cachePool的淘汰或者回刷所需的 PG 集合，根据PG集合的优先级，保存在不同的map中</span></span><br><span class="line">set&lt;PGRef&gt;::iterator agent_queue_pos;   <span class="comment">//当前在扫描的PG集合的一个位置</span></span><br><span class="line"><span class="type">bool</span> agent_valid_iterator;  <span class="comment">//只有agent_valid_iterator为true时，agent_queue_pos指针才有效，否则从集合的起始处开始扫描</span></span><br><span class="line"><span class="type">int</span> agent_ops;            <span class="comment">// 所有正在进行的回刷和淘汰操作</span></span><br><span class="line"><span class="type">int</span> flush_mode_high_count;      <span class="comment">//一旦FLUSH_MODE_HIGH有了一个pg，就可以高速刷新对象</span></span><br><span class="line">set&lt;<span class="type">hobject_t</span>&gt; agent_oids;    <span class="comment">// 所有正在进行的 agent 操作（回刷或者淘汰）的对象</span></span><br><span class="line"><span class="type">bool</span> agent_active;    <span class="comment">// agent 是否有效</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">AgentThread</span> : <span class="keyword">public</span> Thread&#123;&#125; agent_thread;    <span class="comment">// agent 线程，专门用来处理cache tier数据迁移的线程，线程名叫：osd_srv_agent。其作用就是循环遍历agent_queue中的所有pg，并对他们执行agent_work()操作。osd_srv_agent线程是一个OSD上所有PG公用的，为了保证效率，设置了严格的限流参数：osd_pool_default_cache_max_evict_check_size限制依次遍历对象的总数，达到后立刻切换退出循环在osd_srv_agent中切换PG；osd_agent_max_ops设置了一个循环中最多能够处理几次flush或者evict操作。</span></span><br><span class="line"></span><br><span class="line"><span class="type">bool</span> agent_stop_flag;   <span class="comment">// agent 停止的标志</span></span><br><span class="line">    SafeTimer agent_timer;   <span class="comment">//agent相关定时器：当扫描一个 PG 对象时，该对象既没有剔除操作，也没有回刷操作，就停止 PG 的扫描，把该 PG 加入到定时器中，5S 后继续</span></span><br></pre></td></tr></table></figure>
+<p>src&#x2F;osd&#x2F;TierAgentState.h：TierAgentState用来保存PG相关的agent信息。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">hobject_t</span> position;    <span class="comment">//PG内扫描的对象位置</span></span><br><span class="line"><span class="type">int</span> started;    <span class="comment">//PG里所有对象扫描完成后，所发起的所有的agent操作数目。如果没有agent操作，就需要延迟一段时间</span></span><br><span class="line"><span class="type">hobject_t</span> start;    <span class="comment">//本次扫描起始位置</span></span><br><span class="line"><span class="type">bool</span> delaying;    <span class="comment">//是否延迟</span></span><br><span class="line"><span class="type">pow2_hist_t</span> temp_hist;   <span class="comment">//历史统计信息</span></span><br><span class="line"><span class="type">int</span> hist_age;</span><br><span class="line">map&lt;<span class="type">time_t</span>,HitSetRef&gt; hit_set_map;   <span class="comment">//Hitset的历史记录</span></span><br><span class="line">list&lt;<span class="type">hobject_t</span>&gt; recent_clean;   <span class="comment">//最近处于clean的对象</span></span><br><span class="line"><span class="type">unsigned</span> evict_effort;      <span class="comment">//应该驱逐的对象的大致比例（假设它们均匀分布）</span></span><br></pre></td></tr></table></figure>
+<h4 id="flush-evict-执行入口"><a href="#flush-evict-执行入口" class="headerlink" title="flush&#x2F;evict 执行入口"></a>flush&#x2F;evict 执行入口</h4><p>src&#x2F;osd&#x2F;osd.cc&#x2F;OSDService::agent_entry：agent_entry 是 agent_thread 的入口函数，它在后台调用pg-&gt;agent_work()，agent_queue的改变是在PrimaryLogPG::agent_choose_mode函数中改变的</p>
+<p>src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::agent_work：遍历PG中所有对象，去寻找已经过期的、失效的需要flush或者evict的对象并对它们执行相应操作。</p>
+<ol>
+<li><p>扫描本PG的对象，从 agent_state-&gt;position 开始扫描，结果保存在 ls 中</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;<span class="type">hobject_t</span>&gt; ls;</span><br><span class="line"><span class="type">int</span> r = pgbackend-&gt;<span class="built_in">objects_list_partial</span>(agent_state-&gt;position, ls_min, ls_max, &amp;ls, &amp;next); </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>对扫描的 ls 对象做相应的检查，执行 evict 操作和 flush 操作</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (vector&lt;<span class="type">hobject_t</span>&gt;::iterator p = ls.<span class="built_in">begin</span>();p != ls.<span class="built_in">end</span>(); ++p)     </span><br><span class="line"><span class="keyword">if</span> (agent_state-&gt;evict_mode != TierAgentState::EVICT_MODE_IDLE &amp;&amp; <span class="built_in">agent_maybe_evict</span>(obc, <span class="literal">false</span>))</span><br><span class="line">    ++started;</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (agent_state-&gt;flush_mode!=TierAgentState::FLUSH_MODE_IDLE&amp;&amp;agent_flush_quota&gt;<span class="number">0</span>&amp;&amp;<span class="built_in">agent_maybe_flush</span>(obc)) &#123;</span><br><span class="line">    ++started;</span><br><span class="line">    --agent_flush_quota;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>真正执行操作的方法</p>
+<ul>
+<li><strong>evict</strong>：src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::agent_maybe_evict</li>
+<li><strong>flush</strong>：src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::agent_maybe_flush</li>
+<li><strong>start_flush</strong>：src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::start_flush 该函数完成实际的 flush 操作</li>
+<li><strong>start_manifest_flush</strong>：src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::start_manifest_flush  真正刷回数据之前的数据准备</li>
+<li><strong>do_manifest_flush</strong>：src&#x2F;osd&#x2F;PrimaryLogPG.cc&#x2F;PrimaryLogPG::do_manifest_flush 真正刷回数据的过程</li>
+</ul>
+<p>flush 操作最终是以 Op 请求的方式传递到底层存储层的，也就意味着需要再执行一次 Ceph 存储池写数据的相关逻辑。<br>Ceph的Cache Tier功能目前在对象访问频率和热点统计上的实现都比较简单，可以通过基于自学习的Cache算法提升缓存命中率。</p>
+<p><strong>agent_state在每个函数中都起到决定性地位</strong>：在agent_work中，agent_state-&gt;evict_mode和agent_state-&gt;flush_mode的值决定要不要进行evict和flush判断。在agent_maybe_evict和agent_maybe_flush中agent_state-&gt;evict_mode的值决定要不要直接执行evict或者flush。而agent_state值的计算过程是在agent_choose_mode函数中。agent_choose_mode函数计算一个PG的flush和evict行为的相关参数。该函数主要完成以下任务：</p>
+<ul>
+<li>统计当前PG中dirty object数量和当前PG中所有的object数量；（dirty object指的是脏数据对象)</li>
+<li>统计当前PG中dirty object占用的字节数和当前PG中所有object占用的总的字节数；</li>
+<li>分别从object数量角度和object占用的字节数角度计算dirty占比和full占比；</li>
+<li>计算当前flush mode和evict mode；</li>
+<li>更新agent_state-&gt;flush_mode和agent_state-&gt;evict_mode；</li>
+<li>根据当前flush mode和evict mode决定是要将当前PG加入到待处理的PG队列中；</li>
+</ul>
+<p>从agent_choose_mode最后可以看到，如果缓存池需要flush或者evict，需要将待处理的PG加入到agent_queue队列中，这一动作是最终通过调用_enqueue函数实现，该函数主要完成以下任务：</p>
+<ul>
+<li>src&#x2F;osd&#x2F;OSD.h&#x2F;OSDService::_enqueue</li>
+<li>判断是否需要调整agent线程要处理哪个pg set；</li>
+<li>将待处理的pg加入到pg set中；</li>
+<li>唤醒agent线程，执行flush或者evict任务；</li>
+</ul>
+<p>从agent_choose_mode最后可以看到，如果缓存池需不需要flush或者evict，但是如果之前agent线程有处理过该PG，需要将待处理的PG从agent_queue队列中移除掉，这一动作最终通过调用_dequeue函数实现，该函数主要完成以下任务：</p>
+<ul>
+<li>src&#x2F;osd&#x2F;OSD.h&#x2F;OSDService::_dequeue</li>
+<li>根据old_priority从agent_queue队列中获取到相应的pg set；</li>
+<li>在pg set中查找要移除的PG；如果找到了，从pg set中删除，并调整下一个要处理的PG；</li>
+<li>如果删除之后的pg set没有任何一个PG，需要从agent_queue队列中移除，并调整下一个要处理的pg set；</li>
+</ul>
+<p><strong>agent_choose_mode流程图</strong><br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B04.jpg" alt="Cache Tier"><br><strong>agent_entry流程图</strong><br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B05.jpg" alt="Cache Tier"></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" title="Ceph_Cache-Tier源码实现" target="_blank" rel="external">https://watsonlu6.github.io/Ceph-Cache-Tier源码实现/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/" title="缓存基础与Ceph分层存储"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
