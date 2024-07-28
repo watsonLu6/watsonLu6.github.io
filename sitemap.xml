@@ -2,6 +2,33 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://watsonlu6.github.io/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/</loc>
+    
+    <lastmod>2024-07-28</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/Ceph-rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B0/</loc>
+    
+    <lastmod>2024-07-28</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/Ceph-crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/</loc>
+    
+    <lastmod>2024-07-28</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://watsonlu6.github.io/Ceph%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E8%B0%83%E8%AF%95/</loc>
     
     <lastmod>2024-07-27</lastmod>
@@ -92,33 +119,6 @@
   </url>
   
   <url>
-    <loc>https://watsonlu6.github.io/Ceph-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/</loc>
-    
-    <lastmod>2024-07-27</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://watsonlu6.github.io/Ceph-crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/</loc>
-    
-    <lastmod>2024-07-27</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://watsonlu6.github.io/Ceph-rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B0/</loc>
-    
-    <lastmod>2024-07-27</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://watsonlu6.github.io/hello-world/</loc>
     
     <lastmod>2024-07-27</lastmod>
@@ -139,7 +139,7 @@
 
   <url>
     <loc>https://watsonlu6.github.io/</loc>
-    <lastmod>2024-07-27</lastmod>
+    <lastmod>2024-07-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -147,21 +147,21 @@
   
   <url>
     <loc>https://watsonlu6.github.io/tags/%E4%BA%91%E5%AD%98%E5%82%A8/</loc>
-    <lastmod>2024-07-27</lastmod>
+    <lastmod>2024-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/</loc>
-    <lastmod>2024-07-27</lastmod>
+    <lastmod>2024-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/tags/Ceph/</loc>
-    <lastmod>2024-07-27</lastmod>
+    <lastmod>2024-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -170,21 +170,21 @@
   
   <url>
     <loc>https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/</loc>
-    <lastmod>2024-07-27</lastmod>
+    <lastmod>2024-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/</loc>
-    <lastmod>2024-07-27</lastmod>
+    <lastmod>2024-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/</loc>
-    <lastmod>2024-07-27</lastmod>
+    <lastmod>2024-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

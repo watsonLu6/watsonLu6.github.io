@@ -18,17 +18,65 @@
   
   
   <title>Ceph_crush算法实现 | watson Lu&#39;blogs</title>
-  <meta property="og:type" content="article">
+  <meta name="description" content="分布式存储系统的数据分布算法要解决数据如何分布到集群中的各个节点和磁盘上，其面临： 数据分布和负载均衡、灵活应对集群伸缩、大规模集群计算速率三方面的挑战。   数据分布和负载均衡：数据分布均衡，使数据能均匀地分布在各个节点和磁盘上，使数据访问的负载在各个节点和磁盘上。 灵活应对集群伸缩：系统可以方便地增加或者删除存储设备，当增加或删除存储设备后，能自动实现数据的均衡，并且迁移的数据尽可能减少。 大">
+<meta property="og:type" content="article">
 <meta property="og:title" content="Ceph_crush算法实现">
 <meta property="og:url" content="https://watsonlu6.github.io/Ceph-crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/index.html">
 <meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="分布式存储系统的数据分布算法要解决数据如何分布到集群中的各个节点和磁盘上，其面临： 数据分布和负载均衡、灵活应对集群伸缩、大规模集群计算速率三方面的挑战。   数据分布和负载均衡：数据分布均衡，使数据能均匀地分布在各个节点和磁盘上，使数据访问的负载在各个节点和磁盘上。 灵活应对集群伸缩：系统可以方便地增加或者删除存储设备，当增加或删除存储设备后，能自动实现数据的均衡，并且迁移的数据尽可能减少。 大">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B01.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B02.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B03.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B04.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B05.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B06.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B07.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B08.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B09.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B010.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B011.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B012.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B013.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B014.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B015.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B016.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B017.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B018.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B019.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B020.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B021.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B022.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B023.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B024.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B025.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B026.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B027.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B028.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B029.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B030.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B031.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B032.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B033.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B034.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B035.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B036.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B037.0.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B037.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B038.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B039.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B040.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B041.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B042.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B043.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B044.png">
 <meta property="article:published_time" content="2021-08-02T14:26:17.000Z">
-<meta property="article:modified_time" content="2024-07-27T14:28:28.926Z">
+<meta property="article:modified_time" content="2024-07-28T09:23:25.673Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="云存储">
 <meta property="article:tag" content="Ceph">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B01.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://watsonlu6.github.io/Ceph-crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/index.html">
   
@@ -246,7 +294,7 @@
                 <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
               </p>
               <p class="item-title">
-                <a href="/Ceph-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/" class="title">Ceph_线程池实现</a>
+                <a href="/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/" class="title">Ceph线程池实现</a>
               </p>
               <p class="item-date">
                 <time datetime="2021-08-27T14:26:42.000Z" itemprop="datePublished">2021-08-27</time>
@@ -367,7 +415,88 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        
+        <p>分布式存储系统的数据分布算法要解决数据如何分布到集群中的各个节点和磁盘上，其面临： 数据分布和负载均衡、灵活应对集群伸缩、大规模集群计算速率三方面的挑战。 </p>
+<ol>
+<li>数据分布和负载均衡：数据分布均衡，使数据能均匀地分布在各个节点和磁盘上，使数据访问的负载在各个节点和磁盘上。</li>
+<li>灵活应对集群伸缩：系统可以方便地增加或者删除存储设备，当增加或删除存储设备后，能自动实现数据的均衡，并且迁移的数据尽可能减少。</li>
+<li>大规模集群算法计算速率：要求数据分布算法维护的元数据相对较小，并且计算量不能太大。</li>
+</ol>
+<p>在分布式存储系统中，数据分布算法由两种基本实现方法，一种是<code>基于集中式的元数据查询的方式</code>，如HDFS的实现：文件的分布信息是通过访问集中元数据服务器获得；另一种是<code>基于哈希算法计算的方式</code>。例如一致性哈希算法(DHT)。Ceph的数据分布算法CRUSH属于后者。CRUSH(Controlled Replication Under Scalable Hashing)，是一种基于哈希的数据分布算法。与另一种基于集中式的元数据查询的存储方式(文件的分布信息需要先通过访问集中元数据服务器获得)不同。CRUSH算法以数据唯一标识符、当前存储集群的拓扑结构以及数据分布策略作为CRUSH的输入，经过计算获得数据分布位置，直接与OSD进行通信，从而避免集中式查询操作，实现去中心化和高度并发。</p>
+<p>Ceph 作为分布式存储系统，采用多节点多副本的数据存放方式，必然要解决数据如何分布到集群中各个节点和磁盘上。Ceph使用CRUSH数据分布算法。例如一个Ceph集群三副本，就存在着如何映射3个OSD存储这3个副本的数据，Ceph写数据时，即写object时，首先需要计算出object属于哪个PG，然后根据PG id 计算出存放的OSD位置。过程分两步：PG id的计算 ；OSD位置的计算。结合rbd的代码介绍这两个过程：</p>
+<h2 id="数据分片"><a href="#数据分片" class="headerlink" title="数据分片"></a>数据分片</h2><p>rbd的写接口（src&#x2F;linrbd&#x2F;librbd.cc）<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B01.png"><br>接口传入的参数是起始写位置（ofs）以及写数据大小（len）和要写入的数据（bl），调用io_work_queue-&gt;write()，生成Object写入请求对象，发送到ImageRequestWQ任务队列中，等待工作线程处理。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B02.png"><br>现在看看ImageRequest的数据类型<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B03.png"></p>
+<p>因为Image的ImageWriteRequest继承AbstractImageWriteRequest类，重点关注AbstractImageWriteRequest类<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B04.png"><br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B05.png"></p>
+<p>发送写请求时调用void AbstractImageWriteRequest<I>::send_request()函数，在这个函数进行切分数据，分成大小同等（可设定，一般为4M）的object(最后一块object可能大小小于块大小)。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B06.png"><br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B07.png"></p>
+<p>file_to_extents就是将数据段切分各个object，具体怎么分割就不深入看源码了。然后调用send_object_requests()将分片各个object分别构造写请求<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B08.png"></p>
+<h2 id="Op请求处理"><a href="#Op请求处理" class="headerlink" title="Op请求处理"></a>Op请求处理</h2><p>此后会构造objecter的Op请求，发送出去；转到src&#x2F;librados&#x2F;IoCtxImpl.cc，深入了解Op请求的处理。类IoCtxImpl是pool相关的上下文信息，一个pool对应一个IoCtxImpl对象，可以在该pool里创建、删除对象，完成对象数据读写等各种操作，包括同步和异步的实现。类IoCtxImpl把请求封装成ObjectOperation类。然后再添加pool的地址信息，封装成Obejcter::Op对象。Op封装了完成一个操作的相关的上下文信息，包括target地址信息、链接信息等。类IoCtxImpl的write&#x2F;read等同步操作函数通过调用operate()来调用op_submit()，类IoCtxImpl的aio_write&#x2F;aio_read&#x2F;aio_operate等异步函数直接调用了op_submit(），说明op_submit(）是object读写操作的入口。调用函数objeter-&gt;op_submit发送给相应的OSD，如果是同步操作，就等待操作完成。如果是异步操作，就不用等待，直接返回，当操作完成后，调用相应的回调函数通知。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B09.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B010.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B011.png"></p>
+<p>Op封装了完成一个操作的相关的上下文信息，包括target地址信息、链接信息等。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B012.png"></p>
+<h2 id="发送数据op-submit"><a href="#发送数据op-submit" class="headerlink" title="发送数据op_submit"></a>发送数据op_submit</h2><p>在op_submit()调用_op_submit_with_budget()处理Throttle相关流量的限制<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B013.png"><br>在_op_submit_with_budget()中，如果osd_timeout大于0，就是设置定时器，当操作超时，就调用定时器回调函数op_ cancel取消操作，然后通过调用_op_submit(op, sul, ptid)。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B014.png"></p>
+<p>_op_submit函数完成了关键的地址寻址和发送工作，比如_calc_target()、_get_session()、_send_op()等，调用函数_calc_target()计算对象的目标OSD；调用函数_get_session()获取目标OSD的链接，如果返回值为-EAGAIN，就升级为写锁，重新获取。检查当前的状态标志，如果当前是CEPH_OSDMAP_PAUSEWR或者OSD空间满，就暂时不发送，否则调用函数_prepare_osd_op准备请求的信息，调用函数_send_op发送出去。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B015.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B016.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B017.png"></p>
+<h2 id="对象寻址-calc-target"><a href="#对象寻址-calc-target" class="headerlink" title="对象寻址_calc_target"></a>对象寻址_calc_target</h2><p>重点详细分析下_calc_target函数：首先调用函数osdmap-&gt;get_pg_pool()根据t-&gt;base_oloc.pool获取pool信息，获取pg_pool_t对象；检查pi-&gt;last_force_op_resend是否强制重发，如果强制重发，force_resend设置为true；检查cache tier，如果是读操作，并且有读缓存，就设置t-&gt;target_oloc.pool为该pool的read_tier值；如果是写操作，并且有写缓存，就设置t-&gt;target_oloc.pool为该pool的write_tier值；调用函数osdmap-&gt;object_locator_to_pg()获取目标对象所在的PG；调用函数osdmap-&gt;pg_to_up_acting_osds()通过CRUSH算法，获取该PG对应的OSD列表，即pg_to_up_acting_osds()通过CRUSH算法计算OSD；判断读写操作：读操作，如果设置了CEPH_OSD_FLAG_BALANCE_READS标志，调用rand() 取余随机选择一个副本读取；读操作，如果设置了CEPH_OSD_FLAG_LOCALIZE_READS标志，尽可能从本地副本读取；写操作，target的OSD就设置为主OSD。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B018.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B019.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B020.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B021.png"></p>
+<p>首先获取pool信息，判断是否有效：<br>        <code>const pg_pool_t *pi = osdmap-&gt;get_pg_pool(t-&gt;base_oloc.pool);</code><br>然后根据获取pgid，注意pgid是一个结构体pg_t<br>pg_t 的结构如下：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B022.png"></p>
+<p>m_pool 是pool id， m_seed是函数根据object id算出来的哈希值，m_preferred赋值-1。<br>接下来就是调用osdmap-&gt;pg_to_up_acting_osds()，获取该PG对应的OSD列表，即选择OSD：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B023.png"></p>
+<p>pg_to_up_acting_osds()函数在src\osd\OSDMap.cc中，函数功能是选出up osds以及 acting osds, 两个都是数组类型，大小为副本数<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B024.png"></p>
+<p>继续跟踪这个函数：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B025.png"></p>
+<p>进入_pg_to_raw_osds：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B026.png"></p>
+<p>上面函数crush-&gt;do_rule()就是真正调用crush算法计算出相应的osd列表。<br>这里重点解释下参数pps：对象到PG的映射：任何程序通过客户端访问集群时，首先由客户端生成一个字符串形式的对象名，然后基于对象名和命名空间计算得出一个32位哈希值。针对此哈希值，对该存储池的PG总数量pg_num取模(掩码计算)，得到该对象所在的PG的id号。<br><code>ps_t pps = pool.raw_pg_to_pps(pg);  // placement ps</code><br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B027.jpg"></p>
+<p>可以看出pps这是一个哈希值，这个哈希值根据pool id，函数中pg.ps()就是我们object哈希算出的m_seed：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B028.jpg"></p>
+<h2 id="调用CRUSH算法"><a href="#调用CRUSH算法" class="headerlink" title="调用CRUSH算法"></a>调用CRUSH算法</h2><p>下面就是进入do_rule 进行CRUSH算法的处理了：src&#x2F;crush&#x2F;CrushWrapper.h<br>调用crush_do_rule()函数<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B029.png"></p>
+<p>继续调用crush_do_rule()算法，执行CEUSH算法<br><strong>CRUSH算法：</strong>针对指定输入x(要计算PG的pg_id)，CRUSH将输出一个包含n个不同目标存储对象(例如磁盘)的集合(OSD列表)。CRUSH的计算过程使用x、cluster map、placement rule作为哈希函数输入。因此如果cluster map不发生变化(一般placement rule不会轻易变化)，那么结果就是确定的。算法输入需要3个输入参数：</p>
+<ol>
+<li>输入x 即PG id的哈希值</li>
+<li>crush_map即集群的拓扑结构，集群的层级化描述，形如”数据中心-&gt;机架-&gt;主机-&gt;磁盘”这样的层级拓扑。用树来表示，每个叶子节点都是真实的最小物理存储设备，称为devices；所有中间节点统称为bucket，每个bucket可以是一些devices的集合，也可以是低一级的buckets集合；根节点称为root，是整个集群的入口。</li>
+<li>ruleno 即选择策略，就rule规则，这里用编号表示；它决定一个PG的对象副本如何选择(从定义的cluster map的拓扑结构中)的规则，以此完成数据映射。palcement rule可以包含多个操作，这些操作共有3种类型：take(root)、select(replicas, type)、emit(void)<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B030.png"></li>
+</ol>
+<p>crush 算法输入需要3个输入参数：</p>
+<ol>
+<li>输入x 即PG id的哈希值</li>
+<li>crush_map即集群的拓扑结构</li>
+<li>ruleno 即选择策略，就rule规则，这里用编号表示</li>
+</ol>
+<p>可以通过集群输出crush_map:<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B031.jpg"></p>
+<p>vim crush_map如下：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B032.png"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B033.jpg"></p>
+<p><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B034.jpg"></p>
+<p>显示的结构和代码中的结构还是有着映射的关系：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B035.jpg"></p>
+<p>其中crush_bucket:<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B036.jpg"><br>对应：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B037.0.jpg"><br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B037.jpg"></p>
+<p>crush_rule:<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B038.jpg"><br>对应于：<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B039.png"></p>
+<p>逐一对比分析其数据结构。<br>这里分析下其选择OSD的过程：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *a = scratch;</span><br><span class="line"><span class="type">int</span> *b = scratch + result_max;</span><br><span class="line"><span class="type">int</span> *c = scratch + result_max*<span class="number">2</span>;</span><br><span class="line">w = a;</span><br><span class="line">o= b;</span><br></pre></td></tr></table></figure>
+
+<p>a, b, c 分别指向 scratch向量的0, 1, 2的位置.<br>w &#x3D; a; o &#x3D; b; </p>
+<ul>
+<li>w被用作一个先入先出队列来在CRUSH map中进行横向优先搜索(BFS traversal). </li>
+<li>o存储crush_choose_firstn选择的结果. </li>
+<li>c存储最终的OSD选择结果.</li>
+</ul>
+<p>crush_do_rule函数里面最重要的是函数里面的for循环，这个循环就是筛选osd的过程，</p>
+<p>for循环中：</p>
+<ol>
+<li>首先从rule规则中当前执行的步骤，首次就执行第一条步骤：<br> <code>struct crush_rule_step *curstep = &amp;rule-&gt;steps[step];</code></li>
+<li>然后根据当前执行步骤的操作类型，选择不同的分支操作，首先一般是take操作，而且是take fault。即crush map树根节点。这个过程就是根据step 逐步选择bucket 知道知道叶子节点，即OSD。</li>
+<li>这个过程中，crush_choose_firstn 函数, 递归的选择特定bucket或者设备,并且可以处理冲突,失败的情况.</li>
+<li>如果当前是choose过程,通过调用crush_bucket_choose来直接选择. </li>
+<li>如果当前是chooseleaf选择叶子节点的过程,该函数将递归直到得到叶子节点.<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B040.png"></li>
+</ol>
+<p>在for循环中的crush_choose_firstn()计算后如果结果不是OSD类型, o 交给w。以便于 w成为下次crush_choose_firstn的输入参数。在crush_choose_firstn()中，for(){}：副本选择循环判断条件rep是否等于副本数numrep，rep叠加。do{}while (retry_descent)：选择OSD冲突或故障域失效时循环，随机因子r改变。do{}while (retry_bucket)：进行bucket层级选择，当前item type不是OSD时循环，当前进行选择的bucket，即in改变。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B041.png"></p>
+<p>在crush_choose_firstn()函数中有crush_bucket_choose函数，这个函数根据bucket类型选择不同的权重计算方法刷选出bucket。如果采用straw2，就会采用bucket_straw2_choose接口进行筛选。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B042.jpg"></p>
+<p>bucket_straw2_choose()功能是通过调用伪随机算法计算伪随机数，以伪随机数最高的作为选择出的节点<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B043.png"></p>
+<p>generate_exponential_distribution()产生随机数的思想是：采用逆变换采样的思想，先调用crush_hash32_3()计算哈希值，然后取随机数的低16位。计算指数随机变量。作为参考，请参阅指数分布示例：<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Inverse_transform_sampling#Examples%E3%80%82">https://en.wikipedia.org/wiki/Inverse_transform_sampling#Examples。</a> 由于某种原因，略小于 0x10000 会产生更准确的分布……可能是舍入效果。 自然对数查找表映射 [0,0xffff]（对应实数 [1&#x2F;0x10000, 1] 到 [0, 0xffffffffffff]（对应实数 [-11.090355,0]）。除以 16.16 定点权重。 请注意，ln 值为负数，因此较大的权重意味着较大的（较小的负数）draw值。<br><img src="/images/crush/crush%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B044.png"></p>
+<p>CRUSH算法的一些缺陷： </p>
+<ol>
+<li>CRUSH算法提供了uniform、list和tree等bucket类型作为straw bucket类型的替代方案，但这些算法在添加或删除服务器时需要进行不必要的重排，这使它们不适合用于大规模存储系统。 </li>
+<li>CRUSH算法的查找函数需要进行O(log n)的二分查找，以找到与给定对象ID最接近的虚拟ID。这个计算对于系统中的每个对象都需要进行，因此在系统中有大量对象时，计算成本会很高。 </li>
+<li>CRUSH算法在重建过程中可能会出现瓶颈，因为它需要在placement groups中进行数据放置，这可能会导致数据重建速度变慢。</li>
+<li>CRUSH算法的计算复杂度较高，需要进行大量的计算，这可能会影响系统的性能。 综上所述，CRUSH算法虽然是一种灵活的对象放置算法，但它也存在一些缺陷，需要进一步改进和优化。</li>
+</ol>
+<p>由于CRUSH算法的计算复杂度较高，需要进行大量的计算，因此使用多线程来加速计算是一种可行的方法。具体来说，可以将CRUSH算法的计算任务分配给多个线程，每个线程负责计算一部分任务，然后将结果合并起来。这样可以充分利用多核处理器的计算能力，提高计算效率。但是，需要注意的是，多线程计算也会带来一些额外的开销，如线程间的同步和通信开销，因此需要进行合理的线程调度和优化，以达到最佳的性能提升效果。</p>
+
       
     </div>
     <div class="article-footer">
