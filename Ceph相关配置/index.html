@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph相关配置 | watson Lu&#39;blogs</title>
+  <meta name="description" content="当 Ceph 服务启动时，初始化过程会激活一组在后台运行的守护进程。Ceph 存储集群的运行时间 Ceph相关守护进程：  Ceph监视器 (ceph-mon) Ceph管理器 (ceph-mgr) Ceph OSD守护进程 (ceph-osd) Ceph元数据服务器 （ceph-mds） Ceph RADOS网关守护进程 (radosgw)  每个守护进程都有多个配置选项，每个选项都有一个默认值">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph相关配置">
+<meta property="og:url" content="https://watsonlu6.github.io/Ceph%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="当 Ceph 服务启动时，初始化过程会激活一组在后台运行的守护进程。Ceph 存储集群的运行时间 Ceph相关守护进程：  Ceph监视器 (ceph-mon) Ceph管理器 (ceph-mgr) Ceph OSD守护进程 (ceph-osd) Ceph元数据服务器 （ceph-mds） Ceph RADOS网关守护进程 (radosgw)  每个守护进程都有多个配置选项，每个选项都有一个默认值">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-12T05:36:31.000Z">
+<meta property="article:modified_time" content="2024-08-18T12:38:42.554Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Ceph%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">23</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.67px;">Ceph</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.33px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">四月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" class="title">Ceph_Cache-Tier源码实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-28T12:45:54.000Z" itemprop="datePublished">2022-04-28</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/" class="title">缓存基础与Ceph分层存储</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-04-10T11:59:00.000Z" itemprop="datePublished">2022-04-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a>
+              </p>
+              <p class="item-title">
+                <a href="/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F%E7%BC%93%E5%AD%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87/" class="title">存储系统缓存/分层相关论文</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-02-10T07:31:33.000Z" itemprop="datePublished">2022-02-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a>
+              </p>
+              <p class="item-title">
+                <a href="/%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/" class="title">存储性能测试工具</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-10-11T05:26:35.000Z" itemprop="datePublished">2021-10-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/rbd%E7%9B%B8%E5%85%B3%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/" class="title">rbd相关运维命令</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-09-22T16:31:00.000Z" itemprop="datePublished">2021-09-23</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Ceph相关配置" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph相关配置
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Ceph%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE/" class="article-date">
+	  <time datetime="2021-05-12T05:36:31.000Z" itemprop="datePublished">2021-05-12</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Ceph%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>当 Ceph 服务启动时，初始化过程会激活一组在后台运行的守护进程。Ceph 存储集群的运行时间 Ceph相关守护进程：</p>
+<ul>
+<li>Ceph监视器 (ceph-mon)</li>
+<li>Ceph管理器 (ceph-mgr)</li>
+<li>Ceph OSD守护进程 (ceph-osd)</li>
+<li>Ceph元数据服务器 （ceph-mds）</li>
+<li>Ceph RADOS网关守护进程 (radosgw)</li>
+</ul>
+<p>每个守护进程都有多个配置选项，每个选项都有一个默认值。通过更改这些配置选项可以调整系统的行为。在覆盖默认值之前，请确保了解其后果，因为不当配置可能会显著降低集群的性能和稳定性。默认值有时会在不同版本之间发生变化。因此，最好查看适用于您 Ceph 版本的文档版本。</p>
+<p>每个 Ceph 守护进程、进程和库从以下一个或多个来源获取其配置。列表中后出现的来源会覆盖前面出现的来源（当两者都存在时）。</p>
+<ul>
+<li>编译时默认值</li>
+<li>监视器集群的集中配置数据库</li>
+<li>存储在本地主机上的配置文件</li>
+<li>环境变量</li>
+<li>命令行参数</li>
+<li>管理员设置的运行时覆盖<br>Ceph 进程启动时的第一件事之一是解析通过命令行、环境和本地配置文件提供的配置选项。接下来，进程会联系MON集群以获取集中存储的整个集群配置。在获得完整的配置视图后，守护进程或进程的启动将开始。</li>
+</ul>
+<h2 id="网络和通信配置参考"><a href="#网络和通信配置参考" class="headerlink" title="网络和通信配置参考"></a>网络和通信配置参考</h2><ul>
+<li><strong>mon_host</strong>：每个MON守护程序都配置为绑定到特定的IP地址。这些地址通常由部署工具配置。其他组件在Ceph集群中，通过配置发现MON，通常在文件的部分中指定mon_host。</li>
+<li><strong>public_network_interface</strong>：指定用于绑定到<code>public_network</code>的网络接口名称；必须同时指定<code>public_network</code>。</li>
+<li><strong>public_network</strong>：公共网络的IP地址和子网掩码（例如，192.168.0.0&#x2F;24）。在[global]中设置。可以指定用逗号分隔的子网列表，格式为 <code>&#123;ip地址&#125;/&#123;子网掩码&#125; [, &#123;ip地址&#125;/&#123;子网掩码&#125;]</code>。</li>
+<li><strong>public_addr</strong>：每个守护进程在公共网络中的IP地址。</li>
+<li><strong>cluster_network_interface</strong>：指定用于绑定到<code>cluster_network</code>的网络接口名称；必须同时指定<code>cluster_network</code>。</li>
+<li><strong>cluster_network</strong>：集群网络的IP地址和子网掩码（例如，10.0.0.0&#x2F;24）。在[global]中设置。可以指定用逗号分隔的子网列表，格式为 <code>&#123;ip地址&#125;/&#123;子网掩码&#125; [, &#123;ip地址&#125;/&#123;子网掩码&#125;]</code>。</li>
+<li><strong>cluster_addr</strong>：每个守护进程在集群网络中的IP地址。</li>
+<li><strong>ms_bind_port_min</strong>：OSD或MDS守护进程绑定的最小端口号。</li>
+<li><strong>ms_bind_port_max</strong>：OSD或MDS守护进程绑定的最大端口号。</li>
+<li><strong>ms_bind_ipv4</strong>：启用Ceph守护进程绑定到IPv4地址。</li>
+<li><strong>ms_bind_ipv6</strong>：启用Ceph守护进程绑定到IPv6地址。</li>
+<li><strong>public_bind_addr</strong>：在某些动态部署中，Ceph MON守护进程可能会在本地绑定到一个与在网络中广告给其他节点的<code>public_addr</code>不同的IP地址。如果设置了<code>public_bind_addr</code>，Ceph监视器守护进程将本地绑定到此地址，并在monmaps中使用<code>public_addr</code>来向其他节点广告其地址。此行为仅限于监视器守护进程。</li>
+<li><strong>ms_tcp_nodelay</strong>：Ceph启用了<code>ms_tcp_nodelay</code>，以便每个请求立即发送（无缓冲）。禁用Nagle算法会增加网络流量，可能引入延迟。如果遇到大量的小数据包，您可以尝试禁用<code>ms_tcp_nodelay</code>。</li>
+<li><strong>ms_tcp_rcvbuf</strong>：网络连接接收端的套接字缓冲区大小。默认情况下禁用。</li>
+<li><strong>ms_type</strong>：Async Messenger使用的传输类型。可以是<code>async+posix</code>、<code>async+dpdk</code>或<code>async+rdma</code>。Posix使用标准的TCP&#x2F;IP网络，是默认选项。其他传输类型可能是实验性的，支持可能有限。</li>
+<li><strong>ms_async_op_threads</strong>：每个Async Messenger实例使用的初始工作线程数。应至少等于最高副本数，但如果CPU核心数量较少和&#x2F;或在单台服务器上托管了大量OSD，可以减少此值。</li>
+<li><strong>ms_initial_backoff</strong>：在发生故障后重新连接之前的初始等待时间。</li>
+<li><strong>ms_max_backoff</strong>：在发生故障后重新连接之前的最长等待时间。</li>
+<li><strong>ms_dispatch_throttle_bytes</strong>：限制等待调度的消息总大小。</li>
+<li><strong>ms_cluster_mode</strong>：用于Ceph守护进程之间的集群内通信的连接模式（或允许的模式）。如果列出了多个模式，则优先使用列出的模式。</li>
+<li><strong>ms_service_mode</strong>：客户端连接到集群时允许使用的模式列表。</li>
+<li><strong>ms_client_mode</strong>：客户端在与Ceph集群通信时使用（或允许）的连接模式列表，按优先顺序排列。</li>
+<li><strong>ms_mon_cluster_mode</strong>：监视器之间使用的连接模式（或允许的模式）。</li>
+<li><strong>ms_mon_service_mode</strong>：客户端或其他Ceph守护进程连接到监视器时允许使用的模式列表。</li>
+<li><strong>ms_mon_client_mode</strong>：客户端或非监视器守护进程连接到监视器时使用的连接模式列表，按优先顺序排列。</li>
+<li><strong>ms_compress_secure</strong>：将加密与压缩结合使用会降低消息之间安全性的水平。如果启用了加密和压缩，则会忽略压缩设置，消息将不会被压缩。可以通过此设置覆盖此行为。</li>
+<li><strong>ms_osd_compress_mode</strong>：在Messenger中与OSD通信时使用的压缩策略。</li>
+<li><strong>ms_osd_compress_min_size</strong>：符合在线压缩条件的最小消息大小。</li>
+<li><strong>ms_osd_compression_algorithm</strong>：与OSD连接时优先顺序中的压缩算法。默认值为<code>snappy</code>，也可以接受列表（如<code>snappy zlib zstd</code>等）。</li>
+</ul>
+<h2 id="CEPHX-配置参考"><a href="#CEPHX-配置参考" class="headerlink" title="CEPHX 配置参考"></a>CEPHX 配置参考</h2><ul>
+<li><strong>auth_cluster_required</strong>：如果启用了此配置设置，则Ceph存储集群守护进程（即<code>ceph-mon</code>、<code>ceph-osd</code>、<code>ceph-mds</code>和<code>ceph-mgr</code>）必须相互认证。有效的设置为<code>cephx</code>或<code>none</code>。</li>
+<li><strong>auth_service_required</strong>：如果启用了此配置设置，则Ceph客户端只能在通过认证后访问Ceph服务。有效的设置为<code>cephx</code>或<code>none</code>。</li>
+<li><strong>auth_client_required</strong>：如果启用了此配置设置，则Ceph客户端与Ceph存储集群之间的通信只能在Ceph存储集群对Ceph客户端进行认证后建立。有效的设置为<code>cephx</code>或<code>none</code>。</li>
+<li><strong>cephx_require_signatures</strong>：如果此配置设置为<code>true</code>，Ceph要求在Ceph客户端和Ceph存储集群之间以及集群内守护进程之间的所有消息通信上使用签名。</li>
+<li><strong>cephx_cluster_require_signatures</strong>：如果此配置设置为<code>true</code>，Ceph要求在Ceph存储集群内部守护进程之间的所有消息通信上使用签名。</li>
+<li><strong>cephx_service_require_signatures</strong>：如果此配置设置为<code>true</code>，Ceph要求在Ceph客户端和Ceph存储集群之间的所有消息通信上使用签名。</li>
+<li><strong>cephx_sign_messages</strong>：如果此配置设置为<code>true</code>，并且Ceph版本支持消息签名，则Ceph将对所有消息进行签名，以提高其防伪性。</li>
+<li><strong>auth_service_ticket_ttl</strong>：当Ceph存储集群向Ceph客户端发送认证票据时，Ceph存储集群为该票据分配一个生存时间（TTL）。</li>
+</ul>
+<h2 id="MON配置参考"><a href="#MON配置参考" class="headerlink" title="MON配置参考"></a>MON配置参考</h2><ul>
+<li><strong>mon_force_quorum_join</strong>：强制监视器加入仲裁，即使它之前已从映射中移除。</li>
+<li><strong>fsid</strong>：集群ID。每个集群一个。如果未指定，可以由部署工具生成。</li>
+<li><strong>mon_initial_members</strong>：启动期间集群中的初始监视器ID。如果指定，Ceph要求形成初始仲裁的监视器数为奇数（例如3个）。</li>
+<li><strong>mon_data_size_warn</strong>：当监视器的数据存储增长到大于此大小时，触发<code>HEALTH_WARN</code>状态，默认15GB。</li>
+<li><strong>mon_data_avail_warn</strong>：当存放监视器数据存储的文件系统报告其可用容量小于或等于此百分比时，触发<code>HEALTH_WARN</code>状态。</li>
+<li><strong>mon_data_avail_crit</strong>：当存放监视器数据存储的文件系统报告其可用容量小于或等于此百分比时，触发<code>HEALTH_ERR</code>状态。</li>
+<li><strong>mon_warn_on_crush_straw_calc_version_zero</strong>：当<code>CRUSH straw_calc_version</code>为0时，触发<code>HEALTH_WARN</code>。</li>
+<li><strong>mon_warn_on_legacy_crush_tunables</strong>：当CRUSH tunables过旧（早于<code>mon_min_crush_required_version</code>）时，触发<code>HEALTH_WARN</code>。</li>
+<li><strong>mon_crush_min_required_version</strong>：集群要求的最低可调配置文件。</li>
+<li><strong>mon_warn_on_osd_down_out_interval_zero</strong>：当<code>mon_osd_down_out_interval</code>为0时，触发<code>HEALTH_WARN</code>。在领导者上将此选项设置为0的效果类似于<code>noout</code>标志。没有设置<code>noout</code>标志的集群很难诊断问题，因此在这种情况下报告警告。</li>
+<li><strong>mon_warn_on_slow_ping_ratio</strong>：当OSD之间的任何心跳超过<code>osd_heartbeat_grace</code>的<code>mon_warn_on_slow_ping_ratio</code>时，触发<code>HEALTH_WARN</code>。</li>
+<li><strong>mon_warn_on_slow_ping_time</strong>：用具体值覆盖<code>mon_warn_on_slow_ping_ratio</code>。如果OSD之间的任何心跳超过<code>mon_warn_on_slow_ping_time</code>毫秒，触发<code>HEALTH_WARN</code>。默认值为0（禁用）。</li>
+<li><strong>mon_warn_on_pool_no_redundancy</strong>：如果任何池配置为没有副本，触发<code>HEALTH_WARN</code>。</li>
+<li><strong>mon_cache_target_full_warn_ratio</strong>：在池的<code>cache_target_full</code>和<code>target_max_object</code>之间的位置开始警告。</li>
+<li><strong>mon_health_to_clog</strong>：启用定期将健康摘要发送到集群日志。</li>
+<li><strong>mon_health_to_clog_tick_interval</strong>：监视器将健康摘要发送到集群日志的频率（以秒为单位）（非正数禁用）。如果当前健康摘要为空或与上次相同，监视器将不会将其发送到集群日志。</li>
+<li><strong>mon_health_to_clog_interval</strong>：监视器将健康摘要发送到集群日志的频率（以秒为单位）（非正数禁用）。无论当前健康摘要是否与上次不同，监视器总是会将摘要发送到集群日志。</li>
+<li><strong>mon_osd_full_ratio</strong>：OSD被视为已满的设备空间利用率的阈值百分比，默认值为0.95。</li>
+<li><strong>mon_osd_backfillfull_ratio</strong>：设备空间利用率的阈值，当OSD被认为太满以至于无法回填时。默认值为0.90。</li>
+<li><strong>mon_osd_nearfull_ratio</strong>：设备空间利用率的阈值，当OSD被认为接近满时。默认值为0.85。</li>
+<li><strong>mon_sync_timeout</strong>：监视器在放弃并重新启动之前等待其同步提供程序的下一条更新消息的秒数。默认值为1分钟。</li>
+<li><strong>mon_sync_max_payload_size</strong>：同步负载的最大大小（以字节为单位）。默认值为1MiB。</li>
+<li><strong>paxos_max_join_drift</strong>：在必须首先同步监视器数据存储之前，Paxos迭代的最大次数。当一个监视器发现其对等体远远领先时，它将首先与数据存储同步，然后再继续。默认值为10。</li>
+<li><strong>paxos_stash_full_interval</strong>：保存PaxosService状态的完整副本的频率（以提交次数计）。目前此设置仅影响mds、mon、auth和mgr的PaxosServices。默认值为25。</li>
+<li><strong>paxos_propose_interval</strong>：在提议地图更新之前收集更新的时间间隔。</li>
+<li><strong>paxos_min</strong>：保留的最小Paxos状态数。</li>
+<li><strong>paxos_min_wait</strong>：在一段不活动时间后收集更新的最短时间。</li>
+<li><strong>paxos_trim_min</strong>：在修剪前允许的额外提议次数。</li>
+<li><strong>paxos_trim_max</strong>：一次修剪时允许修剪的最大额外提议次数。</li>
+<li><strong>paxos_service_trim_min</strong>：触发修剪的最小版本数量（0表示禁用）。</li>
+<li><strong>paxos_service_trim_max</strong>：在单个提议期间修剪的最大版本数量（0表示禁用）。</li>
+<li><strong>paxos_service_trim_max_multiplier</strong>：当修剪大小较大时，paxos_service_trim_max将被乘以的因子，以获得新的上限（0表示禁用）。</li>
+<li><strong>mon_mds_force_trim_to</strong>：强制监视器修剪到但不包括此FSMap纪元。值为0时禁用（默认值）。此命令可能有危险，请谨慎使用。</li>
+<li><strong>mon_osd_force_trim_to</strong>：osdmaps缓存的大小，不依赖于底层存储的缓存。</li>
+<li><strong>mon_election_timeout</strong>：在选举提议者上，所有ACK的最长等待时间（以秒为单位）。</li>
+<li><strong>mon_lease</strong>：监视器版本的租约长度（以秒为单位）。</li>
+<li><strong>mon_lease_renew_interval_factor</strong>：mon_lease * mon_lease_renew_interval_factor将是Leader更新其他监视器租约的时间间隔。因子应小于1.0。</li>
+<li><strong>mon_lease_ack_timeout_factor</strong>：Leader将等待mon_lease * mon_lease_ack_timeout_factor的时间，以便提供者确认租约扩展。</li>
+<li><strong>mon_accept_timeout_factor</strong>：Leader将等待mon_lease * mon_accept_timeout_factor的时间，以便请求者接受Paxos更新。在Paxos恢复阶段也会用于类似目的。</li>
+<li><strong>mon_min_osdmap_epochs</strong>：始终保留的最小OSD地图纪元数。</li>
+<li><strong>mon_max_log_epochs</strong>：监视器应保留的最大日志纪元数。</li>
+<li><strong>mon_tick_interval</strong>：监视器的tick间隔时间（以秒为单位）。</li>
+<li><strong>mon_clock_drift_allowed</strong>：在发出健康警告之前允许的监视器之间的时钟漂移（以秒为单位）。</li>
+<li><strong>mon_clock_drift_warn_backoff</strong>：在集群日志中记录时钟漂移警告的指数退避因子。</li>
+<li><strong>mon_timecheck_interval</strong>：Leader的时间检查间隔（时钟漂移检查）（以秒为单位）。</li>
+<li><strong>mon_timecheck_skew_interval</strong>：在存在偏差时，Leader的时间检查间隔（时钟漂移检查）（以秒为单位）。</li>
+<li><strong>mon_client_hunt_interval</strong>：客户端每N秒尝试连接新的监视器，直到建立连接为止。</li>
+<li><strong>mon_client_ping_interval</strong>：客户端每N秒ping一次监视器。</li>
+<li><strong>mon_client_max_log_entries_per_message</strong>：监视器每个客户端消息生成的最大日志条目数。</li>
+<li><strong>mon_client_bytes</strong>：允许在内存中保留的客户端消息数据量（以字节为单位）。</li>
+<li><strong>mon_allow_pool_delete</strong>：监视器是否应允许删除池，而不考虑池标志的设置？</li>
+<li><strong>osd_pool_default_ec_fast_read</strong>：是否启用池的快速读取功能。如果在创建时未指定fast_read，则它将用作新创建的纠删码池的默认设置。</li>
+<li><strong>osd_pool_default_flag_hashpspool</strong>：在新池上设置hashpspool（更好的哈希方案）标志。</li>
+<li><strong>osd_pool_default_flag_nodelete</strong>：在新池上设置nodelete标志，防止删除池。</li>
+<li><strong>osd_pool_default_flag_nopgchange</strong>：在新池上设置nopgchange标志。不允许更改PG数量。</li>
+<li><strong>osd_pool_default_flag_nosizechange</strong>：在新池上设置nosizechange标志。不允许更改大小。</li>
+<li><strong>mon_max_osd</strong>：集群中允许的最大OSD数量。</li>
+<li><strong>mon_globalid_prealloc</strong>：为集群中的客户端和守护程序预分配的全局ID数量。</li>
+<li><strong>mon_subscribe_interval</strong>：订阅刷新间隔（以秒为单位）。订阅机制允许获取集群地图和日志信息。</li>
+<li><strong>mon_stat_smooth_intervals</strong>：Ceph将在过去N个PG地图上平滑统计数据。</li>
+<li><strong>mon_probe_timeout</strong>：监视器在引导之前等待找到对等体的秒数。</li>
+<li><strong>mon_daemon_bytes</strong>：元数据服务器和OSD消息的消息内存上限（以字节为单位）。</li>
+<li><strong>mon_max_log_entries_per_event</strong>：每个事件的最大日志条目数。</li>
+<li><strong>mon_osd_prime_pg_temp</strong>：在外部OSD重新加入集群时，启用或禁用使用先前的OSD来预热PGMap。如果设置为true，客户端将继续使用先前的OSD，直到PG的新加入OSD完成对等。</li>
+<li><strong>mon_osd_prime_pg_temp_max_time</strong>：在外部OSD重新加入集群时，监视器应花费多少时间（以秒为单位）尝试预热PGMap。</li>
+<li><strong>mon_osd_prime_pg_temp_max_estimate</strong>：在并行预热所有PG之前，我们在每个PG上花费的最大估计时间。</li>
+<li><strong>mon_mds_skip_sanity</strong>：跳过FSMap的安全断言（在我们希望继续的bug情况下）。如果FSMap完整性检查失败，监视器将终止，但我们可以通过启用此选项来禁用它。</li>
+<li><strong>mon_max_mdsmap_epochs</strong>：在单个提议期间修剪的最大mdsmap纪元数。</li>
+<li><strong>mon_config_key_max_entry_size</strong>：配置密钥条目的最大大小（以字节为单位）。</li>
+<li><strong>mon_scrub_interval</strong>：监视器通过比较存储的校验和与所有存储密钥的计算校验和来清理其存储的频率（0表示禁用，危险，请谨慎使用）。</li>
+<li><strong>mon_scrub_max_keys</strong>：每次清理的最大密钥数量。</li>
+<li><strong>mon_compact_on_start</strong>：在ceph-mon启动时压缩Ceph监视器存储使用的数据库。手动压缩有助于缩小监视器数据库并提高其性能，如果常规压缩无法正常工作。</li>
+<li><strong>mon_compact_on_bootstrap</strong>：在引导时压缩Ceph监视器存储使用的数据库。监视器在引导后相互探测以建立仲裁。如果监视器在加入仲裁之前超时，它将重新启动并再次引导。</li>
+<li><strong>mon_compact_on_trim</strong>：修剪旧状态时压缩某个前缀（包括paxos）。</li>
+<li><strong>mon_cpu_threads</strong>：执行监视器上CPU密集型工作的线程数。</li>
+<li><strong>mon_osd_mapping_pgs_per_chunk</strong>：我们按块计算从放置组到OSD的映射。此选项指定每块的放置组数量。</li>
+<li><strong>mon_session_timeout</strong>：监视器将在超过此时间限制的闲置会话期间终止非活动会话。</li>
+<li><strong>mon_osd_cache_size_min</strong>：为osd监视器缓存保持映射在内存中的最小字节数。</li>
+<li><strong>mon_memory_target</strong>：与启用缓存自动调整相关的OSD监视器缓存和KV缓存保持映射在内存中的字节数。</li>
+<li><strong>mon_memory_autotune</strong>：自动调整OSD监视器和KV数据库使用的缓存内存。</li>
+<li><strong>mon_dns_srv_name</strong>：用于查询监视器主机&#x2F;地址的DNS服务名称。</li>
+</ul>
+<h2 id="MON-OSD交互配置参考"><a href="#MON-OSD交互配置参考" class="headerlink" title="MON&#x2F;OSD交互配置参考"></a>MON&#x2F;OSD交互配置参考</h2><ul>
+<li><strong>mon_osd_min_up_ratio</strong>：在Ceph将Ceph OSD守护进程标记为“已宕机”之前，Ceph OSD守护进程的最小正常比例。</li>
+<li><strong>mon_osd_min_in_ratio</strong>：在Ceph将Ceph OSD守护进程标记为“已剔除”之前，Ceph OSD守护进程的最小在场比例。</li>
+<li><strong>mon_osd_laggy_halflife</strong>：滞后估计的衰减时间（以秒为单位）。</li>
+<li><strong>mon_osd_laggy_weight</strong>：在滞后估计衰减中用于新样本的权重。</li>
+<li><strong>mon_osd_laggy_max_interval</strong>：滞后估计中滞后间隔的最大值（以秒为单位）。监视器使用自适应方法来评估特定OSD的滞后间隔。此值将用于计算该OSD的宽限时间。</li>
+<li><strong>mon_osd_adjust_heartbeat_grace</strong>：如果设置为true，Ceph将根据滞后估计进行缩放。</li>
+<li><strong>mon_osd_adjust_down_out_interval</strong>：如果设置为true，Ceph将根据滞后估计进行缩放。</li>
+<li><strong>mon_osd_auto_mark_in</strong>：Ceph将自动标记任何启动中的Ceph OSD守护进程为集群中的。</li>
+<li><strong>mon_osd_auto_mark_auto_out_in</strong>：Ceph将自动标记启动中的Ceph OSD守护进程为集群中的，而不是标记为已剔除。</li>
+<li><strong>mon_osd_auto_mark_new_in</strong>：Ceph将自动标记启动中的新Ceph OSD守护进程为集群中的。</li>
+<li><strong>mon_osd_down_out_interval</strong>：Ceph在标记一个Ceph OSD守护进程为“已宕机”或“已剔除”之前等待的时间（以秒为单位）。</li>
+<li><strong>mon_osd_down_out_subtree_limit</strong>：Ceph不会自动标记的最小CRUSH单元类型。例如，如果设置为host，并且一个主机上的所有OSD都宕机，Ceph将不会自动标记这些OSD。</li>
+<li><strong>mon_osd_report_timeout</strong>：在声明未响应的Ceph OSD守护进程为“已宕机”之前的宽限时间（以秒为单位）。</li>
+<li><strong>mon_osd_min_down_reporte</strong>：报告一个“已宕机”Ceph OSD守护进程所需的最小Ceph OSD守护进程数量。</li>
+<li><strong>mon_osd_reporter_subtree_level</strong>：报告者计数的父桶层级。OSD在发现某个对等体未响应时，会将故障报告发送给监视器。监视器在宽限期后将报告的OSD标记为“已剔除”，然后标记为“已宕机”。</li>
+<li><strong>osd_heartbeat_interval</strong>：Ceph OSD守护进程向其对等体发送心跳的频率（以秒为单位）。</li>
+<li><strong>osd_heartbeat_grace</strong>：Ceph OSD守护进程未显示心跳时，被Ceph存储集群视为“已宕机”的时间。这一设置必须在[mon]和[osd]或[global]部分中设置，以便监视器和OSD守护进程都能读取。</li>
+<li><strong>osd_mon_heartbeat_interval</strong>：如果Ceph OSD守护进程没有Ceph OSD对等体，它向Ceph监视器发送心跳的频率。</li>
+<li><strong>osd_mon_heartbeat_stat_stale</strong>：停止报告未更新心跳时间的统计信息的秒数。设置为零以禁用此操作。</li>
+<li><strong>osd_mon_report_interval</strong>：Ceph OSD守护进程从启动或其他可报告事件开始，等待的秒数，之后向Ceph监视器报告。</li>
+</ul>
+<h2 id="OSD-配置参考"><a href="#OSD-配置参考" class="headerlink" title="OSD 配置参考"></a>OSD 配置参考</h2><ul>
+<li><strong>osd_uuid</strong>: Ceph OSD守护进程的全局唯一标识符（UUID）。</li>
+<li><strong>osd_data</strong>: OSD数据的路径。部署Ceph时必须创建此目录。建议在此挂载点上挂载用于OSD数据的驱动器，不推荐更改默认值。</li>
+<li><strong>osd_max_write_size</strong>: 写入的最大大小（以MB为单位）。</li>
+<li><strong>osd_max_object_size</strong>: RADOS对象的最大大小（以字节为单位）。</li>
+<li><strong>osd_client_message_size_cap</strong>: 允许在内存中存储的最大客户端数据消息大小。</li>
+<li><strong>osd_class_dir</strong>: RADOS类插件的类路径。</li>
+<li><strong>osd_mkfs_options {fs-type}</strong>: 创建新Ceph Filestore OSD时使用的选项，类型为{fs-type}。</li>
+<li><strong>osd_mount_options {fs-type}</strong>: 挂载Ceph Filestore OSD时使用的选项，类型为{fs-type}。</li>
+<li><strong>osd_journal</strong>: OSD日志的路径。可以是文件或块设备（如SSD的分区）。如果是文件，则必须创建包含该文件的目录。建议在osd_data驱动器是HDD时使用单独的快速设备。</li>
+<li><strong>osd_journal_size</strong>: 日志的大小（以MB为单位）。</li>
+<li><strong>osd_max_scrubs</strong>: 允许同时进行的最大扫描操作数。</li>
+<li><strong>osd_scrub_begin_hour</strong>: 限制扫描操作的开始小时。与osd_scrub_end_hour一起定义了扫描的时间窗口。设置为0和0允许全天扫描。</li>
+<li><strong>osd_scrub_end_hour</strong>: 限制扫描操作的结束小时。与osd_scrub_begin_hour一起定义了扫描的时间窗口。设置为0和0允许全天扫描。</li>
+<li><strong>osd_scrub_begin_week_day</strong>: 限制扫描操作的开始周天。0 &#x3D; 星期天，1 &#x3D; 星期一，依此类推。与osd_scrub_end_week_day一起定义了扫描的时间窗口。设置为0和0允许全天扫描。</li>
+<li><strong>osd_scrub_end_week_day</strong>: 限制扫描操作的结束周天。0 &#x3D; 星期天，1 &#x3D; 星期一，依此类推。与osd_scrub_begin_week_day一起定义了扫描的时间窗口。设置为0和0允许全天扫描。</li>
+<li><strong>osd_scrub_during_recovery</strong>: 允许在恢复过程中进行扫描。设置为false将禁用在活动恢复时调度新的扫描（和深度扫描），已运行的扫描将继续进行。</li>
+<li><strong>osd_scrub_load_threshold</strong>: 归一化的最大负载。系统负载（按getloadavg() &#x2F; 在线CPU数量定义）高于此值时，Ceph将不会进行扫描。默认值为0.5。</li>
+<li><strong>osd_scrub_min_interval</strong>: 当Ceph存储集群负载较低时，OSD扫描的最小间隔（以秒为单位）。</li>
+<li><strong>osd_scrub_max_interval</strong>: 无论集群负载如何，OSD扫描的最大间隔（以秒为单位）。</li>
+<li><strong>osd_scrub_chunk_min</strong>: 每次操作扫描的最小对象存储块数量。扫描期间Ceph会阻塞对单个块的写入。</li>
+<li><strong>osd_scrub_chunk_max</strong>: 每次操作扫描的最大对象存储块数量。</li>
+<li><strong>osd_scrub_sleep</strong>: 在扫描下一组块之前的等待时间。增加此值将减慢整体扫描速度，以减少对客户端操作的影响。</li>
+<li><strong>osd_deep_scrub_interval</strong>: “深度”扫描的间隔（完全读取所有数据）。osd_scrub_load_threshold不影响此设置。</li>
+<li><strong>osd_scrub_interval_randomize_ratio</strong>: 在为PG调度下一个扫描作业时，添加一个随机延迟。延迟是小于osd_scrub_min_interval * osd_scrub_interval_randomized_ratio的随机值。默认设置将扫描分散到[1, 1.5] * osd_scrub_min_interval的允许时间窗口中。</li>
+<li><strong>osd_deep_scrub_stride</strong>: 执行深度扫描时的读取大小。</li>
+<li><strong>osd_scrub_auto_repair</strong>: 如果设置为true，扫描或深度扫描发现错误时将启用自动PG修复。如果发现的错误超过osd_scrub_auto_repair_num_errors，则不执行修复。</li>
+<li><strong>osd_scrub_auto_repair_num_errors</strong>: 如果发现的错误超过此值，则不会进行自动修复。</li>
+<li><strong>osd_op_num_shards</strong>: 为给定OSD分配的分片数量。每个分片有自己的处理队列。OSD上的PG均匀分配到各个分片。此设置会覆盖_ssd和_hdd设置（如果非零）。</li>
+<li><strong>osd_op_num_shards_hdd</strong>: 为给定OSD（针对旋转介质）分配的分片数量。</li>
+<li><strong>osd_op_num_shards_ssd</strong>: 为给定OSD（针对固态介质）分配的分片数量。</li>
+<li><strong>osd_op_queue</strong>: 设置用于在每个OSD内优先处理操作的队列类型。两种队列都有一个严格的子队列，严格子队列在正常队列之前出队。正常队列在不同的实现中有所不同。WeightedPriorityQueue (wpq) 根据操作的优先级出队，以防止队列的饥饿。mClockQueue (mclock_scheduler) 根据操作所属的类别（恢复、扫描、snaptrim、客户端操作、osd子操作）优先处理操作。此设置需要重新启动。</li>
+<li><strong>osd_op_queue_cut_off</strong>: 选择将哪些优先级操作发送到严格队列与正常队列。低设置将所有复制操作及更高优先级操作发送到严格队列，高设置仅将复制确认操作及更高优先级操作发送到严格队列。设置为高有助于在一些OSD非常繁忙时，尤其是结合wpq设置时，减少客户端流量的饥饿现象。此设置需要重新启动。</li>
+<li><strong>osd_client_op_priority</strong>: 客户端操作的优先级。相对于下面的osd_recovery_op_priority值。默认值强烈偏向客户端操作而非恢复。</li>
+<li><strong>osd_recovery_op_priority</strong>: 恢复操作与客户端操作的优先级（如果池的recovery_op_priority未指定）。默认值优先处理客户端操作（见上文）而非恢复操作。您可以通过降低此值以增加客户端操作的优先级，或者提高此值以偏向恢复。</li>
+<li><strong>osd_scrub_priority</strong>: 池未指定scrub_priority值时，默认的工作队列优先级。可以提升到osd_client_op_priority值，当扫描阻塞客户端操作时使用。</li>
+<li><strong>osd_requested_scrub_priority</strong>: 用户请求的扫描在工作队列中的优先级。如果此值小于osd_client_op_priority，则可以提升到osd_client_op_priority值，当扫描阻塞客户端操作时使用。</li>
+<li><strong>osd_snap_trim_priority</strong>: 快照修剪工作队列的优先级。</li>
+<li><strong>osd_snap_trim_sleep</strong>: 下一个快照修剪操作之前的等待时间（以秒为单位）。增加此值将减慢快照修剪过程，此选项覆盖特定后端的变体。</li>
+<li><strong>osd_snap_trim_sleep_hdd</strong>: HDD上下一个快照修剪操作之前的等待时间（以秒为单位）。</li>
+<li><strong>osd_snap_trim_sleep_ssd</strong>: SSD（包括NVMe）上下一个快照修剪操作之前的等待时间（以秒为单位）。</li>
+<li><strong>osd_snap_trim_sleep_hybrid</strong>: 当OSD数据在HDD上，而OSD日志或WAL+DB在SSD上时，下一次快照修剪操作之前的等待时间（以秒为单位）。</li>
+<li><strong>osd_op_thread_timeout</strong>: Ceph OSD守护进程操作线程超时时间（以秒为单位）。</li>
+<li><strong>osd_op_complaint_time</strong>: 操作在指定的秒数后变得需要投诉。</li>
+<li><strong>osd_op_history_size</strong>: 跟踪的最大已完成操作数。</li>
+<li><strong>osd_op_history_duration</strong>: 跟踪的最旧已完成操作。</li>
+<li><strong>osd_op_log_threshold</strong>: 一次显示的操作日志数量。</li>
+<li><strong>osd_async_recovery_min_cost</strong>: 当前日志条目差异和历史丢失对象的混合度量值，超过此值时适当切换到异步恢复。</li>
+<li><strong>osd_push_per_object_cost</strong>: 提供推送操作的开销。</li>
+<li><strong>osd_mclock_scheduler_client_res</strong>: 为每个客户端保留的IO比例（默认值）。</li>
+<li><strong>osd_mclock_scheduler_client_wgt</strong>: 每个客户端的IO份额（默认值），超过保留比例。</li>
+<li><strong>osd_mclock_scheduler_client_lim</strong>: 每个客户端的IO限制（默认值），超过保留比例。</li>
+<li><strong>osd_mclock_scheduler_background_recovery_res</strong>:为后台恢复保留的IO比例（默认值）。</li>
+<li><strong>osd_mclock_scheduler_background_recovery_wgt</strong>: 背景恢复的IO份额（默认值），超过保留比例。</li>
+<li><strong>osd_mclock_scheduler_background_recovery_lim</strong>: 背景恢复的IO限制（默认值），超过保留比例。</li>
+<li><strong>osd_mclock_scheduler_background_best_effort_res</strong>: 为后台最佳努力保留的IO比例（默认值）。</li>
+<li><strong>osd_mclock_scheduler_background_best_effort_wgt</strong>: 每个后台最佳努力的IO份额（默认值），超过保留比例。</li>
+<li><strong>osd_mclock_scheduler_background_best_effort_lim</strong>: 背景最佳努力的IO限制（默认值），超过保留比例。</li>
+<li><strong>osd_max_backfills</strong>: 允许到单个OSD的最大回填数量。注意，此设置对读取和写入操作分别应用。</li>
+<li><strong>osd_backfill_scan_min</strong>: 每个回填扫描的最小对象数量。</li>
+<li><strong>osd_backfill_scan_max</strong>: 每个回填扫描的最大对象数量。</li>
+<li><strong>osd_backfill_retry_interval</strong>: 在重试回填请求之前等待的秒数。</li>
+<li><strong>osd_map_dedup</strong>: 启用OSD映射中的重复项删除。</li>
+<li><strong>osd_map_cache_size</strong>: 保留的OSD映射数量。</li>
+<li><strong>osd_map_message_max</strong>: 每个MOSDMap消息允许的最大映射条目数。</li>
+<li><strong>osd_recovery_delay_start</strong>: 在peering完成后，Ceph将在开始恢复RADOS对象之前延迟指定的秒数。</li>
+<li><strong>osd_recovery_max_active</strong>: 每次最多允许的活动恢复请求数量。更多请求将加速恢复，但会增加集群负载。</li>
+<li><strong>osd_recovery_max_active_hdd</strong>: 如果主设备为旋转设备，则每个OSD允许的活动恢复请求数量。</li>
+<li><strong>osd_recovery_max_active_ssd</strong>: 如果主设备为非旋转设备（如SSD），则每个OSD允许的活动恢复请求数量。</li>
+<li><strong>osd_recovery_max_chunk</strong>: 恢复操作可以承载的数据块的最大总大小。</li>
+<li><strong>osd_recovery_max_single_start</strong>: 当OSD正在恢复时，每个OSD允许新启动的恢复操作的最大数量。</li>
+<li><strong>osd_recover_clone_overlap</strong>: 在恢复过程中保留克隆重叠。应始终设置为true。</li>
+<li><strong>osd_recovery_sleep</strong>: 下一次恢复或回填操作之前的等待时间（以秒为单位）。增加此值将减慢恢复操作的速度，同时减少对客户端操作的影响。</li>
+<li><strong>osd_recovery_sleep_hdd</strong>: 下一次恢复或回填操作之前的等待时间（以秒为单位），适用于HDD。</li>
+<li><strong>osd_recovery_sleep_ssd</strong>: 下一次恢复或回填操作之前的等待时间（以秒为单位），适用于SSD。</li>
+<li><strong>osd_recovery_sleep_hybrid</strong>: 当OSD数据在HDD上，而OSD日志或WAL+DB在SSD上时，下一次恢复或回填操作之前的等待时间（以秒为单位）。</li>
+<li><strong>osd_recovery_priority</strong>: 恢复工作队列的默认优先级。不与池的recovery_priority相关。</li>
+<li><strong>osd_agent_max_ops</strong>: 高速模式下每个分层代理的最大同时刷新操作数。</li>
+<li><strong>osd_agent_max_low_ops</strong>: 低速模式下每个分层代理的最大同时刷新操作数。</li>
+<li><strong>osd_default_notify_timeout</strong>: OSD默认通知超时时间（以秒为单位）。</li>
+<li><strong>osd_check_for_log_corruption</strong>: 检查日志文件是否损坏。可能会计算开销很大。</li>
+<li><strong>osd_delete_sleep</strong>: 下一次删除事务之前的等待时间（以秒为单位）。此设置会限制PG删除过程的速度。</li>
+<li><strong>osd_delete_sleep_hdd</strong>: 下一次删除事务之前的等待时间（以秒为单位），适用于HDD。</li>
+<li><strong>osd_delete_sleep_ssd</strong>: 下一次删除事务之前的等待时间（以秒为单位），适用于SSD。</li>
+<li><strong>osd_delete_sleep_hybrid</strong>: 当OSD数据在HDD上，而OSD日志或WAL+DB在SSD上时，下一次删除事务之前的等待时间（以秒为单位）。</li>
+<li><strong>osd_command_max_records</strong>: 限制返回的丢失对象数量。</li>
+<li><strong>osd_fast_fail_on_connection_refused</strong>: 如果启用此选项，崩溃的OSD会被连接的对等体和MON立即标记为不可用（假设崩溃的OSD主机仍然存在）。禁用它将恢复旧的行为，但可能会在OSD在I&#x2F;O操作中崩溃时造成长时间的I&#x2F;O延迟。</li>
+</ul>
+<h2 id="MCLOCK-配置参考"><a href="#MCLOCK-配置参考" class="headerlink" title="MCLOCK 配置参考"></a>MCLOCK 配置参考</h2><ul>
+<li><strong>osd_mclock_profile</strong>：设置用于根据不同类别操作（如背景恢复、擦洗、快照修剪、客户端操作、OSD 子操作）提供服务质量（QoS）的 mClock 配置类型。一旦启用了内置配置文件，低级 mClock 资源控制参数（[预留、权重、限制]）和一些 Ceph 配置参数将自动设置。请注意，这不适用于自定义配置文件。</li>
+<li><strong>osd_mclock_max_capacity_iops_hdd</strong>：每个 OSD 的最大随机写入 IOPS 容量（以 4 KiB 块大小为单位），适用于旋转介质（HDD）。</li>
+<li><strong>osd_mclock_max_capacity_iops_ssd</strong>：每个 OSD 的最大随机写入 IOPS 容量（以 4 KiB 块大小为单位），适用于固态介质（SSD）。</li>
+<li><strong>osd_mclock_max_sequential_bandwidth_hdd</strong>：每个 OSD 的最大顺序带宽（以字节&#x2F;秒为单位），适用于旋转介质（HDD）。</li>
+<li><strong>osd_mclock_max_sequential_bandwidth_ssd</strong>：每个 OSD 的最大顺序带宽（以字节&#x2F;秒为单位），适用于固态介质（SSD）。</li>
+<li><strong>osd_mclock_force_run_benchmark_on_init</strong>：强制在 OSD 初始化或启动时运行 OSD 基准测试。</li>
+<li><strong>osd_mclock_override_recovery_settings</strong>：启用此选项将允许 mClock 调度器覆盖由 <code>osd_recovery_max_active_hdd</code>、<code>osd_recovery_max_active_ssd</code> 和 <code>osd_max_backfills</code> 选项定义的恢复&#x2F;回填限制。</li>
+<li><strong>osd_mclock_iops_capacity_threshold_hdd</strong>：超过此阈值的 IOPS 容量（以 4 KiB 块大小为单位），将忽略 OSD 基准测试结果，适用于旋转介质（HDD）。</li>
+<li><strong>osd_mclock_iops_capacity_threshold_ssd</strong>：超过此阈值的 IOPS 容量（以 4 KiB 块大小为单位），将忽略 OSD 基准测试结果，适用于固态介质（SSD）。</li>
+</ul>
+<h2 id="bluestore配置参考"><a href="#bluestore配置参考" class="headerlink" title="bluestore配置参考"></a>bluestore配置参考</h2><ul>
+<li><strong>bluestore_cache_autotune</strong>：自动调整分配给各种 BlueStore 缓存的空间比例，同时尊重最小值。</li>
+<li><strong>osd_memory_target</strong>：当 TCMalloc 可用且启用了缓存自动调优时，尝试保持此数量的字节映射在内存中。注意：这可能与进程的 RSS 内存使用情况不完全匹配。尽管进程映射的堆内存总量通常应接近此目标，但内核是否实际回收已取消映射的内存没有保证。在初期开发中发现，一些内核导致 OSD 的 RSS 内存超出映射内存最多 20%。不过，假设内核在内存压力较大时通常可能会更积极地回收未映射的内存。实际情况可能有所不同。</li>
+<li><strong>bluestore_cache_autotune_interval</strong>：启用缓存自动调优时，重新平衡之间的等待秒数。<code>bluestore_cache_autotune_interval</code> 设置 Ceph 重新计算各种缓存分配比例的速度。注意：将此间隔设置得过小可能导致高 CPU 使用率和性能下降。</li>
+<li><strong>osd_memory_base</strong>：当启用 TCMalloc 和缓存自动调优时，估算 OSD 需要的最小内存量（以字节为单位）。这用于帮助自动调优器估算缓存的预期总内存消耗。</li>
+<li><strong>osd_memory_expected_fragmentation</strong>：当启用 TCMalloc 和缓存自动调优时，估算内存碎片的百分比。这用于帮助自动调优器估算缓存的预期总内存消耗。</li>
+<li><strong>osd_memory_cache_min</strong>：当启用 TCMalloc 和缓存自动调优时，设置用于缓存的最小内存量。注意：将此值设置得过低可能导致显著的缓存抖动。</li>
+<li><strong>osd_memory_cache_resize_interval</strong>：当启用 TCMalloc 和缓存自动调优时，在调整缓存大小之间等待的秒数。此设置改变 BlueStore 可用于缓存的总内存量。注意：将此间隔设置得过小可能导致内存分配器抖动和性能下降。</li>
+<li><strong>bluestore_cache_size</strong>：BlueStore 将用于其缓存的内存量。如果为零，则使用 <code>bluestore_cache_size_hdd</code> 或 <code>bluestore_cache_size_ssd</code>。</li>
+<li><strong>bluestore_cache_size_hdd</strong>：当 BlueStore 由 HDD 支持时，默认用于缓存的内存量。</li>
+<li><strong>bluestore_cache_size_ssd</strong>：当 BlueStore 由 SSD 支持时，默认用于缓存的内存量。</li>
+<li><strong>bluestore_cache_meta_ratio</strong>：分配给元数据的 bluestore 缓存比例。</li>
+<li><strong>bluestore_cache_kv_ratio</strong>：分配给键值数据库（RocksDB）的 bluestore 缓存比例。</li>
+<li><strong>bluestore_csum_type</strong>：使用的默认校验和算法。有效选择：none、crc32c、crc32c_16、crc32c_8、xxhash32、xxhash64。</li>
+<li><strong>bluestore_compression_algorithm</strong>：如果没有设置每池属性 <code>compression_algorithm</code>，则使用的默认压缩器。注意，由于压缩少量数据时 CPU 开销较高，zstd 不推荐用于 BlueStore。有效选择：snappy、zlib、zstd、lz4。</li>
+<li><strong>bluestore_compression_mode</strong>：如果没有设置每池属性 <code>compression_mode</code>，则使用的默认压缩策略。none 表示从不使用压缩。passive 表示在客户端提示数据可以压缩时使用压缩。aggressive 表示除非客户端提示数据不可压缩，否则使用压缩。force 表示在所有情况下使用压缩，即使客户端提示数据不可压缩。有效选择：none、passive、aggressive、force。</li>
+<li><strong>bluestore_compression_required_ratio</strong>：压缩后数据块大小与原始大小的比例必须至少小于此值才能存储压缩版本。</li>
+<li><strong>bluestore_compression_min_blob_size</strong>：小于此值的块从不压缩。每池属性 <code>compression_min_blob_size</code> 将覆盖此设置。</li>
+<li><strong>bluestore_compression_min_blob_size_hdd</strong>：旋转介质（HDD）的默认 BlueStore 压缩最小 blob 大小值。</li>
+<li><strong>bluestore_compression_min_blob_size_ssd</strong>：非旋转介质（固态介质）的默认 BlueStore 压缩最小 blob 大小值。</li>
+<li><strong>bluestore_compression_max_blob_size</strong>：大于此值的块在压缩前被拆分成最多 <code>bluestore_compression_max_blob_size</code> 字节的小 blob。每池属性 <code>compression_max_blob_size</code> 将覆盖此设置。</li>
+<li><strong>bluestore_compression_max_blob_size_hdd</strong>：旋转介质（HDD）的默认 BlueStore 压缩最大 blob 大小值。</li>
+<li><strong>bluestore_compression_max_blob_size_ssd</strong>：非旋转介质（SSD、NVMe）的默认 BlueStore 压缩最大 blob 大小值。</li>
+<li><strong>bluestore_rocksdb_cf</strong>：启用 BlueStore 的 RocksDB 分片。设置为 true 时，使用 <code>bluestore_rocksdb_cfs</code>。仅在 OSD 执行 <code>--mkfs</code> 时应用。</li>
+<li><strong>bluestore_rocksdb_cfs</strong>：BlueStore RocksDB 分片的定义。最佳值取决于多个因素，不建议修改。此设置仅在 OSD 执行 <code>--mkfs</code> 时使用。OSD 的下一次运行将从磁盘检索分片。</li>
+<li><strong>bluestore_throttle_bytes</strong>：在限制 IO 提交之前的最大飞行字节数。</li>
+<li><strong>bluestore_throttle_deferred_bytes</strong>：在限制 IO 提交之前的最大延迟写入字节数。</li>
+<li><strong>bluestore_throttle_cost_per_io</strong>：每次 IO 交易增加的开销（以字节为单位）。</li>
+<li><strong>bluestore_throttle_cost_per_io_hdd</strong>：旋转介质（HDD）的默认 <code>bluestore_throttle_cost_per_io</code>。</li>
+<li><strong>bluestore_throttle_cost_per_io_ssd</strong>：非旋转介质（固态介质）的默认 <code>bluestore_throttle_cost_per_io</code>。</li>
+<li><strong>bluestore_min_alloc_size</strong>：较小的分配大小通常意味着在触发写时复制操作（例如，当写入最近快照的内容时）时，读取和重写的数据更少。类似地，在执行覆盖写入之前，日志中记录的数据也更少（小于 <code>min_alloc_size</code> 的写入必须首先通过 BlueStore 日志）。较大的 <code>min_alloc_size</code> 减少了描述磁盘上布局所需的元数据量，并减少了总体碎片化。</li>
+<li><strong>bluestore_min_alloc_size_hdd</strong>：旋转介质（HDD）的默认 <code>min_alloc_size</code> 值。</li>
+<li><strong>bluestore_min_alloc_size_ssd</strong>：非旋转介质（固态介质）的默认 <code>min_alloc_size</code> 值。</li>
+<li><strong>bluestore_use_optimal_io_size_for_min_alloc_size</strong>：发现介质的最佳 IO 大小并用于 <code>min_alloc_size</code>。</li>
+</ul>
+<h2 id="日志配置参考"><a href="#日志配置参考" class="headerlink" title="日志配置参考"></a>日志配置参考</h2><ul>
+<li><strong>journal_dio</strong>：启用直接 I&#x2F;O（Direct I&#x2F;O）到日志。这要求 <code>journal_block_align</code> 设置为 true。</li>
+<li><strong>journal_aio</strong>：启用使用 libaio 进行异步写入日志。这要求 <code>journal_dio</code> 设置为 true。版本 0.61 及更高版本为 true，版本 0.60 及更早版本为 false。</li>
+<li><strong>journal_block_align</strong>：将写操作对齐到块。<code>dio</code> 和 <code>aio</code> 都需要此设置。</li>
+<li><strong>journal_max_write_bytes</strong>：日志一次最多写入的字节数。</li>
+<li><strong>journal_max_write_entries</strong>：日志一次最多写入的条目数。</li>
+<li><strong>journal_align_min_size</strong>：对大于指定最小值的数据有效负载进行对齐。</li>
+<li><strong>journal_zero_on_create</strong>：在 <code>mkfs</code> 期间将整个日志用 0 覆盖。</li>
+</ul>
+<h2 id="POOL-PG-CRUSH配置参考"><a href="#POOL-PG-CRUSH配置参考" class="headerlink" title="POOL&#x2F;PG&#x2F;CRUSH配置参考"></a>POOL&#x2F;PG&#x2F;CRUSH配置参考</h2><ul>
+<li><strong>mon_max_pool_pg_num</strong>：每个池的最大 placement group 数量。</li>
+<li><strong>mon_pg_stuck_threshold</strong>：PG 被视为卡住的秒数阈值。</li>
+<li><strong>mon_pg_warn_min_per_osd</strong>：如果每个 OSD 平均 PG 数量低于此值，则触发 HEALTH_WARN。非正值将禁用此警告。</li>
+<li><strong>mon_pg_warn_min_objects</strong>：如果集群中 RADOS 对象总数低于此值，则不发出警告。</li>
+<li><strong>mon_pg_warn_min_pool_objects</strong>：如果池中 RADOS 对象数量低于此值，则不发出警告。</li>
+<li><strong>mon_pg_check_down_all_threshold</strong>：下线 OSD 的百分比阈值，超过此阈值时我们检查所有 PG 是否过时。</li>
+<li><strong>mon_pg_warn_max_object_skew</strong>：如果任何池的每个 PG 的平均 RADOS 对象数大于所有池的每个 PG 平均 RADOS 对象数的 <code>mon_pg_warn_max_object_skew</code> 倍，则触发 HEALTH_WARN。零或非正值将禁用此警告。注意此选项适用于 ceph-mgr 守护进程。</li>
+<li><strong>mon_delta_reset_interval</strong>：在重置 PG delta 为 0 之前的非活动秒数。我们跟踪每个池的使用空间 delta，例如，这有助于理解恢复进度或缓存层性能。如果某个池没有活动报告，我们将重置该池的 delta 历史记录。</li>
+<li><strong>osd_crush_chooseleaf_type</strong>：CRUSH 规则中 <code>chooseleaf</code> 使用的桶类型。使用序号而非名称。</li>
+<li><strong>osd_crush_initial_weight</strong>：新添加的 OSD 的初始 CRUSH 权重。此选项的默认值为新添加的 OSD 的大小（以 TB 为单位）。默认情况下，新添加的 OSD 的初始 CRUSH 权重设置为其设备大小（以 TB 为单位）。有关详细信息，请参见权重桶项。</li>
+<li><strong>osd_pool_default_crush_rule</strong>：创建复制池时使用的默认 CRUSH 规则。默认值 -1 表示“选择具有最低数值 ID 的规则并使用该规则”。这是为了在没有规则 0 的情况下使池创建正常工作。</li>
+<li><strong>osd_pool_erasure_code_stripe_unit</strong>：设置默认的擦除编码池对象条带的大小（以字节为单位）。每个大小为 S 的对象将存储为 N 条带，每条数据块接收条带单位字节。每个条带 N * 条带单位字节将单独编码&#x2F;解码。此选项可以被擦除编码配置文件中的 <code>stripe_unit</code> 设置覆盖。</li>
+<li><strong>osd_pool_default_size</strong>：设置池中对象的副本数量。默认值与 <code>ceph osd pool set &#123;pool-name&#125; size &#123;size&#125;</code> 相同。</li>
+<li><strong>osd_pool_default_min_size</strong>：设置池中对象写入副本的最小数量，以便确认 I&#x2F;O 操作。如果未达到最低数量，Ceph 将不会确认 I&#x2F;O 操作，这可能导致数据丢失。此设置确保在降级模式下具有最小副本数量。默认值为 0，表示没有特定的最小值。如果为 0，最小值为 <code>size - (size / 2)</code>。</li>
+<li><strong>osd_pool_default_pg_num</strong>：池的默认 placement group 数量。默认值与 <code>pg_num</code> 和 <code>mkpool</code> 相同。</li>
+<li><strong>osd_pool_default_pgp_num</strong>：池的 placement group 数量的默认值。默认值与 <code>pgp_num</code> 和 <code>mkpool</code> 相同。PG 和 PGP 应该相等（目前）。注意：除非禁用自动扩展，否则不应设置此值。</li>
+<li><strong>osd_pool_default_pg_autoscale_mode</strong>：默认值为启用时，自动扩展器以 1 个 PG 启动新池，除非用户指定了 <code>pg_num</code>。</li>
+<li><strong>osd_pool_default_flags</strong>：新池的默认标志。</li>
+<li><strong>osd_max_pgls</strong>：最大 placement group 列表数。请求大量列表的客户端可能会占用 Ceph OSD 守护进程。</li>
+<li><strong>osd_min_pg_log_entries</strong>：修剪日志文件时要维护的最小 placement group 日志条目数。</li>
+<li><strong>osd_max_pg_log_entries</strong>：修剪日志文件时要维护的最大 placement group 日志条目数。</li>
+<li><strong>osd_default_data_pool_replay_window</strong>：OSD 等待客户端重放请求的时间（以秒为单位）。</li>
+<li><strong>osd_max_pg_per_osd_hard_ratio</strong>：集群允许的每个 OSD 的 PG 数量比率，超过此比率时 OSD 将拒绝创建新的 PG。如果 OSD 服务的 PG 数量超过 <code>osd_max_pg_per_osd_hard_ratio * mon_max_pg_per_osd</code>，则 OSD 停止创建新的 PG。</li>
+</ul>
+<h2 id="常规配置参考"><a href="#常规配置参考" class="headerlink" title="常规配置参考"></a>常规配置参考</h2><ul>
+<li><strong>admin_socket</strong>：用于执行守护进程的管理命令的套接字，无论 Ceph Monitor 是否已建立法定人数。</li>
+<li><strong>pid_file</strong>：mon、osd 或 mds 将其 PID 写入的文件。例如，<code>/var/run/$cluster/$type.$id.pid</code> 将为运行在 ceph 集群中的 ID 为 a 的 mon 创建 <code>/var/run/ceph/mon.a.pid</code>。当守护进程正常停止时，PID 文件会被删除。如果进程没有被守护进程化（即使用 -f 或 -d 选项运行），则不会创建 PID 文件。</li>
+<li><strong>chdir</strong>：Ceph 守护进程启动并运行后切换到的目录。推荐使用默认值 &#x2F; 目录。</li>
+<li><strong>atal_signal_handlers</strong>：如果设置，将安装 SEGV、ABRT、BUS、ILL、FPE、XCPU、XFSZ、SYS 信号的信号处理程序，以生成有用的日志消息。</li>
+<li><strong>max_open_files</strong>：如果设置，当 Ceph 存储集群启动时，Ceph 会在操作系统级别设置最大打开文件描述符数（即最大文件描述符数）。适当大的值可以防止 Ceph 守护进程用尽文件描述符。</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Ceph%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE/" title="Ceph相关配置" target="_blank" rel="external">https://watsonlu6.github.io/Ceph相关配置/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Ceph%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99%E8%BF%87%E7%A8%8B/" title="Ceph数据读写过程"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/" title="Ceph硬件要求"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

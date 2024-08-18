@@ -17,21 +17,24 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>个人感悟 | watson Lu&#39;blogs</title>
-  <meta name="description" content="论学习 多花点时间在自己专业上，不要分心旁骛太多。  先做好本份工作，行有余力，再自学 。 及时总结心得经验。记录，总结做过的项目，能总结多少就多少。如果有扎实的理论基础，深刻的理解能力，坚强的毅力，无论什么新技术新东西都能很快学会，但最宝贵的东西——经验，解决问题的钥匙。是无法学会的，只能慢慢体会,慢慢总结。 技术不求新，涉及哪方面的技术&#x2F;知识，就去学习，想办法精通。先有深度，再求广度">
+  <title>Ceph硬件要求 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Ceph 设计用于在普通硬件上运行，这使得构建和维护PB级数据集群变得灵活且经济可行。在规划集群的硬件时，仍需要平衡多个考虑因素，包括故障域、成本和性能。硬件规划应包括将 Ceph 守护进程和使用 Ceph 的其他进程分布在多个主机上。通常，建议在配置为特定类型守护进程的主机上运行该类型的 Ceph 守护进程。每个 Ceph 集群的需求各不相同，但以下是一些通用指南。 CPU MON节点和MGR节">
 <meta property="og:type" content="article">
-<meta property="og:title" content="个人感悟">
-<meta property="og:url" content="https://watsonlu6.github.io/%E4%B8%AA%E4%BA%BA%E6%84%9F%E6%82%9F/index.html">
+<meta property="og:title" content="Ceph硬件要求">
+<meta property="og:url" content="https://watsonlu6.github.io/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/index.html">
 <meta property="og:site_name" content="watson&#39;blogs">
-<meta property="og:description" content="论学习 多花点时间在自己专业上，不要分心旁骛太多。  先做好本份工作，行有余力，再自学 。 及时总结心得经验。记录，总结做过的项目，能总结多少就多少。如果有扎实的理论基础，深刻的理解能力，坚强的毅力，无论什么新技术新东西都能很快学会，但最宝贵的东西——经验，解决问题的钥匙。是无法学会的，只能慢慢体会,慢慢总结。 技术不求新，涉及哪方面的技术&#x2F;知识，就去学习，想办法精通。先有深度，再求广度">
+<meta property="og:description" content="Ceph 设计用于在普通硬件上运行，这使得构建和维护PB级数据集群变得灵活且经济可行。在规划集群的硬件时，仍需要平衡多个考虑因素，包括故障域、成本和性能。硬件规划应包括将 Ceph 守护进程和使用 Ceph 的其他进程分布在多个主机上。通常，建议在配置为特定类型守护进程的主机上运行该类型的 Ceph 守护进程。每个 Ceph 集群的需求各不相同，但以下是一些通用指南。 CPU MON节点和MGR节">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-04-06T08:18:06.000Z">
-<meta property="article:modified_time" content="2024-08-18T12:36:04.796Z">
+<meta property="og:image" content="https://watsonlu6.github.io/images/Ceph%E7%A1%AC%E4%BB%B6%E6%8E%A8%E8%8D%90.png">
+<meta property="article:published_time" content="2021-05-09T08:37:13.000Z">
+<meta property="article:modified_time" content="2024-08-18T12:38:47.171Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="个人生活">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/Ceph%E7%A1%AC%E4%BB%B6%E6%8E%A8%E8%8D%90.png">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://watsonlu6.github.io/%E4%B8%AA%E4%BA%BA%E6%84%9F%E6%82%9F/index.html">
+  <link rel="canonical" href="https://watsonlu6.github.io/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/index.html">
   
     <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
   
@@ -328,14 +331,14 @@
   
 <main class="main" role="main">
   <div class="content">
-  <article id="post-个人感悟" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-Ceph硬件要求" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
         
   
     <h1 class="article-title" itemprop="name">
-      个人感悟
+      Ceph硬件要求
     </h1>
   
 
@@ -343,82 +346,57 @@
       <div class="article-meta">
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
-	<a href="/%E4%B8%AA%E4%BA%BA%E6%84%9F%E6%82%9F/" class="article-date">
-	  <time datetime="2021-04-06T08:18:06.000Z" itemprop="datePublished">2021-04-06</time>
+	<a href="/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/" class="article-date">
+	  <time datetime="2021-05-09T08:37:13.000Z" itemprop="datePublished">2021-05-09</time>
 	</a>
 </span>
         
   <span class="article-category">
     <i class="icon icon-folder"></i>
-    <a class="article-category-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
   </span>
 
         
   <span class="article-tag">
     <i class="icon icon-tags"></i>
-	<a class="article-tag-link-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
   </span>
 
 
         
 
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/%E4%B8%AA%E4%BA%BA%E6%84%9F%E6%82%9F/#comments" class="article-comment-link">评论</a></span>
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/#comments" class="article-comment-link">评论</a></span>
         
       </div>
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="论学习"><a href="#论学习" class="headerlink" title="论学习"></a>论学习</h2><ol>
-<li>多花点时间在自己专业上，不要分心旁骛太多。 </li>
-<li>先做好本份工作，行有余力，再自学 。</li>
-<li>及时总结心得经验。记录，总结做过的项目，能总结多少就多少。如果有扎实的理论基础，深刻的理解能力，坚强的毅力，无论什么新技术新东西都能很快学会，但最宝贵的东西——经验，解决问题的钥匙。是无法学会的，只能慢慢体会,慢慢总结。</li>
-<li>技术不求新，涉及哪方面的技术&#x2F;知识，就去学习，想办法精通。先有深度，再求广度。</li>
-</ol>
-<h2 id="论生活"><a href="#论生活" class="headerlink" title="论生活"></a>论生活</h2><ol>
-<li>生活应该简单，但不应该单调。电影，音乐，都是不错的消遣。适当放松，有不足才有期待。 </li>
-<li>跑步能让我很开心，多去跑步。</li>
-<li>别被一些俗事打乱了生活的节奏，要懂得把握生活的节奏。</li>
-<li>每星期总结一周的活动。</li>
-<li>维持7.5小时睡眠。</li>
-<li>抓住该努力的时间去努力，该松弛的时候去松弛。</li>
-<li>运动能使人变得开朗，有特长能使人变得自信。</li>
-</ol>
-<h2 id="论做人"><a href="#论做人" class="headerlink" title="论做人"></a>论做人</h2><ol>
-<li>自视高谓之骄，怀激愤谓之躁。做人应该尽量避免骄傲，浮躁。</li>
-<li>要在3年达到别人10年才能达到的高度，就意味着3年内要承受10年的苦。请你衡量。</li>
-<li>不要拿社会标准来衡量自己的价值，而应该用心灵的意义去裁决。</li>
-<li>实验室很浮躁，越是浮躁的地方，越要扎实下来，厚积薄发。</li>
-<li>调整自己的心态，不要太在乎一得一失。你目前所努力的，其实不是为了成功，而是为了当成功的机会来临时，你能把握住而已。为了成功和为了成功把握机会，两者的区别很重要。</li>
-<li>做人应该谦虚，而且不要有自虐狂的心理，并不是每个人都会针对你。</li>
-<li>高手是别人认为的。不是自封的，不要自大。</li>
-<li>坚持理想，理想不难，难的是坚持</li>
-</ol>
-<h2 id="论心理"><a href="#论心理" class="headerlink" title="论心理"></a>论心理</h2><ol>
-<li>烦恼和焦虑：烦恼和焦虑表示你为一些事情担心着，而你目前并没有付出能够解决这些问题的努力。 </li>
-<li>宽容面对自己的缺陷和不足。</li>
-<li>把自己的消极想法都记下，逐点去分析，攻破。分析问题所在，制定方法去解决（生活与心理都是）</li>
-<li>知足常乐</li>
-</ol>
-<h2 id="论工作"><a href="#论工作" class="headerlink" title="论工作"></a>论工作</h2><ol>
-<li>对待补贴：不管导师发不发补贴，只要你还在这个实验室一天，就请努力专心的做事。 </li>
-<li>对待每一件事：努力认真去做好每一件事。只要你想做，总有法子可以做到的。</li>
-<li>做好本分工作。技术人员有时候对PM分配自己一些较没技术含量的工作会很不满。记住，都是做事而已。无论怎样，分配到你的工作，请你做好。孔子尚且养过马，薛仁贵尚且当过伙头军。我认为，做好一个茶叶蛋，比做砸了原子弹更有意义。不以技术难度定优劣，都是做事而已。</li>
-<li>团队的交流,配合开发：<br> a. 别人的失误要及时指出，当然了，语气要婉转。这样才能调整进度，别发现了错误隐瞒不报。<br> b. 对于自己不懂的环节，勇敢承认自己的缺点，大胆去估计进度，并认真学习。<br> c. 如果可能，每天汇报进度，也许只是几分钟，让PM看看你的构思，你的代码，你的成果。PM是最熟悉业务的，他能指出你的程序流是否正确，页面是否恰当。根据这些，你和他才能估计进度，这样，整个项目的进度才算可控。<br> d. 学会承担更多的责任。把困难的任务交给你，通常意味着只有你才能完成。请你好好享受这种”唯一”的乐趣。</li>
-<li>出了问题，努力想办法去解决。别人或者不在意你的能力，但很在意你的态度。</li>
-</ol>
-<h2 id="最佳印象"><a href="#最佳印象" class="headerlink" title="最佳印象"></a>最佳印象</h2><ol>
-<li>早到。早到就显得你很重视这份工作。</li>
-<li>不要过于固执。工作时时在扩展，不要老是以“这不是我份内的工作”为由来逃避责任。当前额外的工作指派到你头上时，不妨视之为考验。</li>
-<li>苦中求乐。不管你接受的工作多么艰巨，鞠躬尽瘁也要做好，千万别表现出你做不来或不知从何入手的样子。</li>
-<li>立刻动手。接到工作要立刻动手，迅速准确及时完成，反应敏捷给人的印象是金钱买不到的。</li>
-<li>谨言。职务上的机密必须守口如瓶。</li>
-<li>听从上司的临时指派。上司的时间比你的时间宝贵，不管他临时指派了什么工作给你，都比你手头上的工作来得重要。</li>
-<li>荣耀归于上司。即让上司在人前人后永远光鲜。</li>
-<li>保持冷静。面对任何状况都能处之泰然的人，一开始就取得了优势。老板、客户不仅钦佩那些面对危机声色不变的人，更欣赏能妥善解决问题的人。</li>
-<li>别存在太多的希望。千万别期盼所有的事情都会照你的计划而行。相反，你得时时为可能产生的错误做准备。</li>
-<li>敢于做出果断决定。遇事犹豫不决或过度依赖他人意见的人，是一辈子注定要被打入冷宫的。</li>
-<li>广收资讯。要想成为一个成功的人，光是从影音媒体取得资讯是不够的，多看报章杂志才是最直接的知识来源。</li>
-</ol>
+        <p>Ceph 设计用于在普通硬件上运行，这使得构建和维护PB级数据集群变得灵活且经济可行。在规划集群的硬件时，仍需要平衡多个考虑因素，包括故障域、成本和性能。硬件规划应包括将 Ceph 守护进程和使用 Ceph 的其他进程分布在多个主机上。通常，建议在配置为特定类型守护进程的主机上运行该类型的 Ceph 守护进程。每个 Ceph 集群的需求各不相同，但以下是一些通用指南。</p>
+<h2 id="CPU"><a href="#CPU" class="headerlink" title="CPU"></a>CPU</h2><ul>
+<li><strong>MON节点和MGR节点</strong>对 CPU 的要求不高，只需要适度的处理器。如果主机除了运行 Ceph 守护进程之外还要运行 CPU 密集型进程，请确保有足够的处理能力来同时运行这些 CPU 密集型进程和 Ceph 守护进程。建议将非 Ceph 的 CPU 密集型进程运行在独立的主机上（即不在MON节点和MGR节点上），以避免资源竞争。如果集群部署了 Ceph 对象网关，RGW 守护进程可以与MON和MGR服务共存在于资源充足的节点上。</li>
+<li><strong>OSD节点</strong>需要足够的处理能力来运行 RADOS 服务，计算 CRUSH 数据放置，复制数据，并维护自身的集群映射副本。在早期的 Ceph 版本中，我们会根据每个 OSD 的核心数量来制定硬件建议，但这种每 OSD 核心数的指标现在不如每 IOP 的周期数和每 OSD 的 IOPS 数量有用。例如，使用 NVMe OSD 驱动器时，Ceph 可以轻松利用真实集群中的五到六个核心，并在单个 OSD 中达到大约十四个核心。因此，每 OSD 的核心数不再像以前那样成为主要问题。选择硬件时，应选择每核心的 IOPS 数量。</li>
+<li><strong>MDS节点</strong>对 CPU 要求很高。它们是单线程的，具有高时钟速率 (GHz) 的 CPU 表现最佳。除非 MDS 服务器还托管其他服务（例如用于 CephFS 元数据池的 SSD OSD），否则它们不需要大量的 CPU 内核。</li>
+</ul>
+<h2 id="内存"><a href="#内存" class="headerlink" title="内存"></a>内存</h2><ul>
+<li><strong>MON节点和MGR节点</strong>：一般来说，更多的 RAM 更好。对于一个适中的集群，可能用 64GB 就足够了；对于一个拥有数百个 OSD 的大型集群，建议使用 128GB。MON和MGR守护进程的内存使用量会随着集群规模的扩大而增加。请注意，在启动时、拓扑更改和恢复期间，这些守护进程需要的内存会比在稳定运行状态下更多，因此需要计划应对峰值使用量。对于非常小的集群，32GB 的内存就足够了。对于最多 300 个 OSD 的集群，建议使用 64GB。对于构建中或将要扩展到更多 OSD 的集群，应配备 128GB 的内存。您还可能需要考虑调整以下设置：<code>mon_osd_cache_size</code>和<code>rocksdb_cache_size</code>。</li>
+<li><strong>OSD节点</strong>：Bluestore 使用其自己的内存来缓存数据，而不是依赖操作系统的页面缓存。在 Bluestore 中，可以通过更改 osd_memory_target 配置选项来调整 OSD 尝试消耗的内存量，默认值为 4GB。不建议将 <code>osd_memory_target</code> 设置低于 2GB。Ceph 可能无法将内存消耗控制在 2GB 以下，可能会导致极其缓慢的性能。将内存目标设置在 2GB 到 4GB 之间通常能正常工作，但可能会导致性能下降：如果活动数据集相对较大，元数据可能需要从磁盘读取。4GB 是当前 <code>osd_memory_target</code> 的默认值。这一默认值适用于典型用例，旨在平衡 RAM 成本和 OSD 性能。将 <code>osd_memory_target</code> 设置高于 4GB 可以在处理大量（小）对象或大型（256GB&#x2F;OSD 或更多）数据集时提高性能。特别是在使用快速 NVMe OSD 时，这种效果尤为显著。 <ul>
+<li>OSD 内存管理是“尽力而为”的。虽然 OSD 可能会解除内存映射以允许内核回收内存，但不能保证内核会在特定时间框架内实际回收释放的内存。这一点在旧版本的 Ceph 中尤其明显，因为透明大页面可能会阻止内核回收从碎片化的大页面中释放的内存。现代版本的 Ceph 在应用级别禁用了透明大页面，以避免这种情况，但这并不能保证内核会立即回收未映射的内存。OSD 仍然有可能在某些时候超出其内存目标。因此，我们建议在系统上预留至少 20% 的额外内存，以防止 OSD 在临时内存峰值或由于内核回收释放页面的延迟而发生 OOM（内存不足）。具体所需的 20% 值可能会因系统的确切配置而有所不同。</li>
+</ul>
+</li>
+<li><strong>MDS节点</strong>：CephFS 元数据守护进程的内存利用率取决于其缓存的配置大小。对于大多数系统，建议至少配置 1 GB 的内存。相关设置为 <code>mds_cache_memory_limit</code>。</li>
+<li>不建议通过为操作系统配置交换空间来为守护进程提供额外的虚拟内存。这样做可能会导致性能下降。</li>
+</ul>
+<h2 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a>磁盘</h2><ul>
+<li>在规划数据存储时需要考虑显著的成本和性能权衡。操作系统的并发操作和多个守护进程对单个驱动器进行读写操作的请求可能会影响性能。OSD 需要大量的存储驱动器空间来存储 RADOS 数据。我们建议至少使用 1 TB 的驱动器。小于 1 TB 的 OSD 驱动器会将相当大一部分容量用于元数据，小于 100 GB 的驱动器效果更差，几乎不具备有效性。<br>强烈建议为 Ceph MON和 Ceph Mgr主机、CephFS MDS元数据池和 Ceph RGW索引池配置企业级 SSD。</li>
+<li>硬盘驱动器: 仔细考虑更大磁盘的每 GB 成本优势。我们建议将磁盘驱动器的价格除以其容量来得出每 GB 成本，因为较大的驱动器可能对每 GB 成本产生显著影响。例如，一个价格为 75 美元的 1 TB 硬盘，其每 GB 成本为 0.07 美元（即 75 美元 &#x2F; 1024 GB &#x3D; 0.0732 美元&#x2F;GB）。相比之下，一个价格为 150 美元的 3 TB 硬盘，其每 GB 成本为 0.05 美元（即 150 美元 &#x2F; 3072 GB &#x3D; 0.0488 美元&#x2F;GB）。在上述示例中，使用 1 TB 磁盘通常会使每 GB 成本增加 40%，从而使您的集群在成本效率上显著降低。<br>不建议在单个 SAS&#x2F;SATA HDD 上托管多个 OSD。最好只托管一个 OSD 并直接访问磁盘（即 OSD 在非 LVM 上），因为 LVM 和其他抽象层可能会显着降低性能。</li>
+<li>固态硬盘 (SSD): 使用固态硬盘 (SSD) 时，Ceph 的性能得到显著提升。SSD 减少了随机访问时间和延迟，同时增加了吞吐量。虽然 SSD 的每 GB 成本高于 HDD，但 SSD 通常提供至少比 HDD 快 100 倍的访问时间。SSD 可以避免热点问题和繁忙集群中的瓶颈问题，并且在综合评估总拥有成本 (TCO) 时，它们可能提供更好的经济效益。尤其是在给定 IOPS 数量的情况下，SSD 的摊销驱动器成本远低于 HDD。SSD 不会遭受旋转或寻道延迟，除了改进客户端性能外，它们还大幅提高了集群变化（包括 OSD 或监视器的增加、移除或故障）时的速度和对客户端的影响。由于 SSD 没有移动机械部件，因此它们不受 HDD 的许多限制。但 SSD 也有一些重要的限制。在评估 SSD 时，必须考虑顺序和随机读写的性能。</li>
+</ul>
+<h2 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h2><ul>
+<li>Ceph 是一个高吞吐量、低延迟的分布式存储系统，对网络配置有较高的要求。集群网络的吞吐量和延迟对 Ceph 集群的性能有直接影响。因此，在配置 Ceph 网络时，应尽量选择高性能、低延迟的网络设备和网络拓扑。</li>
+<li>对于 Ceph 集群的网络配置，建议使用 10GbE 或更高速率的网络设备，并配置两个网络，一个用于 Ceph 集群的内部通信（cluster network），一个用于 Ceph 客户端与 Ceph 集群之间的通信（public network）。这种网络配置可以有效地隔离 Ceph 集群的内部通信和外部通信，从而提高网络的性能和安全性。</li>
+<li>在 1 Gb&#x2F;s 网络上复制 1 TB 数据需要 3 个小时，在 1 Gb&#x2F;s 网络上复制 10 TB 数据需要 30 个小时。但在 10 Gb&#x2F;s 网络上复制 1 TB 数据仅需 20 分钟，在 10 Gb&#x2F;s 网络上复制 10 TB 数据仅需 1 个小时。</li>
+</ul>
+<h2 id="最低硬件建议"><a href="#最低硬件建议" class="headerlink" title="最低硬件建议"></a>最低硬件建议</h2><p>Ceph 可以运行在廉价的通用硬件上。小型生产集群和开发集群可以在配置适中的硬件上成功运行。正如我们之前提到的，当我们讨论 CPU 核心时，在启用超线程 (HT) 的情况下，我们指的是逻辑线程。每个现代物理 x64 CPU 核心通常提供两个逻辑 CPU 线程；其他 CPU 架构可能有所不同。<br><img src="/images/Ceph%E7%A1%AC%E4%BB%B6%E6%8E%A8%E8%8D%90.png"></p>
 
       
     </div>
@@ -428,7 +406,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://watsonlu6.github.io/%E4%B8%AA%E4%BA%BA%E6%84%9F%E6%82%9F/" title="个人感悟" target="_blank" rel="external">https://watsonlu6.github.io/个人感悟/</a>
+      <a href="https://watsonlu6.github.io/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/" title="Ceph硬件要求" target="_blank" rel="external">https://watsonlu6.github.io/Ceph硬件要求/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -475,12 +453,12 @@
   <ul class="pager pull-left">
     
     <li class="prev">
-      <a href="/Linux%E5%AD%98%E5%82%A8%E6%A0%88/" title="Linux存储栈"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+      <a href="/Ceph%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE/" title="Ceph相关配置"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
     </li>
     
     
     <li class="next">
-      <a href="/hello-world/" title="Hello World"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" title="Ceph体系架构"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
