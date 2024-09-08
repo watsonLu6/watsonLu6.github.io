@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Cpeh OSD常见故障处理 | watson Lu&#39;blogs</title>
+  <meta name="description" content="PG故障排除PG 永远无法变干净如果在创建集群后，任何 PG 保持在 active 状态、active+remapped 状态或 active+degraded 状态，并且永远无法达到 active+clean 状态，那么可能是配置出现了问题。在这种情况下，可能需要查看 Pool、PG 和 CRUSH 配置参考的设置，并进行适当调整。一般来说，运行集群时应使用多个 OSD，并且池的大小应大于两个对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cpeh OSD常见故障处理">
+<meta property="og:url" content="https://watsonlu6.github.io/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="PG故障排除PG 永远无法变干净如果在创建集群后，任何 PG 保持在 active 状态、active+remapped 状态或 active+degraded 状态，并且永远无法达到 active+clean 状态，那么可能是配置出现了问题。在这种情况下，可能需要查看 Pool、PG 和 CRUSH 配置参考的设置，并进行适当调整。一般来说，运行集群时应使用多个 OSD，并且池的大小应大于两个对">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-09-08T06:53:31.000Z">
+<meta property="article:modified_time" content="2024-09-08T09:18:04.959Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">28</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">23</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.67px;">Ceph</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.33px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">九月 2024</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh Mon常见故障处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh OSD常见故障处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh OSD常见故障处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" class="title">Ceph Cache Tier源码实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-09-28T12:45:54.000Z" itemprop="datePublished">2022-09-28</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Cache-Tier%E4%BD%BF%E7%94%A8%E4%BB%8B%E7%BB%8D/" class="title">Ceph Cache Tier使用介绍</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-08-25T08:45:47.000Z" itemprop="datePublished">2022-08-25</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Ceph-PG常见故障处理" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Cpeh OSD常见故障处理
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="article-date">
+	  <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="PG故障排除"><a href="#PG故障排除" class="headerlink" title="PG故障排除"></a>PG故障排除</h2><h4 id="PG-永远无法变干净"><a href="#PG-永远无法变干净" class="headerlink" title="PG 永远无法变干净"></a>PG 永远无法变干净</h4><p>如果在创建集群后，任何 PG 保持在 active 状态、active+remapped 状态或 active+degraded 状态，并且永远无法达到 active+clean 状态，那么可能是配置出现了问题。在这种情况下，可能需要查看 Pool、PG 和 CRUSH 配置参考的设置，并进行适当调整。一般来说，运行集群时应使用多个 OSD，并且池的大小应大于两个对象副本。</p>
+<ol>
+<li><p><strong>单节点集群</strong><br>  Ceph 不再提供单节点操作的文档。按定义，分布式计算系统不应在单节点上运行。在包含 Ceph 守护进程的单节点上安装客户端内核模块可能会由于 Linux 内核本身的问题而导致死锁（除非使用虚拟机作为客户端）。尽管有上述限制，您仍可以在单节点配置中实验 Ceph。<br>  要在单节点上创建集群，必须在创建监视器和 OSD 之前，将 Ceph 配置文件中的 <code>osd_crush_chooseleaf_type</code> 设置从默认的 1（表示主机或节点）更改为 0（表示 OSD）。这告诉 Ceph 允许在同一主机上放置另一个 OSD。如果您尝试设置单节点集群，并且 <code>osd_crush_chooseleaf_type</code> 大于 0，Ceph 将尝试将一个 OSD 的 PG 与另一个 OSD 的 PG 放置在另一个节点、机箱、机架、行或数据中心中，具体取决于设置。<br>  <strong>提示</strong><br>  不要将内核客户端直接安装在与 Ceph 存储集群相同的节点上。这样可能会产生内核冲突。然而，您可以在单节点上通过虚拟机 (VMs) 安装内核客户端。<br>  如果您使用单个磁盘创建 OSD，则必须先手动创建数据目录。</p>
+</li>
+<li><p><strong>OSDs 少于副本</strong><br>  如果两个 OSD 处于 up 和 in 状态，但 PG 并未处于 active + clean 状态，可能是 <code>osd_pool_default_size</code> 设置大于 2。<br>  解决这种情况有几种方法。如果您想以 active + degraded 状态运行集群并保持两个副本，您可以将 <code>osd_pool_default_min_size</code> 设置为 2，这样可以在 active + degraded 状态下写入对象。您也可以将 <code>osd_pool_default_size</code> 设置为 2，这样只会有两个存储副本（原始副本和一个副本）。在这种情况下，集群应达到 active + clean 状态。<br>  <strong>注意</strong><br>  您可以在集群运行时进行更改。如果您在 Ceph 配置文件中进行更改，可能需要重新启动集群。</p>
+</li>
+<li><p><strong>POOL SIZE &#x3D; 1</strong><br>  如果将 <code>osd_pool_default_size</code> 设置为 1，则对象只有一个副本。OSDs 依赖其他 OSDs 来告诉它们应该拥有哪些对象。如果一个 OSD 有一个对象副本而没有第二个副本，那么就没有第二个 OSD 来告诉第一个 OSD 它应该拥有这个副本。对于映射到第一个 OSD 的每个 PG（请参见 <code>ceph pg dump</code>），您可以通过运行以下命令来强制第一个 OSD 注意它需要的 PG：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd force-create-pg &lt;pgid&gt;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>CRUSH MAP 错误</strong><br>  如果集群中的任何 PG 不干净，则可能是 CRUSH 映射中存在错误。</p>
+</li>
+</ol>
+<h4 id="PG卡住"><a href="#PG卡住" class="headerlink" title="PG卡住"></a>PG卡住</h4><p>PG 进入“degraded”或“peering”状态在组件故障后是正常的。这些状态通常反映了故障恢复过程中的预期进展。然而，若一个 PG 长时间停留在这些状态中，可能是更大问题的迹象。因此，Ceph 监视器会在 PG “卡住”在非最佳状态时发出警告。具体检查的状态包括：</p>
+<ul>
+<li><p><strong>inactive</strong> - PG 长时间未处于活跃状态（即无法处理读写请求）。</p>
+</li>
+<li><p><strong>unclean</strong> - PG 长时间未处于干净状态（即无法完全从先前的故障中恢复）。</p>
+</li>
+<li><p><strong>stale</strong> - PG 状态未被 ceph-osd 更新。这表明存储该 PG 的所有节点可能都已宕机。<br>通过运行以下命令来列出卡住的PG：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ceph pg dump_stuck stale</span><br><span class="line">ceph pg dump_stuck inactive</span><br><span class="line">ceph pg dump_stuck unclean</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>卡住的 stale PG</strong> 通常表明关键的 ceph-osd 守护进程未运行。</p>
+</li>
+<li><p><strong>卡住的 inactive PG</strong> 通常表明存在 peering 问题（见 PG Down - Peering Failure）。</p>
+</li>
+<li><p><strong>卡住的 unclean PG</strong> 通常表明某些因素阻止了恢复完成，可能是未找到的对象（见 Unfound Objects）。</p>
+</li>
+</ul>
+<h4 id="PG-下线-对等连接失败"><a href="#PG-下线-对等连接失败" class="headerlink" title="PG 下线 - 对等连接失败"></a>PG 下线 - 对等连接失败</h4><p>在某些情况下，ceph-osd peering 过程可能会遇到问题，导致 PG 无法变为活跃和可用。在这种情况下，运行 <code>ceph health detail</code> 命令会报告类似以下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ceph health detail</span><br><span class="line">HEALTH_ERR 7 pgs degraded; 12 pgs down; 12 pgs peering; 1 pgs recovering; 6 pgs stuck unclean; 114/3300 degraded (3.455%); 1/3 <span class="keyword">in</span> osds are down</span><br><span class="line">...</span><br><span class="line">pg 0.5 is down+peering</span><br><span class="line">pg 1.4 is down+peering</span><br><span class="line">...</span><br><span class="line">osd.1 is down since epoch 69, last address 192.168.106.220:6801/8651</span><br></pre></td></tr></table></figure>
+
+<p>查询集群以确定为什么 PG 被标记为 down，可以运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">ceph pg 0.5 query</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;state&quot;</span>: <span class="string">&quot;down+peering&quot;</span>,</span><br><span class="line">  ...</span><br><span class="line">  <span class="string">&quot;recovery_state&quot;</span>: [</span><br><span class="line">       &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;Started\/Primary\/Peering\/GetInfo&quot;</span>,</span><br><span class="line">         <span class="string">&quot;enter_time&quot;</span>: <span class="string">&quot;2012-03-06 14:40:16.169679&quot;</span>,</span><br><span class="line">         <span class="string">&quot;requested_info_from&quot;</span>: []&#125;,</span><br><span class="line">       &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;Started\/Primary\/Peering&quot;</span>,</span><br><span class="line">         <span class="string">&quot;enter_time&quot;</span>: <span class="string">&quot;2012-03-06 14:40:16.169659&quot;</span>,</span><br><span class="line">         <span class="string">&quot;probing_osds&quot;</span>: [</span><br><span class="line">               0,</span><br><span class="line">               1],</span><br><span class="line">         <span class="string">&quot;blocked&quot;</span>: <span class="string">&quot;peering is blocked due to down osds&quot;</span>,</span><br><span class="line">         <span class="string">&quot;down_osds_we_would_probe&quot;</span>: [</span><br><span class="line">               1],</span><br><span class="line">         <span class="string">&quot;peering_blocked_by&quot;</span>: [</span><br><span class="line">               &#123; <span class="string">&quot;osd&quot;</span>: 1,</span><br><span class="line">                 <span class="string">&quot;current_lost_at&quot;</span>: 0,</span><br><span class="line">                 <span class="string">&quot;comment&quot;</span>: <span class="string">&quot;starting or marking this osd lost may let us proceed&quot;</span>&#125;]&#125;,</span><br><span class="line">       &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;Started&quot;</span>,</span><br><span class="line">         <span class="string">&quot;enter_time&quot;</span>: <span class="string">&quot;2012-03-06 14:40:16.169513&quot;</span>&#125;</span><br><span class="line">   ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>recovery_state</code> 部分告诉我们 peering 被阻止是由于 ceph-osd 守护进程宕机，具体是 osd.1。在这种情况下，我们可以启动该 ceph-osd，恢复将继续进行。或者，如果 osd.1 发生灾难性故障（例如磁盘故障），可以告知集群该 OSD 已丢失，并指示集群尽可能应对。</p>
+<p><strong>重要</strong><br>告知集群一个 OSD 已丢失是危险的，因为集群不能保证其他副本的数据是一致和最新的。<br>要报告 OSD 丢失并指示 Ceph 继续尝试恢复，可以运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd lost 1</span><br></pre></td></tr></table></figure>
+<p>恢复将继续进行。</p>
+<h4 id="未找到的对象"><a href="#未找到的对象" class="headerlink" title="未找到的对象"></a>未找到的对象</h4><p>在某些故障组合下，Ceph 可能会报告未找到的对象，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ceph health detail</span><br><span class="line">HEALTH_WARN 1 pgs degraded; 78/3778 unfound (2.065%)</span><br><span class="line">pg 2.4 is active+degraded, 78 unfound</span><br></pre></td></tr></table></figure>
+
+<p>这意味着存储集群知道一些对象（或现有对象的新副本）存在，但没有找到它们的副本。以下是这种情况可能发生的示例：一个 PG 的数据在两个 OSD 上，我们称它们为“1”和“2”：</p>
+<ol>
+<li>OSD 1 发生故障。</li>
+<li>OSD 2 单独处理一些写操作。</li>
+<li>OSD 1 重新上线。</li>
+<li>OSD 1 和 OSD 2 重新进行 peering，O<strong>SD 1 上缺失的对象被排队等待恢复。</strong></li>
+<li>在新的对象被复制之前，OSD 2 发生故障。<br>此时，OSD 1 知道这些对象存在，但没有活跃的 ceph-osd 拥有这些对象的副本。在这种情况下，对这些对象的 IO 请求将被阻塞，集群希望故障节点尽快恢复。这被认为比直接返回 IO 错误给用户更可取。</li>
+</ol>
+<p><strong>注意</strong><br>上述情况是将 <code>size=2</code> 设置在复制池和 <code>m=1</code> 设置在纠删码池时可能导致数据丢失的原因之一。</p>
+<p>通过运行以下命令来识别哪些对象未找到：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">ceph pg 2.4 list_unfound [starting offset, <span class="keyword">in</span> json]</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;num_missing&quot;</span>: 1,</span><br><span class="line">  <span class="string">&quot;num_unfound&quot;</span>: 1,</span><br><span class="line">  <span class="string">&quot;objects&quot;</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="string">&quot;oid&quot;</span>: &#123;</span><br><span class="line">              <span class="string">&quot;oid&quot;</span>: <span class="string">&quot;object&quot;</span>,</span><br><span class="line">              <span class="string">&quot;key&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">              <span class="string">&quot;snapid&quot;</span>: -2,</span><br><span class="line">              <span class="string">&quot;hash&quot;</span>: 2249616407,</span><br><span class="line">              <span class="string">&quot;max&quot;</span>: 0,</span><br><span class="line">              <span class="string">&quot;pool&quot;</span>: 2,</span><br><span class="line">              <span class="string">&quot;namespace&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="string">&quot;need&quot;</span>: <span class="string">&quot;43&#x27;251&quot;</span>,</span><br><span class="line">          <span class="string">&quot;have&quot;</span>: <span class="string">&quot;0&#x27;0&quot;</span>,</span><br><span class="line">          <span class="string">&quot;flags&quot;</span>: <span class="string">&quot;none&quot;</span>,</span><br><span class="line">          <span class="string">&quot;clean_regions&quot;</span>: <span class="string">&quot;clean_offsets: [], clean_omap: 0, new_object: 1&quot;</span>,</span><br><span class="line">          <span class="string">&quot;locations&quot;</span>: [</span><br><span class="line">              <span class="string">&quot;0(3)&quot;</span>,</span><br><span class="line">              <span class="string">&quot;4(2)&quot;</span></span><br><span class="line">          ]</span><br><span class="line">      &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;state&quot;</span>: <span class="string">&quot;NotRecovering&quot;</span>,</span><br><span class="line">  <span class="string">&quot;available_might_have_unfound&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="string">&quot;might_have_unfound&quot;</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="string">&quot;osd&quot;</span>: <span class="string">&quot;2(4)&quot;</span>,</span><br><span class="line">          <span class="string">&quot;status&quot;</span>: <span class="string">&quot;osd is down&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;more&quot;</span>: <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果单次结果中列出的对象过多，<code>more</code> 字段将为 <code>true</code>，你可以查询更多信息。（最终命令行工具将会隐藏这一点，但现在还没有。）<br>接下来，你可以识别哪些 OSD 已被探测或可能包含数据。<br>在列表的末尾（在 <code>more: false</code> 之前），<code>might_have_unfound</code> 是在 <code>available_might_have_unfound</code> 为 <code>true</code> 时提供的。这相当于 <code>ceph pg #.# query</code> 的输出。它可以避免直接使用 <code>query</code>。提供的 <code>might_have_unfound</code> 信息与 <code>query</code> 的输出方式相同，仅不同的是，状态为“已探测”的 OSD 会被忽略。<br><strong>查询的使用：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ceph pg 2.4 query</span><br><span class="line"><span class="string">&quot;recovery_state&quot;</span>: [</span><br><span class="line">     &#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;Started\/Primary\/Active&quot;</span>,</span><br><span class="line">       <span class="string">&quot;enter_time&quot;</span>: <span class="string">&quot;2012-03-06 15:15:46.713212&quot;</span>,</span><br><span class="line">       <span class="string">&quot;might_have_unfound&quot;</span>: [</span><br><span class="line">             &#123; <span class="string">&quot;osd&quot;</span>: 1,</span><br><span class="line">               <span class="string">&quot;status&quot;</span>: <span class="string">&quot;osd is down&quot;</span>&#125;]&#125;</span><br></pre></td></tr></table></figure>
+<p>在这种情况下，集群知道 osd.1 可能有数据，但它已宕机。以下是可能的状态范围：</p>
+<ul>
+<li>已探测</li>
+<li>正在查询</li>
+<li>OSD 已宕机</li>
+<li>尚未查询</li>
+</ul>
+<p>有时集群需要一些时间来查询可能的位置。可能还有其他未列出的对象可能存在的位置。例如：如果一个 OSD 停止并从集群中移除，然后集群完全恢复，然后通过随后的故障集群最终出现未找到的对象，集群将忽略已移除的 OSD。（然而，这种情况不太可能发生。）</p>
+<p>如果所有可能的位置都已被查询，且对象仍然丢失，你可能需要放弃这些丢失的对象。这仅在发生了不寻常的故障组合，导致集群在写入之前了解了写入操作的情况时才可能发生。要将“未找到”的对象标记为“丢失”，运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg 2.5 mark_unfound_lost revert|delete</span><br></pre></td></tr></table></figure>
+
+<p>这里的最后一个参数（<code>revert|delete</code>）指定了集群应如何处理丢失的对象。</p>
+<ul>
+<li><code>delete</code> 选项将使集群完全忘记这些对象。</li>
+<li><code>revert</code> 选项（对于纠删码池不可用）将回滚到对象的先前版本，或（如果它是新对象）完全忘记该对象。使用 <code>revert</code> 时请小心，因为它可能会混淆期望对象存在的应用程序。</li>
+</ul>
+<h4 id="无家-PG"><a href="#无家-PG" class="headerlink" title="无家 PG"></a>无家 PG</h4><p>如果所有具有特定 PG 副本的 OSD 都发生故障，那么包含这些 PG 的对象存储子集将变得不可用，监视器将无法接收到这些 PG 的状态更新。监视器会将主 OSD 已故障的任何 PG 标记为 stale。例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph health</span><br><span class="line">HEALTH_WARN 24 pgs stale; 3/300 <span class="keyword">in</span> osds are down</span><br></pre></td></tr></table></figure>
+
+<p>通过运行以下命令来识别哪些 PG 是 stale 的，以及最后一个存储这些 stale PG 的 OSD 是哪些：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ceph health detail</span><br><span class="line">HEALTH_WARN 24 pgs stale; 3/300 <span class="keyword">in</span> osds are down</span><br><span class="line">...</span><br><span class="line">pg 2.5 is stuck stale+active+remapped, last acting [2,0]</span><br><span class="line">...</span><br><span class="line">osd.10 is down since epoch 23, last address 192.168.106.220:6800/11080</span><br><span class="line">osd.11 is down since epoch 13, last address 192.168.106.220:6803/11539</span><br><span class="line">osd.12 is down since epoch 24, last address 192.168.106.220:6806/11861</span><br></pre></td></tr></table></figure>
+
+<p>此输出表明 PG 2.5（pg 2.5）最后由 osd.0 和 osd.2 管理。重启这些 OSD 以允许集群恢复该 PG。</p>
+<h4 id="只有少数-OSD-接收数据"><a href="#只有少数-OSD-接收数据" class="headerlink" title="只有少数 OSD 接收数据"></a>只有少数 OSD 接收数据</h4><p>如果集群中的只有少数节点在接收数据，请检查池中的 PG 数量，如 PG 文档中所述。由于 PG 会在涉及将集群中的 PG 数量除以集群中 OSD 数量的操作中映射到 OSD，因此在这种操作中，少量的 PG（余数）有时不会在集群中分布。在这种情况下，创建一个 PG 数量是 OSD 数量倍数的池。有关详细信息，请参见 PG。有关如何更改用于确定每个池分配多少 PG 的默认值的说明，请参见 Pool、PG 和 CRUSH 配置参考。</p>
+<h4 id="无法写入数据"><a href="#无法写入数据" class="headerlink" title="无法写入数据"></a>无法写入数据</h4><p>如果集群正常运行，但一些 OSD 已经关闭且无法写入数据，请确保在池中运行了最小数量的 OSD。如果池中没有运行最小数量的 OSD，Ceph 不会允许你向其写入数据，因为无法保证 Ceph 可以复制你的数据。有关详细信息，请参见 Pool、PG 和 CRUSH 配置参考中的 <code>osd_pool_default_min_size</code>。</p>
+<h3 id="PG-状态不一致"><a href="#PG-状态不一致" class="headerlink" title="PG 状态不一致"></a>PG 状态不一致</h3><p>如果命令 <code>ceph health detail</code> 返回 active + clean + inconsistent 状态，这可能表示在清理过程中发生了错误。通过运行以下命令来识别不一致的 PG：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ceph health detail</span><br><span class="line">HEALTH_ERR 1 pgs inconsistent; 2 scrub errors</span><br><span class="line">pg 0.6 is active+clean+inconsistent, acting [0,1,2]</span><br><span class="line">2 scrub errors</span><br></pre></td></tr></table></figure>
+
+<p>或者，如果你希望以编程方式检查输出，可以运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ rados list-inconsistent-pg rbd</span><br><span class="line">[<span class="string">&quot;0.6&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>在最坏的情况下，我们可能会在多个对象中发现不同的不一致。如果 PG 0.6 中名为 foo 的对象被截断，<code>rados list-inconsistent-pg rbd</code> 的输出可能类似于：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">rados list-inconsistent-obj <span class="number">0.6</span> --format=json-pretty</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;epoch&quot;</span><span class="punctuation">:</span> <span class="number">14</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;inconsistents&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;object&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;foo&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;nspace&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;locator&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;snap&quot;</span><span class="punctuation">:</span> <span class="string">&quot;head&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;errors&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                <span class="string">&quot;data_digest_mismatch&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;size_mismatch&quot;</span></span><br><span class="line">            <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;union_shard_errors&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                <span class="string">&quot;data_digest_mismatch_info&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="string">&quot;size_mismatch_info&quot;</span></span><br><span class="line">            <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;selected_object_info&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0:602f83fe:::foo:head(16&#x27;1 client.4110.0:1 dirty|data_digest|omap_digest s 968 uv 1 dd e978e67f od ffffffff alloc_hint [0 0 0])&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;shards&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                <span class="punctuation">&#123;</span></span><br><span class="line">                    <span class="attr">&quot;osd&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;errors&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">968</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;omap_digest&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0xffffffff&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;data_digest&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0xe978e67f&quot;</span></span><br><span class="line">                <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="punctuation">&#123;</span></span><br><span class="line">                    <span class="attr">&quot;osd&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;errors&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">968</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;omap_digest&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0xffffffff&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;data_digest&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0xe978e67f&quot;</span></span><br><span class="line">                <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="punctuation">&#123;</span></span><br><span class="line">                    <span class="attr">&quot;osd&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;errors&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                        <span class="string">&quot;data_digest_mismatch_info&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="string">&quot;size_mismatch_info&quot;</span></span><br><span class="line">                    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;omap_digest&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0xffffffff&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;data_digest&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0xffffffff&quot;</span></span><br><span class="line">                <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>在这种情况下，输出表示以下内容：</p>
+<ul>
+<li>唯一的不一致对象名为 foo，其头部存在不一致。</li>
+<li>不一致分为两类：<ul>
+<li><code>errors</code>：这些错误表示分片之间的不一致，没有指示哪些分片有问题。检查 <code>shards</code> 数组中的错误，以确定问题所在。<ul>
+<li><code>data_digest_mismatch</code>：从 OSD.2 读取的副本摘要与从 OSD.0 和 OSD.1 读取的副本摘要不同。</li>
+<li><code>size_mismatch</code>：从 OSD.2 读取的副本大小为 0，但 OSD.0 和 OSD.1 报告的大小为 968。</li>
+</ul>
+</li>
+<li><code>union_shard_errors</code>：分片数组中所有特定分片错误的联合。这些错误包括 <code>read_error</code> 和其他类似错误。以 <code>oi</code> 结尾的错误表示与 <code>selected_object_info</code> 进行比较。检查 <code>shards</code> 数组以确定哪些分片存在哪些错误。<ul>
+<li><code>data_digest_mismatch_info</code>：对象信息中存储的摘要不是 <code>0xffffffff</code>，这是从 OSD.2 读取的分片计算出的。</li>
+<li><code>size_mismatch_info</code>：对象信息中存储的大小与从 OSD.2 读取的大小不同，后者为 0。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>警告</strong>：如果 <code>read_error</code> 列在分片的错误属性中，可能是由于物理存储错误导致的不一致。在这种情况下，请检查该 OSD 使用的存储。</p>
+<p>在尝试修复驱动器之前，请检查 dmesg 和 smartctl 的输出。</p>
+<p>要修复不一致的 PG，运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg repair &#123;placement-group-ID&#125;</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg repair 1.4</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：PG ID 形式为 N.xxxxx，其中 N 是包含 PG 的池的编号。命令 <code>ceph osd listpools</code> 和 <code>ceph osd dump | grep pool</code> 返回池编号的列表。</p>
+<p>如果由于时钟偏差而定期收到 active + clean + inconsistent 状态，请考虑配置监视主机上的 NTP 守护进程以充当对等体。有关更多信息，请参见《网络时间协议和 Ceph 时钟设置》。</p>
+<h4 id="关于-PG-修复的更多信息"><a href="#关于-PG-修复的更多信息" class="headerlink" title="关于 PG 修复的更多信息"></a>关于 PG 修复的更多信息</h4><p>Ceph 存储并更新集群中存储对象的校验和。当在 PG 上执行清理时，主 OSD 尝试从其副本中选择一个权威副本。只有一个可能的情况是一致的。执行深度清理后，Ceph 计算从磁盘读取的每个对象的校验和，并将其与先前记录的校验和进行比较。如果当前校验和与先前记录的校验和不匹配，则该不匹配被视为不一致。在复制池的情况下，任何副本的校验和与权威副本的校验和之间的任何不匹配都意味着存在不一致。发现这些不一致会导致 PG 状态被设置为不一致。</p>
+<p><code>pg repair</code> 命令尝试修复各种类型的不一致。当 <code>pg repair</code> 发现不一致的 PG 时，它尝试用权威副本的摘要覆盖不一致副本的摘要。当 <code>pg repair</code> 在复制池中发现不一致副本时，它将不一致副本标记为丢失。在复制池的情况下，恢复超出了 <code>pg repair</code> 的范围。</p>
+<p>对于编码和 BlueStore 池，Ceph 会自动执行修复，如果 <code>osd_scrub_auto_repair</code>（默认值为 false）设置为 true 并且发现的错误不超过 <code>osd_scrub_auto_repair_num_errors</code>（默认值为 5）。</p>
+<p><code>pg repair</code> 命令不会解决所有问题。Ceph 不会自动修复发现有不一致的 PG。</p>
+<p>RADOS 对象或 omap 的校验和并不总是可用。校验和是逐步计算的。如果一个复制对象非顺序更新，涉及的写入操作会更改对象并使其校验和无效。在重新计算校验和时不会读取整个对象。即使校验和不可用，<code>pg repair</code> 命令也能够进行修复，如 Filestore 中的情况。使用复制 Filestore 池的用户可能会更倾向于手动修复，而不是使用 <code>ceph pg repair</code>。</p>
+<p>该材料适用于 Filestore，但不适用于 BlueStore，后者具有自己的内部校验和。匹配记录的校验和和计算的校验和不能证明任何特定副本实际上是权威的。如果没有校验和可用，<code>pg repair</code> 倾向于主数据，但这可能不是未损坏的副本。因此，在发现不一致时需要人工干预。这种干预有时涉及使用 <code>ceph-objectstore-tool</code>。</p>
+<h4 id="编码池-PG-不是-active-clean"><a href="#编码池-PG-不是-active-clean" class="headerlink" title="编码池 PG 不是 active+clean"></a>编码池 PG 不是 active+clean</h4><p>如果 CRUSH 无法找到足够的 OSD 映射到 PG，它将显示为 2147483647，这是 ITEM_NONE 或未找到 OSD。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[2,1,6,0,5,8,2147483647,7,4]</span><br></pre></td></tr></table></figure>
+<p>OSD 数量不足</p>
+<p>如果 Ceph 集群只有八个 OSD，而一个编码池需要九个 OSD，则集群会显示“OSD 不足”。在这种情况下，你可以创建</p>
+<p>另一个需要更少 OSD 的编码池，运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd erasure-code-profile <span class="built_in">set</span> myprofile k=5 m=3</span><br><span class="line">ceph osd pool create erasurepool erasure myprofile</span><br></pre></td></tr></table></figure>
+
+<p>或者添加新的 OSD，PG 将自动使用它们。</p>
+<h3 id="CRUSH-约束无法满足"><a href="#CRUSH-约束无法满足" class="headerlink" title="CRUSH 约束无法满足"></a>CRUSH 约束无法满足</h3><p>如果集群中有足够的 OSD，可能是 CRUSH 规则施加了无法满足的约束。如果两个主机上有十个 OSD，而 CRUSH 规则要求同一主机上的两个 OSD 不得在同一 PG 中使用，则映射可能失败，因为只会找到两个 OSD。通过显示（“转储”）规则来检查约束，如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">ceph osd crush rule <span class="built_in">ls</span></span><br><span class="line">[</span><br><span class="line">    <span class="string">&quot;replicated_rule&quot;</span>,</span><br><span class="line">    <span class="string">&quot;erasurepool&quot;</span>]</span><br><span class="line">$ ceph osd crush rule dump erasurepool</span><br><span class="line">&#123; <span class="string">&quot;rule_id&quot;</span>: 1,</span><br><span class="line">  <span class="string">&quot;rule_name&quot;</span>: <span class="string">&quot;erasurepool&quot;</span>,</span><br><span class="line">  <span class="string">&quot;type&quot;</span>: 3,</span><br><span class="line">  <span class="string">&quot;steps&quot;</span>: [</span><br><span class="line">        &#123; <span class="string">&quot;op&quot;</span>: <span class="string">&quot;take&quot;</span>,</span><br><span class="line">          <span class="string">&quot;item&quot;</span>: -1,</span><br><span class="line">          <span class="string">&quot;item_name&quot;</span>: <span class="string">&quot;default&quot;</span>&#125;,</span><br><span class="line">        &#123; <span class="string">&quot;op&quot;</span>: <span class="string">&quot;chooseleaf_indep&quot;</span>,</span><br><span class="line">          <span class="string">&quot;num&quot;</span>: 0,</span><br><span class="line">          <span class="string">&quot;type&quot;</span>: <span class="string">&quot;host&quot;</span>&#125;,</span><br><span class="line">        &#123; <span class="string">&quot;op&quot;</span>: <span class="string">&quot;emit&quot;</span>&#125;]&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过运行以下命令解决此问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd erasure-code-profile <span class="built_in">set</span> myprofile crush-failure-domain=osd</span><br><span class="line">ceph osd pool create erasurepool erasure myprofile</span><br></pre></td></tr></table></figure>
+
+<h3 id="CRUSH-过早放弃"><a href="#CRUSH-过早放弃" class="headerlink" title="CRUSH 过早放弃"></a>CRUSH 过早放弃</h3><p>如果 Ceph 集群只有足够的 OSD 来映射 PG（例如，总共九个 OSD 的集群和每个 PG 需要九个 OSD 的编码池），则可能 CRUSH 在找到映射之前就放弃了。可以通过以下方式解决此问题：</p>
+<ul>
+<li>降低编码池的要求，以使用更少的 OSD（这需要创建另一个池，因为编码配置文件不能动态修改）。</li>
+<li>向集群中添加更多 OSD（这不需要修改编码池，因为它会自动变干净）。</li>
+<li>使用手动创建的 CRUSH 规则，尝试更多次找到合适的映射。可以通过设置 <code>set_choose_tries</code> 为大于默认值的值来修改现有的 CRUSH 规则。</li>
+</ul>
+<p>首先，通过在从集群中提取 crushmap 后使用 <code>crushtool</code> 验证问题。这可以确保你的实验不会修改 Ceph 集群，只在本地文件上操作：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">ceph osd crush rule dump erasurepool</span><br><span class="line">&#123; <span class="string">&quot;rule_id&quot;</span>: 1,</span><br><span class="line">  <span class="string">&quot;rule_name&quot;</span>: <span class="string">&quot;erasurepool&quot;</span>,</span><br><span class="line">  <span class="string">&quot;type&quot;</span>: 3,</span><br><span class="line">  <span class="string">&quot;steps&quot;</span>: [</span><br><span class="line">        &#123; <span class="string">&quot;op&quot;</span>: <span class="string">&quot;take&quot;</span>,</span><br><span class="line">          <span class="string">&quot;item&quot;</span>: -1,</span><br><span class="line">          <span class="string">&quot;item_name&quot;</span>: <span class="string">&quot;default&quot;</span>&#125;,</span><br><span class="line">        &#123; <span class="string">&quot;op&quot;</span>: <span class="string">&quot;chooseleaf_indep&quot;</span>,</span><br><span class="line">          <span class="string">&quot;num&quot;</span>: 0,</span><br><span class="line">          <span class="string">&quot;type&quot;</span>: <span class="string">&quot;host&quot;</span>&#125;,</span><br><span class="line">        &#123; <span class="string">&quot;op&quot;</span>: <span class="string">&quot;emit&quot;</span>&#125;]&#125;</span><br><span class="line">$ ceph osd getcrushmap &gt; crush.map</span><br><span class="line">got crush map from osdmap epoch 13</span><br><span class="line">$ crushtool -i crush.map --<span class="built_in">test</span> --show-bad-mappings \</span><br><span class="line">   --rule 1 \</span><br><span class="line">   --num-rep 9 \</span><br><span class="line">   --min-x 1 --max-x $((<span class="number">1024</span> * <span class="number">1024</span>))</span><br><span class="line">bad mapping rule 8 x 43 num_rep 9 result [3,2,7,1,2147483647,8,5,6,0]</span><br><span class="line">bad mapping rule 8 x 79 num_rep 9 result [6,0,2,1,4,7,2147483647,5,8]</span><br><span class="line">bad mapping rule 8 x 173 num_rep 9 result [0,4,6,8,2,1,3,7,2147483647]</span><br></pre></td></tr></table></figure>
+
+<p>在这里，<code>--num-rep</code> 是编码规则需要的 OSD 数量，<code>--rule</code> 是 <code>ceph osd crush rule dump</code> 显示的 <code>rule_id</code> 值。此测试将尝试映射一百万个值（在此示例中，范围定义为 [–min-x,–max-x]），并且必须显示至少一个错误映射。如果此测试没有输出任何内容，则表示所有映射都成功，你可以确定集群中的问题不是由于坏映射造成的。</p>
+<h3 id="更改-set-choose-tries-的值"><a href="#更改-set-choose-tries-的值" class="headerlink" title="更改 set_choose_tries 的值"></a>更改 <code>set_choose_tries</code> 的值</h3><p>将 CRUSH 映射解压以编辑 CRUSH 规则，运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crushtool --decompile crush.map &gt; crush.txt</span><br></pre></td></tr></table></figure>
+
+<p>在规则中添加以下行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">step set_choose_tries 100</span><br></pre></td></tr></table></figure>
+
+<p><code>crush.txt</code> 文件的相关部分将类似于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">rule erasurepool &#123;</span><br><span class="line">        id 1</span><br><span class="line">        type erasure</span><br><span class="line">        step set_chooseleaf_tries 5</span><br><span class="line">        step set_choose_tries 100</span><br><span class="line">        step take default</span><br><span class="line">        step chooseleaf indep 0 type host</span><br><span class="line">        step emit</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重新编译并重新测试 CRUSH 规则：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crushtool --compile crush.txt -o better-crush.map</span><br></pre></td></tr></table></figure>
+
+<p>当所有映射成功时，通过使用 <code>crushtool</code> 命令的 <code>--show-choose-tries</code> 选项显示找到所有映射所需的尝试次数的直方图，如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">crushtool -i better-crush.map --<span class="built_in">test</span> --show-bad-mappings \</span><br><span class="line">   --show-choose-tries \</span><br><span class="line">   --rule 1 \</span><br><span class="line">   --num-rep 9 \</span><br><span class="line">   --min-x 1 --max-x $((<span class="number">1024</span> * <span class="number">1024</span>))</span><br></pre></td></tr></table></figure>
+
+<p>…<br>11:        42<br>12:        44<br>13:        54<br>14:        45<br>15:        35<br>16:        34<br>17:        30<br>18:        25<br>19:        19<br>20:        22<br>21:        20<br>22:        17<br>23:        13<br>24:        16<br>25:        13<br>26:        11<br>27:        11<br>28:        13<br>29:        11<br>30:        10<br>31:         6<br>32:         5<br>33:        10<br>34:         3<br>35:         7<br>36:         5<br>37:         2<br>38:         5<br>39:         5<br>40:         2<br>41:         5<br>42:         4<br>43:         1<br>44:         2<br>45:         2<br>46:         3<br>47:         1<br>48:         0<br>…<br>102:         0<br>103:         1<br>104:         0<br>…</p>
+<p>这个输出表示映射 42 个 PG 需要 11 次尝试，映射 44 个 PG 需要 12 次尝试等。最大尝试次数是防止坏映射的 <code>set_choose_tries</code> 的最小值（例如，上述输出中的 103，因为没有超过 103 次尝试的 PG 被映射）。</p>
+<p>由 Ceph Foundation 提供</p>
+<p>Ceph 文档是一个由非盈利组织 Ceph Foundation 资助和托管的社区资源。如果你想支持这一点和我们的其他工作，请考虑立即加入。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh OSD常见故障处理" target="_blank" rel="external">https://watsonlu6.github.io/Ceph-PG常见故障处理/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh Mon常见故障处理"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh OSD常见故障处理"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
