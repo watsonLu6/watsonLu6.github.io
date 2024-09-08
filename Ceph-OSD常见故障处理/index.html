@@ -17,16 +17,16 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>Cpeh Mon常见故障处理 | watson Lu&#39;blogs</title>
-  <meta name="description" content="监视器故障排查即使集群出现与监视器相关的问题，集群也不一定会面临宕机的风险。即使集群丢失了多个监视器，只要还有足够的监视器存活并能够形成法定人数（quorum），集群就能继续运行。如果集群遇到了监视器相关的问题，可以参考以下的故障排查信息。 初步故障排查Ceph 监视器故障排查的第一步是确保监视器正在运行，并且它们能够与网络进行通信。按照本节的步骤操作，以排除监视器故障的最简单原因。  确保监视器">
+  <title>Cpeh OSD常见故障处理 | watson Lu&#39;blogs</title>
+  <meta name="description" content="OSD故障排除在故障排除集群的 OSD 之前，请先检查监视器和网络。首先，确定监视器是否有法定人数。运行 ceph health 命令或 ceph -s 命令，如果 Ceph 显示 HEALTH_OK，则表示有监视器法定人数。如果监视器没有法定人数或监视器状态出现错误，请在继续之前处理监视器问题。接下来，检查网络以确保其正常运行。网络对 OSD 的操作和性能有显著影响。检查主机端是否有丢包，并检查">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Cpeh Mon常见故障处理">
+<meta property="og:title" content="Cpeh OSD常见故障处理">
 <meta property="og:url" content="https://watsonlu6.github.io/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/index.html">
 <meta property="og:site_name" content="watson&#39;blogs">
-<meta property="og:description" content="监视器故障排查即使集群出现与监视器相关的问题，集群也不一定会面临宕机的风险。即使集群丢失了多个监视器，只要还有足够的监视器存活并能够形成法定人数（quorum），集群就能继续运行。如果集群遇到了监视器相关的问题，可以参考以下的故障排查信息。 初步故障排查Ceph 监视器故障排查的第一步是确保监视器正在运行，并且它们能够与网络进行通信。按照本节的步骤操作，以排除监视器故障的最简单原因。  确保监视器">
+<meta property="og:description" content="OSD故障排除在故障排除集群的 OSD 之前，请先检查监视器和网络。首先，确定监视器是否有法定人数。运行 ceph health 命令或 ceph -s 命令，如果 Ceph 显示 HEALTH_OK，则表示有监视器法定人数。如果监视器没有法定人数或监视器状态出现错误，请在继续之前处理监视器问题。接下来，检查网络以确保其正常运行。网络对 OSD 的操作和性能有显著影响。检查主机端是否有丢包，并检查">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-09-08T06:53:31.000Z">
-<meta property="article:modified_time" content="2024-09-08T07:24:11.454Z">
+<meta property="article:published_time" content="2022-10-07T06:53:31.000Z">
+<meta property="article:modified_time" content="2024-09-08T14:58:28.932Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="云存储">
 <meta property="article:tag" content="Ceph">
@@ -200,7 +200,7 @@
   <div class="widget">
     <h3 class="widget-title">分类</h3>
     <div class="widget-body">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">28</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">23</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li></ul>
     </div>
   </div>
 
@@ -210,7 +210,7 @@
   <div class="widget">
     <h3 class="widget-title">标签</h3>
     <div class="widget-body">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -229,7 +229,7 @@
   <div class="widget">
     <h3 class="widget-title">归档</h3>
     <div class="widget-body">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">九月 2024</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -248,10 +248,10 @@
                 <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
               </p>
               <p class="item-title">
-                <a href="/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh Mon常见故障处理</a>
+                <a href="/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh PG常见故障处理</a>
               </p>
               <p class="item-date">
-                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+                <time datetime="2022-10-08T06:53:31.000Z" itemprop="datePublished">2022-10-08</time>
               </p>
             </div>
           </li>
@@ -263,10 +263,10 @@
                 <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
               </p>
               <p class="item-title">
-                <a href="/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh OSD常见故障处理</a>
+                <a href="/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh OSD常见故障处理</a>
               </p>
               <p class="item-date">
-                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+                <time datetime="2022-10-07T06:53:31.000Z" itemprop="datePublished">2022-10-07</time>
               </p>
             </div>
           </li>
@@ -278,10 +278,10 @@
                 <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
               </p>
               <p class="item-title">
-                <a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh OSD常见故障处理</a>
+                <a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh Mon常见故障处理</a>
               </p>
               <p class="item-date">
-                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+                <time datetime="2022-10-06T06:53:31.000Z" itemprop="datePublished">2022-10-06</time>
               </p>
             </div>
           </li>
@@ -336,7 +336,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Cpeh Mon常见故障处理
+      Cpeh OSD常见故障处理
     </h1>
   
 
@@ -345,7 +345,7 @@
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
 	<a href="/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="article-date">
-	  <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+	  <time datetime="2022-10-07T06:53:31.000Z" itemprop="datePublished">2022-10-07</time>
 	</a>
 </span>
         
@@ -369,113 +369,179 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="监视器故障排查"><a href="#监视器故障排查" class="headerlink" title="监视器故障排查"></a>监视器故障排查</h2><p>即使集群出现与监视器相关的问题，集群也不一定会面临宕机的风险。即使集群丢失了多个监视器，只要还有足够的监视器存活并能够形成法定人数（quorum），集群就能继续运行。<br>如果集群遇到了监视器相关的问题，可以参考以下的故障排查信息。</p>
-<h4 id="初步故障排查"><a href="#初步故障排查" class="headerlink" title="初步故障排查"></a>初步故障排查</h4><p>Ceph 监视器故障排查的第一步是确保监视器正在运行，并且它们能够与网络进行通信。按照本节的步骤操作，以排除监视器故障的最简单原因。</p>
+        <h2 id="OSD故障排除"><a href="#OSD故障排除" class="headerlink" title="OSD故障排除"></a>OSD故障排除</h2><p>在故障排除集群的 OSD 之前，请先检查监视器和网络。<br>首先，确定监视器是否有法定人数。运行 <code>ceph health</code> 命令或 <code>ceph -s</code> 命令，如果 Ceph 显示 <code>HEALTH_OK</code>，则表示有监视器法定人数。如果监视器没有法定人数或监视器状态出现错误，请在继续之前处理监视器问题。接下来，检查网络以确保其正常运行。网络对 OSD 的操作和性能有显著影响。检查主机端是否有丢包，并检查交换机端是否有 CRC 错误。</p>
+<h4 id="获取-OSD-数据"><a href="#获取-OSD-数据" class="headerlink" title="获取 OSD 数据"></a>获取 OSD 数据</h4><p>在故障排除 OSD 时，收集关于 OSD 的不同信息非常有用。一些信息来自于对 OSD 的监控（例如，运行 <code>ceph osd tree</code> 命令）。额外的信息涉及到集群的拓扑结构，以下部分将讨论这些内容。</p>
 <ol>
-<li><p><strong>确保监视器正在运行</strong><br>确保监视器守护进程（ceph-mon）正在运行。可能是由于升级后监视器没有重新启动。检查这个简单的疏忽可以节省大量的故障排查时间。同时，也要确保管理守护进程（ceph-mgr）正在运行。记住，典型的集群配置中，每个监视器（ceph-mon）都有一个相应的管理器（ceph-mgr）。<br><strong>注意：</strong> 在 v1.12.5 之前的版本中，Rook 不会运行超过两个管理器。</p>
+<li><p><strong>Ceph 日志</strong><br>  Ceph 的日志文件存储在 <code>/var/log/ceph</code> 下。除非路径已被更改（或者您在存储日志位置不同的容器化环境中），否则可以通过以下命令列出日志文件：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/log/ceph</span><br></pre></td></tr></table></figure>
+<p>  如果日志详情不够，请调整日志级别。要确保 Ceph 在高日志量下表现良好，请参阅“日志记录和调试”。</p>
 </li>
-<li><p><strong>确保可以访问监视器节点</strong><br>在某些罕见情况下，iptables 规则可能会阻止访问监视器节点或 TCP 端口。这些规则可能是以前压力测试或规则开发时遗留下来的。要检查是否存在这样的规则，可以通过 SSH 登录每个监视器节点，并使用 telnet、nc 或类似工具尝试连接到其他监视器节点的 tcp&#x2F;3300 和 tcp&#x2F;6789 端口。</p>
-</li>
-<li><p><strong>确保“ceph status”命令能够运行并从集群接收回复</strong><br>如果 ceph status 命令从集群接收到回复，说明集群正在运行。监视器只有在形成法定人数时才会响应状态请求。确认是否有一个或多个管理器（mgr）守护进程正在运行。在没有任何问题的集群中，ceph status 将报告所有管理器守护进程都在运行。如果 ceph status 命令未能从集群接收到回复，那么很可能是由于没有足够的监视器来形成法定人数。如果运行 ceph -s 命令时未指定进一步的选项，它会连接到任意选择的一个监视器。然而，在某些情况下，添加 -m 标志来连接特定的监视器（或按顺序连接几个特定的监视器）可能更有帮助，例如：ceph status -m mymon1。</p>
+<li><p><strong>管理员套接字</strong><br>使用管理员套接字工具来检索运行时信息。首先，列出 Ceph 守护进程的套接字，通过以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/run/ceph</span><br></pre></td></tr></table></figure>
+<p>接下来，运行如下命令（将 <code>&#123;daemon-name&#125;</code> 替换为特定守护进程的名称，例如 <code>osd.0</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph daemon &#123;daemon-name&#125; <span class="built_in">help</span></span><br></pre></td></tr></table></figure>
+<p>或者，指定 <code>&#123;socket-file&#125;</code>（“套接字文件”是 <code>/var/run/ceph</code> 中的特定文件）运行命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph daemon &#123;socket-file&#125; <span class="built_in">help</span></span><br></pre></td></tr></table></figure>
+<p>管理员套接字可以完成许多任务，包括：</p>
 </li>
 </ol>
-<p>如果以上解决方案未能解决问题，可能需要逐一检查每个监视器。即使没有形成法定人数，仍然可以单独联系每个监视器，并使用 ceph tell mon.ID mon_status 命令请求其状态（此处 ID 是监视器的标识符）。对集群中的每个监视器运行 ceph tell mon.ID mon_status 命令。关于此命令的输出。还有另一种联系各个监视器的方法：通过 SSH 登录每个监视器节点并查询守护进程的管理套接字。</p>
-<h4 id="使用监视器的管理套接字"><a href="#使用监视器的管理套接字" class="headerlink" title="使用监视器的管理套接字"></a>使用监视器的管理套接字</h4><p>监视器的管理套接字允许通过 Unix 套接字文件直接与特定的守护进程交互。此套接字文件位于监视器的运行目录中。管理套接字的默认目录是 <code>/var/run/ceph/ceph-mon.ID.asok</code>。可以覆盖管理套接字的默认位置。如果默认位置被覆盖，那么管理套接字会出现在其他位置。这种情况通常发生在集群的守护进程部署在容器中时。<br>要查找管理套接字的目录，请检查<code>ceph.conf</code> 文件以获取备用路径，或运行以下命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph-conf --name mon.ID --show-config-value admin_socket</span><br></pre></td></tr></table></figure>
-
-<p>管理套接字只有在监视器守护进程运行时可用。每次监视器正常关闭时，管理套接字都会被移除。如果监视器未运行但管理套接字仍存在，可能是由于监视器未正确关闭。如果监视器未运行，将无法使用管理套接字，并且 ceph 命令很可能返回错误 111：连接被拒绝。</p>
-<p>要访问管理套接字，请运行以下形式的 ceph tell 命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph tell mon.&lt;id&gt; mon_status</span><br></pre></td></tr></table></figure>
-<p>此命令通过管理套接字将帮助命令传递给指定的运行中的监视器守护进程 <code>&lt;id&gt;</code>。如果知道管理套接字文件的完整路径，可以更直接地运行以下命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph --admin-daemon &lt;full_path_to_asok_file&gt; &lt;command&gt;</span><br></pre></td></tr></table></figure>
-
-<p>运行 <code>ceph help</code> 显示通过管理套接字可用的所有受支持的命令。特别参考 <code>config get</code>、<code>config show</code>、<code>mon stat</code> 和 <code>quorum_status</code>。</p>
-<h4 id="理解-mon-status"><a href="#理解-mon-status" class="headerlink" title="理解 mon_status"></a>理解 mon_status</h4><p>监视器的状态（由 <code>ceph tell mon.X mon_status</code> 命令报告）可以通过管理套接字获得。<code>ceph tell mon.X mon_status</code> 命令输出关于监视器的大量信息（包括在 <code>quorum_status</code> 命令输出中找到的信息）。</p>
-<p><strong>注意</strong><br>命令 <code>ceph tell mon.X mon_status</code> 不应被字面输入。运行命令时，mon.X 的 X 部分应替换为 Ceph 集群中的特定值。</p>
-<p>为了理解此命令的输出，考虑以下例子，看到 <code>ceph tell mon.c mon_status</code> 的输出：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span> <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;c&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;rank&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;state&quot;</span><span class="punctuation">:</span> <span class="string">&quot;peon&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;election_epoch&quot;</span><span class="punctuation">:</span> <span class="number">38</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;quorum&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">        <span class="number">2</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;outside_quorum&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;extra_probe_peers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sync_provider&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;monmap&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;epoch&quot;</span><span class="punctuation">:</span> <span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;fsid&quot;</span><span class="punctuation">:</span> <span class="string">&quot;5c4e9d53-e2e1-478a-8061-f543f8be4cf8&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;modified&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2013-10-30 04:12:01.945629&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;created&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2013-10-29 14:14:41.914786&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;mons&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span> <span class="attr">&quot;rank&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">              <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;a&quot;</span><span class="punctuation">,</span></span><br><span class="line">              <span class="attr">&quot;addr&quot;</span><span class="punctuation">:</span> <span class="string">&quot;127.0.0.1:6789/0&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="punctuation">&#123;</span> <span class="attr">&quot;rank&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">              <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;b&quot;</span><span class="punctuation">,</span></span><br><span class="line">              <span class="attr">&quot;addr&quot;</span><span class="punctuation">:</span> <span class="string">&quot;127.0.0.1:6790/0&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="punctuation">&#123;</span> <span class="attr">&quot;rank&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">              <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;c&quot;</span><span class="punctuation">,</span></span><br><span class="line">              <span class="attr">&quot;addr&quot;</span><span class="punctuation">:</span> <span class="string">&quot;127.0.0.1:6795/0&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>该输出报告 monmap 中有三个监视器（a, b, 和 c），法定人数由两个监视器组成，而 c 是 peon。</p>
-<p><strong>哪个监视器不在法定人数中？</strong><br>答案是 a（即 mon.a）。mon.a 不在法定人数中。</p>
-<p><strong>我们如何知道在此示例中 mon.a 不在法定人数中？</strong><br>我们知道 mon.a 不在法定人数中，因为它的 rank 是 0，而 rank 为 0 的监视器根据定义不在法定人数中。如果我们检查法定人数集，可以看到集合中明显有两个监视器：1 和 2。但这些不是监视器名称，而是当前 monmap 中确立的监视器 rank。法定人数集不包括 rank 为 0 的监视器，根据 monmap，该监视器是 mon.a。</p>
-<p><strong>监视器的 rank 是如何确定的？</strong><br>每当监视器被添加或从集群中移除时，监视器的 rank 会被计算（或重新计算）。rank 的计算遵循一个简单的规则：IP:PORT 组合越大，rank 越低。在此情况下，因为 127.0.0.1:6789（mon.a）在数值上小于其他两个 IP:PORT 组合（即 “监视器 b”的 127.0.0.1:6790 和 “监视器 c”的 127.0.0.1:6795），mon.a 拥有最高的 rank，即 rank 0。</p>
-<h4 id="最常见的监视器问题"><a href="#最常见的监视器问题" class="headerlink" title="最常见的监视器问题"></a>最常见的监视器问题</h4><p><strong>集群有法定人数但至少有一个监视器关闭</strong><br>当集群有法定人数但至少有一个监视器关闭时，<code>ceph health detail</code> 会返回类似以下的消息：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ceph health detail</span><br><span class="line">[snip]</span><br><span class="line">mon.a (rank 0) addr 127.0.0.1:6789/0 is down (out of quorum)</span><br></pre></td></tr></table></figure>
-
-<p><strong>如何排查 Ceph 集群有法定人数但至少有一个监视器关闭的问题？</strong><br>确保 mon.a 正在运行。确保可以从其他监视器节点连接到 mon.a 的节点。也检查 TCP 端口。检查所有节点上的 iptables 和 nf_conntrack，并确保未丢弃&#x2F;拒绝连接。</p>
-<p>如果这些初步故障排查无法解决问题，那么需要进一步调查。</p>
-<p>首先，通过管理套接字检查有问题的监视器的 mon_status，如“使用监视器的管理套接字”和“理解 mon_status”中所述。如果监视器不在法定人数中，则其状态将是以下之一：probing（探测）、electing（选举中）或 synchronizing（同步中）。如果监视器的状态是 leader（领导者）或 peon（跟随者），则监视器认为自己在法定人数中，但集群的其余部分认为它不在法定人数中。排查过程中，可能处于 probing、electing 或 synchronizing 状态的监视器已进入法定人数。再次检查 <code>ceph status</code> 以确定排查过程中监视器是否已进入法定人数。如果监视器仍未进入法定人数，则继续参考本文件中的相关调查。</p>
-<p><strong>监视器状态为 probing 是什么意思？</strong><br>如果 <code>ceph health detail</code> 显示监视器的状态为 probing，则该监视器仍在寻找其他监视器。每个监视器启动时都会在这个状态停留一段时间。当监视器连接到 monmap 中指定的其他监视器时，它就不再处于 probing 状态。监视器处于 probing 状态的时间取决于其所在集群的参数。例如，当监视器是单监视器集群的一部分时（在生产环境中绝对不要这样做），监视器几乎是瞬间通过 probing 状态。在多监视器集群中，监视器保持在 probing 状态，直到找到足够的监视器形成法定人数——这意味着如果集群中的三个监视器中有两个关闭，则剩下的一个监视器将无限期地保持在 probing 状态，直到您启动其他监视器之一。</p>
-<p>如果已建立法定人数，则只要守护进程能够被访问，监视器守护进程应能够快速找到其他监视器。如果监视器卡在 probing 状态，并且您已经完成了上面描述的监视器之间通信的故障排查，那么可能是有问题的监视器尝试以错误地址连接其他监视器。mon_status 会输出监视器已知的 monmap：确定 monmap 中指定的其他监视器的位置是否与网络中监视器的位置匹配。如果不匹配，请参阅“恢复监视器的损坏 monmap”。如果 monmap 中指定的监视器位置与网络中的监视器位置匹配，则持久的 probing 状态可能与监视器节点之间严重的时钟偏差有关。</p>
-<h3 id="监视器的状态为“electing”时意味着什么？"><a href="#监视器的状态为“electing”时意味着什么？" class="headerlink" title="监视器的状态为“electing”时意味着什么？"></a>监视器的状态为“electing”时意味着什么？</h3><p>如果 <code>ceph health detail</code> 显示某个监视器的状态为“electing”，这表明该监视器正在进行选举。选举通常会很快完成，但有时监视器可能会陷入所谓的选举风暴。如果选举状态持续存在，可以将有问题的监视器置于停机状态以进行调查。这只有在集群中有足够的存活监视器以形成仲裁的情况下才可行。</p>
-<h3 id="监视器的状态为“synchronizing”时意味着什么？"><a href="#监视器的状态为“synchronizing”时意味着什么？" class="headerlink" title="监视器的状态为“synchronizing”时意味着什么？"></a>监视器的状态为“synchronizing”时意味着什么？</h3><p>如果 <code>ceph health detail</code> 显示某个监视器的状态为“synchronizing”，这意味着该监视器正在与集群的其他部分同步，以便加入仲裁。监视器与仲裁的其余部分同步所需的时间取决于集群监视器存储的大小、集群的规模以及集群的状态。通常较大且已降级的集群会使监视器在“synchronizing”状态停留的时间比较小且新建的集群更长。<br>如果监视器的状态在“synchronizing”和“electing”之间来回切换，这表明可能存在问题：集群状态可能正在快速推进（即生成新映射），而同步过程无法跟上新映射的生成速度。这个问题在 Cuttlefish 版本之前更为常见，因为同步过程在较新的版本中已经被重构和增强，以避免这种情况。如果您在较新的版本中遇到此问题，请在 Ceph 错误追踪系统中报告问题。准备并提供日志以支持您报告的任何错误。有关日志准备的信息，请参阅《日志准备》。</p>
-<h3 id="监视器的状态为“leader”或“peon”时意味着什么？"><a href="#监视器的状态为“leader”或“peon”时意味着什么？" class="headerlink" title="监视器的状态为“leader”或“peon”时意味着什么？"></a>监视器的状态为“leader”或“peon”时意味着什么？</h3><p>在 Ceph 正常运行期间，当集群处于 HEALTH_OK 状态时，Ceph 集群中的一个监视器处于“leader”状态，其余的监视器处于“peon”状态。可以通过查看命令 <code>ceph tell &lt;mon_name&gt; mon_status</code> 返回的 state 键的值来确定给定监视器的状态。<br>如果 <code>ceph health detail</code> 显示监视器处于“leader”状态或“peon”状态，很可能存在时钟偏移。请遵循《时钟偏移》中的说明。如果您已经按照这些说明进行操作，但 <code>ceph health detail</code> 仍然显示监视器处于“leader”状态或“peon”状态，请在 Ceph 错误追踪系统中报告问题。如果您提出问题，请提供日志以支持它。有关日志准备的信息，请参阅《日志准备》。</p>
-<h3 id="修复监视器的损坏“monmap”"><a href="#修复监视器的损坏“monmap”" class="headerlink" title="修复监视器的损坏“monmap”"></a>修复监视器的损坏“monmap”</h3><p>可以使用类似 <code>ceph tell mon.c mon_status</code> 的命令来检索 monmap。<br>下面是一个 monmap 的示例：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">epoch 3</span><br><span class="line">fsid 5c4e9d53-e2e1-478a-8061-f543f8be4cf8</span><br><span class="line">last_changed 2013-10-30 04:12:01.945629</span><br><span class="line">created 2013-10-29 14:14:41.914786</span><br><span class="line">0: 127.0.0.1:6789/0 mon.a</span><br><span class="line">1: 127.0.0.1:6790/0 mon.b</span><br><span class="line">2: 127.0.0.1:6795/0 mon.c</span><br></pre></td></tr></table></figure>
-<p>这个 monmap 是正常的，但您可能的 monmap 可能不正常。在某个节点上的 monmap 可能会因为节点长时间宕机，而期间集群的监视器发生了变化，从而变得过时。</p>
-<p>更新监视器过时的 monmap 有两种方法：</p>
-<ol>
-<li><p><strong>报废并重新部署监视器</strong><br>仅在确保不会丢失所报废监视器中保留的信息时使用此方法。确保有其他状态良好的监视器，以便新监视器能够与存活的监视器同步。请记住，如果没有其他监视器内容的副本，销毁监视器可能会导致数据丢失。</p>
-</li>
-<li><p><strong>将 monmap 注入监视器</strong><br>可以通过从集群中存活的监视器中检索最新的 monmap 并将其注入到损坏或缺失 monmap 的监视器中来修复它。<br>实施此解决方案请执行以下步骤：</p>
 <ul>
-<li><p>按以下方式之一检索 monmap：<br> <strong>如果存在监视器仲裁：</strong><br>从仲裁中检索 monmap：</p>
- <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph mon getmap -o /tmp/monmap</span><br></pre></td></tr></table></figure>
-<p> <strong>如果没有监视器仲裁：</strong><br> 直接从已停止的监视器中检索 monmap：</p>
- <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph-mon -i ID-FOO --extract-monmap /tmp/monmap</span><br></pre></td></tr></table></figure>
-<p> 在此示例中，已停止监视器的 ID 是 ID-FOO。</p>
+<li>列出 Ceph 配置运行时</li>
+<li>转储历史操作</li>
+<li>转储操作优先级队列状态</li>
+<li>转储正在进行的操作</li>
+<li>转储性能计数器</li>
+</ul>
+<ol start="3">
+<li><p><strong>显示空闲空间</strong><br>可能会出现文件系统问题。要显示文件系统的空闲空间，请运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">df</span> -h</span><br></pre></td></tr></table></figure>
+<p>要查看此命令支持的语法和选项，请运行 <code>df --help</code>。</p>
 </li>
-<li><p>停止将注入 monmap 的监视器：</p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service ceph -a stop mon.&#123;mon-id&#125;</span><br></pre></td></tr></table></figure>
+<li><p><strong>I&#x2F;O 统计</strong><br><code>iostat</code> 工具可用于识别 I&#x2F;O 相关的问题。运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iostat -x</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>将 monmap 注入已停止的监视器：</p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph-mon -i ID --inject-monmap /tmp/monmap</span><br></pre></td></tr></table></figure>
+<li><p><strong>诊断信息</strong><br>要从内核中检索诊断信息，请运行 <code>dmesg</code> 命令，并使用 <code>less</code>、<code>more</code>、<code>grep</code> 或 <code>tail</code> 进行指定输出。例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dmesg | grep scsi</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="停止而不重新平衡"><a href="#停止而不重新平衡" class="headerlink" title="停止而不重新平衡"></a>停止而不重新平衡</h4><p>有时可能需要对集群的子集进行维护或解决影响故障域（例如机架）的问题。然而，当停止 OSD 进行维护时，可能希望防止 CRUSH 自动重新平衡集群。为避免这种重新平衡行为，可以通过运行以下命令将集群设置为 <code>noout</code> 状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">set</span> noout</span><br></pre></td></tr></table></figure>
+<p><strong>警告</strong><br>这更多是一个思考练习，用于让读者理解故障域和 CRUSH 行为，而不是建议在 Luminous 版本后的环境中运行 <code>ceph osd set noout</code>。当 OSD 返回到正常状态时，重新平衡将恢复，<code>ceph osd set noout</code> 命令引入的更改将被撤销。</p>
+<p>然而，在 Luminous 及后续版本中，更安全的做法是只标记受影响的 OSD。要添加或删除特定 OSD 的 <code>noout</code> 标志，可以运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd add-noout osd.0</span><br><span class="line">ceph osd rm-noout osd.0</span><br></pre></td></tr></table></figure>
+
+<p>也可以标记整个 CRUSH 组。例如，如果计划停用 <code>prod-ceph-data1701</code> 以增加 RAM，可以运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd set-group noout prod-ceph-data1701</span><br></pre></td></tr></table></figure>
+
+<p>设置标志后，停止 OSD 和需要维护的故障域内的其他 Ceph 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop ceph\*.service ceph\*.target</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong><br>当 OSD 被停止时，该 OSD 内的任何放置组将被标记为降级。<br>维护完成后，需重新启动 OSD 和其他停止的守护进程。然而，如果主机在维护过程中重启，则不需要重新启动，系统会自动恢复。要重新启动 OSD 或其他守护进程，使用如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl start ceph.target</span><br></pre></td></tr></table></figure>
+
+<p>最后，根据需要取消 <code>noout</code> 标志，可以运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">unset</span> noout</span><br><span class="line">ceph osd unset-group noout prod-ceph-data1701</span><br></pre></td></tr></table></figure>
+<p>许多现代 Linux 发行版使用 systemd 进行服务管理。然而，对于某些操作系统（尤其是旧版本），可能需要发出等效的服务或启动&#x2F;停止命令。</p>
+<h4 id="OSD-未运行"><a href="#OSD-未运行" class="headerlink" title="OSD 未运行"></a>OSD 未运行</h4><p>在正常情况下，重新启动 ceph-osd 守护进程将允许它重新加入集群并恢复。</p>
+<p><strong>OSD 无法启动</strong><br>如果集群已启动，但某个 OSD 无法启动，请检查以下内容：</p>
+<ul>
+<li><strong>配置文件</strong>：如果您在新的安装中无法启动 OSD，请检查配置文件以确保其符合标准（例如，确保使用的是 <code>host</code> 而不是 <code>hostname</code> 等）。</li>
+<li><strong>检查路径</strong>：确保配置中指定的路径与实际存在的数据和元数据路径对应（例如，日志、WAL 和 DB 的路径）。将 OSD 数据与元数据分开，以查看配置文件和实际挂载是否存在错误。如果有，这些错误可能解释了为何 OSD 无法启动。要将元数据存储在单独的块设备上，可以对驱动器进行分区或使用 LVM，并为每个 OSD 分配一个分区。</li>
+<li><strong>检查最大线程数</strong>：如果集群中有一个节点的 OSD 数量特别高，可能会达到默认的最大线程数（通常是 32,000）。这在恢复过程中尤其可能发生。将最大线程数增加到允许的最大线程数（4194303）可能有助于解决问题。要将线程数增加到最大值，请运行以下命令：  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl -w kernel.pid_max=4194303</span><br></pre></td></tr></table></figure>
+如果增加线程数解决了问题，您必须通过在 <code>/etc/sysctl.d</code> 文件夹下的文件或在主 <code>/etc/sysctl.conf</code> 文件中包含 <code>kernel.pid_max</code> 设置来使更改永久生效。例如：  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kernel.pid_max = 4194303</span><br></pre></td></tr></table></figure></li>
+<li>**检查 <code>nf_conntrack</code>**：这个连接跟踪和连接限制系统对许多生产 Ceph 集群造成问题。问题往往缓慢而微妙地出现。随着集群拓扑和客户端工作负载的增长，神秘和间歇性的连接失败和性能问题会越来越多，尤其是在一天中的某些时候。为开始评估问题，请检查 syslog 历史中的 “table full” 事件。解决这种问题的一种方法是：首先，使用 sysctl 实用程序将 <code>nf_conntrack_max</code> 设置为更高的值。接下来，将 <code>nf_conntrack_buckets</code> 的值提高到 <code>nf_conntrack_buckets × 8 = nf_conntrack_max</code>；这可能需要在 sysctl 之外运行命令（例如，<code>echo 131072 &gt; /sys/module/nf_conntrack/parameters/hashsize</code>）。另一种解决方法是将相关内核模块列入黑名单，从而完全禁用处理。这种方法强大但脆弱。模块及其列出顺序可能因内核版本而异。即使被列入黑名单，iptables 和 docker 有时仍会激活连接跟踪，因此我们建议对调优参数采用“设置并忘记”的策略。在现代系统中，这种方法不会消耗显著资源。</li>
+<li><strong>内核版本</strong>：确定正在使用的内核版本和发行版。默认情况下，Ceph 使用的第三方工具可能存在缺陷或与某些发行版或内核版本冲突（例如，Google 的 gperftools 和 TCMalloc）。检查操作系统建议和每个 Ceph 版本的发行说明，以确保您已解决与内核相关的任何问题。</li>
+<li><strong>段错误</strong>：如果出现段错误，请提高日志级别并重新启动有问题的守护进程。如果段错误重复发生，请在 Ceph bug 跟踪器（<a target="_blank" rel="noopener" href="https://tracker.ceph.com/projects/ceph%EF%BC%89%E5%92%8C">https://tracker.ceph.com/projects/ceph）和</a> dev 及 ceph-users 邮件列表归档（<a target="_blank" rel="noopener" href="https://ceph.io/resources%EF%BC%89%E4%B8%AD%E6%90%9C%E7%B4%A2%E6%98%AF%E5%90%A6%E6%9C%89%E5%85%B6%E4%BB%96%E4%BA%BA%E9%81%87%E5%88%B0%E5%B9%B6%E6%8A%A5%E5%91%8A%E4%BA%86%E8%BF%99%E4%BA%9B%E9%97%AE%E9%A2%98%E3%80%82%E5%A6%82%E6%9E%9C%E8%BF%99%E7%A1%AE%E5%AE%9E%E6%98%AF%E4%B8%80%E4%B8%AA%E6%96%B0%E7%9A%84%E5%92%8C%E7%8B%AC%E7%89%B9%E7%9A%84%E6%95%85%E9%9A%9C%EF%BC%8C%E8%AF%B7%E5%9C%A8">https://ceph.io/resources）中搜索是否有其他人遇到并报告了这些问题。如果这确实是一个新的和独特的故障，请在</a> dev 邮件列表中发布，并提供以下信息：正在运行的具体 Ceph 版本、ceph.conf（秘密已用 XXX 替换）、监视器状态输出和日志文件摘录。</li>
+</ul>
+<p><strong>OSD 失败</strong><br>当 OSD 失败时，表示 ceph-osd 进程无响应或已死亡，相应的 OSD 已被标记为下线。存活的 ceph-osd 守护进程将向监视器报告该 OSD 似乎已经下线，并且 <code>ceph health</code> 命令的输出中将显示新的状态，如下例所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph health</span><br><span class="line">HEALTH_WARN 1/3 <span class="keyword">in</span> osds are down</span><br></pre></td></tr></table></figure>
+
+<p>当有一个或多个 OSD 被标记为下线时，会引发此健康警报。要查看哪些 OSD 已下线，请为命令添加详细信息，如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ceph health detail</span><br><span class="line">HEALTH_WARN 1/3 <span class="keyword">in</span> osds are down</span><br><span class="line">osd.0 is down since epoch 23, last address 192.168.106.220:6800/11080</span><br></pre></td></tr></table></figure>
+<p>或者，运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd tree down</span><br></pre></td></tr></table></figure>
+
+<p>如果由于驱动器故障或其他故障导致某个 ceph-osd 守护进程无法工作或重新启动，则其日志文件（位于 <code>/var/log/ceph</code> 下）中应存在错误消息。如果 ceph-osd 守护进程因心跳故障或自杀超时错误而停止，则底层驱动器或文件系统可能无响应。检查 dmesg 输出和 syslog 输出中的驱动器错误或内核错误。可能需要指定某些标志（例如，<code>dmesg -T</code> 以查看人类可读的时间戳）以避免将旧错误误认为新错误。</p>
+<p>如果整个主机的 OSD 都下线，请检查是否存在网络错误或主机的硬件问题。如果 OSD 问题是软件错误（例如，断言失败或其他意外错误）的结果，请在 bug 跟踪器、dev 邮件列表归档和 ceph-users 邮件列表归档中搜索是否有问题报告。如果没有明确的修复或现有 bug，请向 ceph-devel 邮件列表报告问题。</p>
+<p><strong>没有可用驱动器空间</strong><br>如果 OSD 已满，Ceph 会通过确保不会将新数据写入 OSD 来防止数据丢失。在正常运行的集群中，当集群的 OSD 和池接近某些“满”比率时，会引发健康检查。<code>mon_osd_full_ratio</code> 阈值默认为 0.95（即 95% 的容量）：这是防止客户端写入数据的点。<code>mon_osd_backfillfull_ratio</code> 阈值默认为 0.90（即 90% 的容量）：这是防止开始回填的点。<code>mon_osd_nearfull_ratio</code> 阈值默认为 0.85（即 85% 的容量）：这是引发 OSD_NEARFULL 健康检查的点。集群中的 OSD 在 Ceph 分配的数据量上会有所不同。要通过显示每个 OSD 的数据使用情况来检查“满”状态，请运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">df</span></span><br></pre></td></tr></table></figure>
+
+<p>要通过显示集群的总体数据使用情况和池之间的数据分布来检查“满”状态，请运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph <span class="built_in">df</span></span><br></pre></td></tr></table></figure>
+
+<p>在检查 <code>ceph df</code> 命令的输出时，请特别注意最满的 OSD，而不是原始空间使用的百分比。如果单个 OSD 变满，所有对该 OSD 池的写入可能会失败。当 <code>ceph df</code> 报告池的可用空间时，它会考虑相对于池中最满 OSD 的比率设置。为了平衡数据分布，可以采取两种方法：（1）使用 <code>reweight-by-utilization</code> 命令逐步将数据从过满的 OSD 移动到不足满的 OSD，或者（2）在 Luminous 的后续版本及以后的版本中，利用 ceph-mgr balancer 模块自动执行相同任务。要调整“满”比率，请运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ceph osd set-nearfull-ratio &lt;<span class="built_in">float</span>[0.0-1.0]&gt;</span><br><span class="line">ceph osd set-full-ratio &lt;<span class="built_in">float</span>[0.0-1.0]&gt;</span><br><span class="line">ceph osd set-backfillfull-ratio &lt;<span class="built_in">float</span>[0.0-1.0]&gt;</span><br></pre></td></tr></table></figure>
+
+<p>有时，集群问题的原因是 OSD 失败。这可能发生在测试过程中，或者因为集群较小、非常满或不平衡。当 OSD 或节点占据集群数据的过高比例时，组件故障或自然增长可能导致接近满和满的比率被超过。在测试 Ceph 对 OSD 故障的恢复能力时，建议保留足够的空闲磁盘空间，并考虑暂时降低 OSD 的满比率、回填满比率和接近满比率。<br>OSD 的“满”状态在 <code>ceph health</code> 命令的输出中可见，如下例所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph health</span><br><span class="line">HEALTH_WARN 1 nearfull osd(s)</span><br></pre></td></tr></table></figure>
+
+<p>有关详细信息，请使用详细命令，如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ceph health detail</span><br><span class="line">HEALTH_ERR 1 full osd(s);</span><br><span class="line"></span><br><span class="line"> 1 backfillfull osd(s); 1 nearfull osd(s)</span><br><span class="line">osd.3 is full at 97%</span><br><span class="line">osd.4 is backfill full at 91%</span><br><span class="line">osd.2 is near full at 87%</span><br></pre></td></tr></table></figure>
+
+<p>为解决满集群问题，建议通过添加 OSD 来增加容量。添加新 OSD 允许集群将数据重新分配到新提供的存储空间。查找浪费空间的 rados bench 孤儿对象。</p>
+<p>如果旧版 Filestore OSD 由于已满而无法启动，可以通过删除满 OSD 上的一小部分放置组目录来回收空间。</p>
+<p><strong>重要</strong></p>
+<p>如果您选择在满 OSD 上删除放置组目录，请勿在其他满 OSD 上删除相同的放置组目录。否则，您将丢失数据。您必须在至少一个 OSD 上保留数据的至少一个副本。删除放置组目录是一种罕见且极端的干预，不应轻易进行。</p>
+<h4 id="OSD-运行缓慢-无响应"><a href="#OSD-运行缓慢-无响应" class="headerlink" title="OSD 运行缓慢&#x2F;无响应"></a>OSD 运行缓慢&#x2F;无响应</h4><p>OSD 有时会运行缓慢或无响应。在排查这个常见问题时，建议在调查 OSD 性能问题之前排除其他可能性。例如，确保网络正常工作，确认 OSD 正在运行，并检查 OSD 是否限制了恢复流量。<br><strong>提示</strong><br>在 Luminous 版本之前，某些 up 和 in 状态的 OSD 有时不可用或运行缓慢，因为恢复中的 OSD 消耗了系统资源。更新版本通过防止这种现象提供了更好的恢复处理。</p>
+<ol>
+<li><p><strong>网络问题</strong><br>  作为分布式存储系统，Ceph 依赖网络进行 OSD 对等和复制、故障恢复以及周期性心跳。网络问题可能导致 OSD 延迟和抖动的 OSD。更多信息请参见“抖动 OSD”。要确保 Ceph 进程和 Ceph 相关进程连接正常并在监听，请运行以下命令：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">netstat -a | grep ceph</span><br><span class="line">netstat -l | grep ceph</span><br><span class="line"><span class="built_in">sudo</span> netstat -p | grep ceph</span><br></pre></td></tr></table></figure>
+<p>  要检查网络统计信息，请运行以下命令：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -s</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>启动监视器。</p>
+<li><p><strong>驱动器配置</strong><br>  SAS 或 SATA 存储驱动器应仅容纳一个 OSD，但 NVMe 驱动器可以轻松容纳两个或更多。然而，如果其他进程共享驱动器，读写吞吐量可能会受到瓶颈。此类进程包括：日志&#x2F;元数据、操作系统、Ceph 监视器、syslog 日志、其他 OSD 和非 Ceph 进程。<br>  由于 Ceph 在日志记录后确认写入，快速 SSD 是加速响应时间的一个有吸引力的选项——特别是在使用 XFS 或 ext4 文件系统作为传统 FileStore OSD 时。相比之下，Btrfs 文件系统可以同时进行写入和日志记录。（然而，不推荐在生产环境中使用 Btrfs。）<br>  <strong>注意</strong><br>  对驱动器进行分区不会改变其总吞吐量或顺序读&#x2F;写限制。通过在单独的分区中运行日志，吞吐量可能会有所改善，但更好的做法是将日志运行在单独的物理驱动器中。<br>  <strong>警告</strong><br>  Reef 不支持 FileStore。Reef 之后的版本不再支持 FileStore。提到 FileStore 的信息仅适用于 Quincy 版本及 Quincy 之前的版本。</p>
 </li>
+<li><p><strong>坏扇区&#x2F;碎片化磁盘</strong><br>  检查驱动器是否存在坏块、碎片化和其他可能导致性能显著下降的错误。检查驱动器错误的有用工具包括 dmesg、syslog 日志和 smartctl（在 smartmontools 包中）。<br>  <strong>注意</strong><br>  smartmontools 7.0 及更高版本提供 NVMe 状态直通和 JSON 输出。</p>
+</li>
+<li><p><strong>共存的监视器&#x2F;OSD</strong><br>  尽管监视器是相对轻量的进程，但当监视器与 OSD 运行在同一主机上时，可能会出现性能问题。监视器发出许多 fsync() 调用，这可能干扰其他工作负载。当监视器与 OSD 共存在同一存储驱动器上时，性能问题尤其严重。此外，如果监视器运行的是较旧的内核（3.0 之前）或没有 syncfs(2) 系统调用的内核，那么同一主机上运行的多个 OSD 可能会进行太多提交，从而影响彼此的性能。这种问题有时会导致所谓的“突发写入”。</p>
+</li>
+<li><p><strong>共存进程</strong><br>  在与 OSD 运行在同一硬件上时，处理写入数据到 Ceph 的进程（例如基于云的解决方案和虚拟机）可能会导致显著的 OSD 延迟。因此，一般不推荐将这些进程与 OSD 共存在同一硬件上。推荐的做法是优化某些主机用于 Ceph，其他主机用于其他进程。这种将 Ceph 操作与其他应用程序分开的做法可能有助于提高性能，并简化故障排除和维护。在同一硬件上运行共存进程有时被称为“融合”。使用 Ceph 时，仅在具备专业知识和经过考虑后再进行融合。</p>
+</li>
+<li><p><strong>日志级别</strong><br>  高日志级别可能导致性能问题。操作人员有时会提高日志级别以跟踪问题，然后忘记在之后降低它们。在这种情况下，OSD 可能会消耗宝贵的系统资源，将不必要的详细日志写入磁盘。任何希望使用高日志级别的人都应考虑将驱动器挂载到日志的默认路径（例如，&#x2F;var&#x2F;log&#x2F;ceph&#x2F;$cluster-$name.log）。</p>
+</li>
+<li><p><strong>恢复限制</strong><br>  根据您的配置，Ceph 可能会减少恢复速率以保持客户端或 OSD 性能，或者可能会增加恢复速率到影响客户端或 OSD 性能的程度。检查客户端或 OSD 是否正在恢复。</p>
+</li>
+<li><p><strong>内核版本</strong><br>  检查您运行的内核版本。较旧的内核可能缺少改进 Ceph 性能的更新。</p>
+</li>
+<li><p><strong>内核 SyncFS 问题</strong><br>  如果您遇到 SyncFS 的内核问题，请尝试每个主机运行一个 OSD 以查看性能是否提高。旧的内核可能没有足够新的 glibc 版本来支持 syncfs(2)。</p>
+</li>
+<li><p><strong>文件系统问题</strong><br>  在 Luminous 版本之后，我们建议使用 BlueStore 后端部署集群。当运行 Luminous 版本之前的版本时，或者如果您有特别的理由使用旧的 Filestore 后端，我们建议使用 XFS。<br>  我们不推荐使用 Btrfs 或 ext4。Btrfs 文件系统有许多吸引人的特性，但可能会导致性能问题和虚假的 ENOSPC 错误。由于 xattr 限制破坏了对长对象名称的支持，我们不推荐在 Filestore OSD 中使用 ext4。</p>
+</li>
+<li><p><strong>内存不足</strong><br>  我们建议每个 OSD 守护进程至少配备 4GB 内存，并建议将其增加到 6GB 或 8GB。在正常操作期间，您可能会注意到 ceph-osd 进程只使用了其中的一小部分。您可能会被诱使将多余的内存用于共存应用程序，或减少每个节点的内存容量。然而，当 OSD 正在恢复时，其内存使用会急剧增加。如果在恢复过程中没有足够的内存，OSD 性能会显著下降，守护进程可能会崩溃或被 Linux OOM Killer 杀死。</p>
+</li>
+<li><p><strong>请求阻塞或请求缓慢</strong><br>  当 ceph-osd 守护进程对请求响应缓慢时，集群日志会收到报告操作处理时间过长的消息。警告阈值默认为 30 秒，可以通过 osd_op_complaint_time 设置进行配置。<br>  旧版 Ceph 报告旧请求：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">osd.0 192.168.106.220:6800/18813 312 : [WRN] old request osd_op(client.5099.0:790 fatty_26485_object789 [write 0~4096] 2.5e54f643) v4 received at 2012-03-06 15:42:56.054801 currently waiting <span class="keyword">for</span> sub ops</span><br></pre></td></tr></table></figure>
+<p>  新版 Ceph 报告慢请求：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="built_in">date</span>&#125; &#123;osd.num&#125; [WRN] 1 slow requests, 1 included below; oldest blocked <span class="keyword">for</span> &gt; 30.005692 secs</span><br><span class="line">&#123;<span class="built_in">date</span>&#125; &#123;osd.num&#125;  [WRN] slow request 30.005692 seconds old, received at &#123;date-time&#125;: osd_op(client.4240.0:8 benchmark_data_ceph-1_39426_object7 [write 0~4194304] 0.69848840) v4 currently waiting <span class="keyword">for</span> subops from [610]</span><br></pre></td></tr></table></figure>
+<p>  可能的原因包括：</p>
+</li>
+</ol>
+<ul>
+<li>驱动器故障（检查 dmesg 输出）</li>
+<li>内核文件系统中的错误（检查 dmesg 输出）</li>
+<li>集群过载（检查系统负载、iostat 等）</li>
+<li>ceph-osd 守护进程中的错误</li>
+</ul>
+<p>  可能的解决方案：</p>
+<ul>
+<li>从 Ceph 主机中移除虚拟机</li>
+<li>升级内核</li>
+<li>升级 Ceph</li>
+<li>重启 OSD</li>
+<li>更换故障或有问题的组件</li>
+</ul>
+<ol start="13">
+<li><strong>调试缓慢请求</strong><br>  如果您运行 <code>ceph daemon osd.&lt;id&gt; dump_historic_ops</code> 或 <code>ceph daemon osd.&lt;id&gt; dump_ops_in_flight</code>，您将看到一组操作和每个操作经历的事件列表。这些事件简要描述如下。<br>  来自 Messenger 层的事件：<ul>
+<li><code>header_read</code>: Messenger 开始从网络读取消息的时间。</li>
+<li><code>throttled</code>: Messenger 尝试获取内存节流空间以将消息读入内存的时间。</li>
+<li><code>all_read</code>: Messenger 完成从网络读取消息的时间。</li>
+<li><code>dispatched</code>: Messenger 将消息交给 OSD 的时间。</li>
+<li><code>initiated</code>: 这与 <code>header_read</code> 相同。存在这两个事件是历史上的异常。</li>
 </ul>
 </li>
 </ol>
-<p><strong>警告</strong><br>将 monmap 注入监视器可能会引起严重问题。注入 monmap 会覆盖监视器上存储的最新 monmap。请小心操作！</p>
-<h4 id="时钟偏移"><a href="#时钟偏移" class="headerlink" title="时钟偏移"></a>时钟偏移</h4><p>Paxos 共识算法需要紧密的时间同步，这意味着仲裁中的监视器之间的时钟偏移会对监视器的操作产生严重影响，导致一些令人困惑的行为。为避免这种问题，应在监视器节点上运行时钟同步工具，例如 Chrony 或传统的 ntpd 工具。配置每个监视器节点时确保启用了 iburst 选项，并确保每个监视器有多个对等节点，包括以下内容：</p>
-<ul>
-<li>其他监视器</li>
-<li>内部 NTP 服务器</li>
-<li>多个外部公共池服务器</li>
-</ul>
-<p><strong>注意</strong><br>iburst 选项在初始同步时会发送八个数据包，而不是通常的一个。此外，建议将集群中的所有节点与内部和外部服务器同步，甚至与监视器同步。请在物理机上运行 NTP 服务器，因为虚拟机的虚拟化时钟不适合稳定的时间保持。</p>
-<h4 id="时钟偏移问题及解答"><a href="#时钟偏移问题及解答" class="headerlink" title="时钟偏移问题及解答"></a>时钟偏移问题及解答</h4><p><strong>容忍的最大时钟偏移是多少？</strong><br>默认情况下，监视器允许时钟最大漂移 0.05 秒（50 毫秒）。</p>
-<p><strong>我可以增加最大容忍的时钟偏移吗？</strong><br>可以，但我们强烈建议不要这样做。最大容忍的时钟偏移可通过 <code>mon-clock-drift-allowed</code> 选项进行配置，但更改此选项几乎肯定是一个糟糕的决定。设定的时钟偏移上限是因为时钟不同步的监视器不可靠。当前的默认值已证明其在监视器遇到严重问题之前提醒用户方面的有效性。更改此值可能会对监视器的稳定性和整体集群健康状况造成不可预见的影响。</p>
-<p><strong>我如何知道是否存在时钟偏移？</strong><br>当存在时钟偏移时，监视器会通过集群状态 <code>HEALTH_WARN</code> 发出警告。执行 <code>ceph health detail</code> 和 <code>ceph status</code> 命令时，输出类似如下内容：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mon.c addr 10.10.0.1:6789/0 clock skew 0.08235s &gt; max 0.05s (latency 0.0045s)</span><br></pre></td></tr></table></figure>
-<p>在此示例中，监视器 <code>mon.c</code> 被标记为存在时钟偏移。<br>在 Luminous 及更高版本中，可以通过运行 <code>ceph time-sync-status</code> 命令来检查时钟偏移。注意，主监视器通常具有数值最低的 IP 地址。它始终显示 0：其他监视器报告的偏移是相对于主监视器的，而不是任何外部参考源。</p>
-<p><strong>如果存在时钟偏移，我该怎么办？</strong><br>同步时钟。使用 NTP 客户端可能会有所帮助。但是，如果已经在使用 NTP 客户端并且仍然遇到时钟偏移问题，请确定使用的 NTP 服务器是否位于网络之外，还是托管在网络中。托管自己的 NTP 服务器往往可以缓解时钟偏移问题。</p>
-<p><strong>客户端无法连接或挂载</strong><br>如果客户端无法连接到集群或挂载，请检查您的 iptables。一些操作系统安装程序会向 iptables 添加一个 REJECT 规则。iptables 规则会拒绝所有尝试连接到主机的客户端（除了 ssh）。如果您的监视器主机的 iptables 具有 REJECT 规则，则从单独节点连接的客户端会失败，并引发超时错误。检查 iptables 规则，看看是否有任何拒绝尝试连接到 Ceph 守护进程的客户端。例如：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">REJECT all -- anywhere anywhere reject-with icmp-host-prohibited</span><br></pre></td></tr></table></figure>
+<p>  来自 OSD 处理操作的事件:<br>    - <code>queued_for_pg</code>: 操作已被放入队列等待 PG 处理。<br>    - <code>reached_pg</code>: PG 开始执行操作。<br>    - <code>waiting for *</code>: 操作在等待其他工作完成后才能继续（例如，新 OSDMap；对象目标的检查；PG 的对等完成；这些都在消息中指定）。<br>    - <code>started</code>: 操作已被接受为 OSD 应执行的任务，并且正在执行中。<br>    - <code>waiting for subops from</code>: 操作已被发送到副本 OSD。</p>
+<p>  来自 Filestore 的事件：<br>    - <code>commit_queued_for_journal_write</code>: 操作已交给 FileStore。<br>    - <code>write_thread_in_journal_buffer</code>: 操作在日志的缓冲区中，等待持久化（作为下一次磁盘写入）。<br>    - <code>journaled_completion_queued</code>: 操作已被写入日志，回调已排队等待调用。</p>
+<p>  来自 OSD 在数据已交给底层存储后的事件：<br>    - <code>op_commit</code>: 操作已由主 OSD 提交（即，写入日志）。<br>    - <code>op_applied</code>: 操作已写入主 OSD 的后台文件系统（即，在内存中应用但未刷新到磁盘）。<br>    - <code>sub_op_applied</code>: 副本的 <code>op_applied</code>。<br>    - <code>sub_op_committed</code>: 副本的 <code>op_commit</code>（仅对 EC 池）。<br>    - <code>sub_op_commit_rec/sub_op_apply_rec from &lt;X&gt;</code>: 主 OSD 在听到上述消息后进行标记，但针对特定副本（即 <X>）。<br>    - <code>commit_sent</code>: 我们向客户端（或主 OSD，针对子操作）发送了回复。</p>
+<p>虽然一些事件可能看起来冗余，但它们跨越了内部代码中的重要边界（例如，跨锁将数据传递到新线程中）。</p>
+<h4 id="OSD抖动"><a href="#OSD抖动" class="headerlink" title="OSD抖动"></a>OSD抖动</h4><p>“抖动”是指 OSD 被快速重复标记为上线然后下线的现象。本节解释如何识别抖动以及如何减轻它。</p>
+<p>当 OSD 进行对等和检查心跳时，它们使用集群（后端）网络。如果您的 OSD 节点有两个网络端口，将一个端口专用于公共网络，另一个端口专用于私有网络，可以避免网络维护和网络故障对集群或客户端造成的重大影响。在这种情况下，可以考虑将两个链接仅用于公共网络：使用绑定（LACP）或等成本路由（例如 FRR），可以获得更高的吞吐量容差、容错能力和减少 OSD 抖动。</p>
+<p>当私有网络（甚至单个主机链接）故障或降级时，而公共网络正常运行，OSD 可能无法很好地处理这种情况。在这种情况下，OSD 使用公共网络向监视器报告彼此故障，同时将自己标记为上线。然后，监视器再次通过公共网络发送更新的集群地图，将受影响的 OSD 标记为下线。这些 OSD 向监视器回复“我还没死！”，然后循环重复。我们称这种情况为“抖动”，它可能很难隔离和修复。没有私有网络时，这种恼人的动态被避免了：OSD 通常要么上线要么下线，没有抖动。</p>
+<p>如果某些原因导致 OSD “抖动”（被反复标记为下线然后再上线），您可以通过暂时冻结其状态来强制监视器停止抖动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">set</span> noup      <span class="comment"># 防止 OSD 被标记为上线</span></span><br><span class="line">ceph osd <span class="built_in">set</span> nodown    <span class="comment"># 防止 OSD 被标记为下线</span></span><br></pre></td></tr></table></figure>
 
-<p>可能还需要在 Ceph 主机上的 iptables 添加规则，以确保客户端能够访问与 Ceph 监视器（默认：端口 6789）和 Ceph OSD（默认：6800 到 7568）关联的 TCP 端口。例如：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -A INPUT -m multiport -p tcp -s &#123;ip-address&#125;/&#123;netmask&#125; --dports 6789,6800:7568 -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>这些标志记录在 osdmap 中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd dump | grep flags</span><br><span class="line">flags no-up,no-down</span><br></pre></td></tr></table></figure>
 
-<h4 id="监视器存储故障"><a href="#监视器存储故障" class="headerlink" title="监视器存储故障"></a>监视器存储故障</h4><p><strong>存储损坏的症状</strong><br>Ceph 监视器在键值存储中维护集群地图。如果键值存储损坏导致监视器失败，则监视器日志可能包含以下错误消息之一：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Corruption: error in middle of record</span><br></pre></td></tr></table></figure>
-<p>或者：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Corruption: 1 missing files; e.g.: /var/lib/ceph/mon/mon.foo/store.db/1234567.ldb</span><br></pre></td></tr></table></figure>
+<p>您可以使用以下命令清除这些标志：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">unset</span> noup</span><br><span class="line">ceph osd <span class="built_in">unset</span> nodown</span><br></pre></td></tr></table></figure>
 
-<p><strong>使用健康的监视器恢复</strong><br>如果集群中有幸存的监视器，损坏的监视器可以用新的监视器替换。新监视器启动后，它会与健康的对等体同步。新监视器完全同步后，将能够为客户端提供服务。</p>
-<p><strong>使用 OSDs 进行恢复</strong><br>即使所有监视器同时失效，也可以使用存储在 OSDs 中的信息恢复监视器存储。建议在 Ceph 集群中部署至少三个（最好是五个）监视器。在这种部署中，完全的监视器故障是不太可能的。然而，如果数据中心在磁盘设置或文件系统设置配置不当的情况下发生意外断电，可能会导致底层文件系统故障，这可能会导致所有监视器故障。在这种情况下，OSDs 中的数据可用于恢复监视器。以下是可以在这种情况下使用的脚本来恢复监视器：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">ms=/root/mon-store</span><br><span class="line"><span class="built_in">mkdir</span> <span class="variable">$ms</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># collect the cluster map from stopped OSDs</span></span><br><span class="line"><span class="keyword">for</span> host <span class="keyword">in</span> <span class="variable">$hosts</span>; <span class="keyword">do</span></span><br><span class="line">  rsync -avz <span class="variable">$ms</span>/. user@<span class="variable">$host</span>:<span class="variable">$ms</span>.remote</span><br><span class="line">  <span class="built_in">rm</span> -rf <span class="variable">$ms</span></span><br><span class="line">  ssh user@<span class="variable">$host</span> &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">    for osd in /var/lib/ceph/osd/ceph-*; do</span></span><br><span class="line"><span class="string">      ceph-objectstore-tool --data-path \$osd --no-mon-config --op update-mon-db --mon-store-path $ms.remote</span></span><br><span class="line"><span class="string">    done</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line">  rsync -avz user@<span class="variable">$host</span>:<span class="variable">$ms</span>.remote/. <span class="variable">$ms</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># rebuild the monitor store from the collected map, if the cluster does not</span></span><br><span class="line"><span class="comment"># use cephx authentication, we can skip the following steps to update the</span></span><br><span class="line"><span class="comment"># keyring with the caps, and there is no need to pass the &quot;--keyring&quot; option.</span></span><br><span class="line"><span class="comment"># i.e. just use &quot;ceph-monstore-tool $ms rebuild&quot; instead</span></span><br><span class="line">ceph-authtool /path/to/admin.keyring -n mon. \</span><br><span class="line">  --<span class="built_in">cap</span> mon <span class="string">&#x27;allow *&#x27;</span></span><br><span class="line">ceph-authtool /path/to/admin.keyring -n client.admin \</span><br><span class="line">  --<span class="built_in">cap</span> mon <span class="string">&#x27;allow *&#x27;</span> --<span class="built_in">cap</span> osd <span class="string">&#x27;allow *&#x27;</span> --<span class="built_in">cap</span> mds <span class="string">&#x27;allow *&#x27;</span></span><br><span class="line"><span class="comment"># add one or more ceph-mgr&#x27;s key to the keyring. in this case, an encoded key</span></span><br><span class="line"><span class="comment"># for mgr.x is added, you can find the encoded key in</span></span><br><span class="line"><span class="comment"># /etc/ceph/$&#123;cluster&#125;.$&#123;mgr_name&#125;.keyring on the machine where ceph-mgr is</span></span><br><span class="line"><span class="comment"># deployed</span></span><br><span class="line">ceph-authtool /path/to/admin.keyring --add-key <span class="string">&#x27;AQDN8kBe9PLWARAAZwxXMr+n85SBYbSlLcZnMA==&#x27;</span> -n mgr.x \</span><br><span class="line">  --<span class="built_in">cap</span> mon <span class="string">&#x27;allow profile mgr&#x27;</span> --<span class="built_in">cap</span> osd <span class="string">&#x27;allow *&#x27;</span> --<span class="built_in">cap</span> mds <span class="string">&#x27;allow *&#x27;</span></span><br><span class="line"><span class="comment"># If your monitors&#x27; ids are not sorted by ip address, please specify them in order.</span></span><br><span class="line"><span class="comment"># For example. if mon &#x27;a&#x27; is 10.0.0.3, mon &#x27;b&#x27; is 10.0.0.2, and mon &#x27;c&#x27; is  10.0.0.4,</span></span><br><span class="line"><span class="comment"># please passing &quot;--mon-ids b a c&quot;.</span></span><br><span class="line"><span class="comment"># In addition, if your monitors&#x27; ids are not single characters like &#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;, please</span></span><br><span class="line"><span class="comment"># specify them in the command line by passing them as arguments of the &quot;--mon-ids&quot;</span></span><br><span class="line"><span class="comment"># option. if you are not sure, please check your ceph.conf to see if there is any</span></span><br><span class="line"><span class="comment"># sections named like &#x27;[mon.foo]&#x27;. don&#x27;t pass the &quot;--mon-ids&quot; option, if you are</span></span><br><span class="line"><span class="comment"># using DNS SRV for looking up monitors.</span></span><br><span class="line">ceph-monstore-tool <span class="variable">$ms</span> rebuild -- --keyring /path/to/admin.keyring --mon-ids alpha beta gamma</span><br><span class="line"></span><br><span class="line"><span class="comment"># make a backup of the corrupted store.db just in case!  repeat for</span></span><br><span class="line"><span class="comment"># all monitors.</span></span><br><span class="line"><span class="built_in">mv</span> /var/lib/ceph/mon/mon.foo/store.db /var/lib/ceph/mon/mon.foo/store.db.corrupted</span><br><span class="line"></span><br><span class="line"><span class="comment"># move rebuild store.db into place.  repeat for all monitors.</span></span><br><span class="line"><span class="built_in">mv</span> <span class="variable">$ms</span>/store.db /var/lib/ceph/mon/mon.foo/store.db</span><br><span class="line"><span class="built_in">chown</span> -R ceph:ceph /var/lib/ceph/mon/mon.foo/store.db</span><br></pre></td></tr></table></figure>
-<p>该脚本执行以下步骤：</p>
-<ul>
-<li>从每个 OSD 主机收集地图。</li>
-<li>重建存储。</li>
-<li>用适当的权限填充 keyring 文件中的实体。</li>
-<li>用恢复的副本替换 mon.foo 上的损坏存储。</li>
-</ul>
-<p><strong>已知限制</strong><br>上述恢复工具无法恢复以下信息：</p>
-<ul>
-<li><strong>某些添加的 keyring</strong>：所有使用 <code>ceph auth add</code> 命令添加的 OSD keyring 都会从 OSD 的副本中恢复，并且使用 <code>ceph-monstore-tool</code> 导入 client.admin keyring。但是，MDS keyring 和其他所有 keyring 都会在恢复的监视器存储中缺失，可能需要手动重新添加。</li>
-<li><strong>创建池</strong>：如果任何 RADOS 池正在创建过程中，则该状态会丢失。恢复工具假设所有池都已创建。如果恢复后部分创建的池中有 PG 卡在未知状态，可以运行 <code>ceph osd force-create-pg</code> 命令强制创建空 PG。只有当你确定池是空的时才采取此操作。</li>
-<li><strong>MDS 映射</strong>：MDS 映射会丢失。</li>
-</ul>
+<p>还有两个其他标志 <code>noin</code> 和 <code>noout</code>，它们分别防止启动的 OSD 被标记为分配数据（in）或保护 OSD 被标记为最终移除（out），无论 <code>mon_osd_down_out_interval</code> 的当前值如何。</p>
+<p><strong>注意</strong></p>
+<p><code>noup</code>、<code>noout</code> 和 <code>nodown</code> 是临时性的，因为清除标志后，它们阻止的操作应该很快能够恢复。但是 <code>noin</code> 标志防止 OSD 在启动时被标记为在线，任何在标志设置期间启动的守护进程将保持这种状态。</p>
+<p><strong>注意</strong></p>
+<p>通过仔细调整 <code>mon_osd_down_out_subtree_limit</code>、<code>mon_osd_reporter_subtree_level</code> 和 <code>mon_osd_min_down_reporters</code> 可以在一定程度上缓解抖动的原因和效果。最佳设置的推导取决于集群大小、拓扑结构和使用的 Ceph 版本。这些因素的交互很微妙，超出了本文档的范围。</p>
+<p>由 Ceph 基金会提供</p>
+<p>Ceph 文档是由非营利组织 Ceph 基金会资助和托管的社区资源。如果您想支持我们以及其他努力，请考虑立即加入。</p>
 
       
     </div>
@@ -485,7 +551,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://watsonlu6.github.io/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh Mon常见故障处理" target="_blank" rel="external">https://watsonlu6.github.io/Ceph-OSD常见故障处理/</a>
+      <a href="https://watsonlu6.github.io/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh OSD常见故障处理" target="_blank" rel="external">https://watsonlu6.github.io/Ceph-OSD常见故障处理/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -531,9 +597,13 @@
   
   <ul class="pager pull-left">
     
+    <li class="prev">
+      <a href="/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh PG常见故障处理"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
     
     <li class="next">
-      <a href="/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh OSD常见故障处理"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh Mon常见故障处理"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
