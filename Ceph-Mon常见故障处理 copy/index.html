@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Cpeh OSD常见故障处理 | watson Lu&#39;blogs</title>
+  <meta name="description" content="OSD故障排除在故障排除集群的 OSD 之前，请先检查监视器和网络。首先，确定监视器是否有法定人数。运行 ceph health 命令或 ceph -s 命令，如果 Ceph 显示 HEALTH_OK，则表示有监视器法定人数。如果监视器没有法定人数或监视器状态出现错误，请在继续之前处理监视器问题。接下来，检查网络以确保其正常运行。网络对 OSD 的操作和性能有显著影响。检查主机端是否有丢包，并检查">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cpeh OSD常见故障处理">
+<meta property="og:url" content="https://watsonlu6.github.io/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%20copy/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="OSD故障排除在故障排除集群的 OSD 之前，请先检查监视器和网络。首先，确定监视器是否有法定人数。运行 ceph health 命令或 ceph -s 命令，如果 Ceph 显示 HEALTH_OK，则表示有监视器法定人数。如果监视器没有法定人数或监视器状态出现错误，请在继续之前处理监视器问题。接下来，检查网络以确保其正常运行。网络对 OSD 的操作和性能有显著影响。检查主机端是否有丢包，并检查">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-09-08T06:53:31.000Z">
+<meta property="article:modified_time" content="2024-09-08T07:47:55.858Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%20copy/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">27</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">22</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.67px;">Ceph</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.33px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">九月 2024</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%20copy/" class="title">Cpeh OSD常见故障处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" class="title">Cpeh Mon常见故障处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" class="title">Ceph Cache Tier源码实现</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-09-28T12:45:54.000Z" itemprop="datePublished">2022-09-28</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/Ceph-Cache-Tier%E4%BD%BF%E7%94%A8%E4%BB%8B%E7%BB%8D/" class="title">Ceph Cache Tier使用介绍</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-08-25T08:45:47.000Z" itemprop="datePublished">2022-08-25</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+              </p>
+              <p class="item-title">
+                <a href="/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/" class="title">缓存基础与Ceph分层存储</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2022-08-10T11:59:00.000Z" itemprop="datePublished">2022-08-10</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Ceph-Mon常见故障处理 copy" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Cpeh OSD常见故障处理
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%20copy/" class="article-date">
+	  <time datetime="2024-09-08T06:53:31.000Z" itemprop="datePublished">2024-09-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%20copy/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="OSD故障排除"><a href="#OSD故障排除" class="headerlink" title="OSD故障排除"></a>OSD故障排除</h2><p>在故障排除集群的 OSD 之前，请先检查监视器和网络。<br>首先，确定监视器是否有法定人数。运行 <code>ceph health</code> 命令或 <code>ceph -s</code> 命令，如果 Ceph 显示 <code>HEALTH_OK</code>，则表示有监视器法定人数。如果监视器没有法定人数或监视器状态出现错误，请在继续之前处理监视器问题。接下来，检查网络以确保其正常运行。网络对 OSD 的操作和性能有显著影响。检查主机端是否有丢包，并检查交换机端是否有 CRC 错误。</p>
+<h4 id="获取-OSD-数据"><a href="#获取-OSD-数据" class="headerlink" title="获取 OSD 数据"></a>获取 OSD 数据</h4><p>在故障排除 OSD 时，收集关于 OSD 的不同信息非常有用。一些信息来自于对 OSD 的监控（例如，运行 <code>ceph osd tree</code> 命令）。额外的信息涉及到集群的拓扑结构，以下部分将讨论这些内容。</p>
+<ol>
+<li><p><strong>Ceph 日志</strong><br>  Ceph 的日志文件存储在 <code>/var/log/ceph</code> 下。除非路径已被更改（或者您在存储日志位置不同的容器化环境中），否则可以通过以下命令列出日志文件：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/log/ceph</span><br></pre></td></tr></table></figure>
+<p>  如果日志详情不够，请调整日志级别。要确保 Ceph 在高日志量下表现良好，请参阅“日志记录和调试”。</p>
+</li>
+<li><p><strong>管理员套接字</strong><br>使用管理员套接字工具来检索运行时信息。首先，列出 Ceph 守护进程的套接字，通过以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/run/ceph</span><br></pre></td></tr></table></figure>
+<p>接下来，运行如下命令（将 <code>&#123;daemon-name&#125;</code> 替换为特定守护进程的名称，例如 <code>osd.0</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph daemon &#123;daemon-name&#125; <span class="built_in">help</span></span><br></pre></td></tr></table></figure>
+<p>或者，指定 <code>&#123;socket-file&#125;</code>（“套接字文件”是 <code>/var/run/ceph</code> 中的特定文件）运行命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph daemon &#123;socket-file&#125; <span class="built_in">help</span></span><br></pre></td></tr></table></figure>
+<p>管理员套接字可以完成许多任务，包括：</p>
+</li>
+</ol>
+<ul>
+<li>列出 Ceph 配置运行时</li>
+<li>转储历史操作</li>
+<li>转储操作优先级队列状态</li>
+<li>转储正在进行的操作</li>
+<li>转储性能计数器</li>
+</ul>
+<ol start="3">
+<li><p><strong>显示空闲空间</strong><br>可能会出现文件系统问题。要显示文件系统的空闲空间，请运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">df</span> -h</span><br></pre></td></tr></table></figure>
+<p>要查看此命令支持的语法和选项，请运行 <code>df --help</code>。</p>
+</li>
+<li><p><strong>I&#x2F;O 统计</strong><br><code>iostat</code> 工具可用于识别 I&#x2F;O 相关的问题。运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iostat -x</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>诊断信息</strong><br>要从内核中检索诊断信息，请运行 <code>dmesg</code> 命令，并使用 <code>less</code>、<code>more</code>、<code>grep</code> 或 <code>tail</code> 进行指定输出。例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dmesg | grep scsi</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="停止而不重新平衡"><a href="#停止而不重新平衡" class="headerlink" title="停止而不重新平衡"></a>停止而不重新平衡</h4><p>有时可能需要对集群的子集进行维护或解决影响故障域（例如机架）的问题。然而，当停止 OSD 进行维护时，可能希望防止 CRUSH 自动重新平衡集群。为避免这种重新平衡行为，可以通过运行以下命令将集群设置为 <code>noout</code> 状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">set</span> noout</span><br></pre></td></tr></table></figure>
+<p><strong>警告</strong><br>这更多是一个思考练习，用于让读者理解故障域和 CRUSH 行为，而不是建议在 Luminous 版本后的环境中运行 <code>ceph osd set noout</code>。当 OSD 返回到正常状态时，重新平衡将恢复，<code>ceph osd set noout</code> 命令引入的更改将被撤销。</p>
+<p>然而，在 Luminous 及后续版本中，更安全的做法是只标记受影响的 OSD。要添加或删除特定 OSD 的 <code>noout</code> 标志，可以运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd add-noout osd.0</span><br><span class="line">ceph osd rm-noout osd.0</span><br></pre></td></tr></table></figure>
+
+<p>也可以标记整个 CRUSH 组。例如，如果计划停用 <code>prod-ceph-data1701</code> 以增加 RAM，可以运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd set-group noout prod-ceph-data1701</span><br></pre></td></tr></table></figure>
+
+<p>设置标志后，停止 OSD 和需要维护的故障域内的其他 Ceph 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop ceph\*.service ceph\*.target</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong><br>当 OSD 被停止时，该 OSD 内的任何放置组将被标记为降级。<br>维护完成后，需重新启动 OSD 和其他停止的守护进程。然而，如果主机在维护过程中重启，则不需要重新启动，系统会自动恢复。要重新启动 OSD 或其他守护进程，使用如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl start ceph.target</span><br></pre></td></tr></table></figure>
+
+<p>最后，根据需要取消 <code>noout</code> 标志，可以运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">unset</span> noout</span><br><span class="line">ceph osd unset-group noout prod-ceph-data1701</span><br></pre></td></tr></table></figure>
+<p>许多现代 Linux 发行版使用 systemd 进行服务管理。然而，对于某些操作系统（尤其是旧版本），可能需要发出等效的服务或启动&#x2F;停止命令。</p>
+<h4 id="OSD-未运行"><a href="#OSD-未运行" class="headerlink" title="OSD 未运行"></a>OSD 未运行</h4><p>在正常情况下，重新启动 ceph-osd 守护进程将允许它重新加入集群并恢复。</p>
+<p><strong>OSD 无法启动</strong><br>如果集群已启动，但某个 OSD 无法启动，请检查以下内容：</p>
+<ul>
+<li><strong>配置文件</strong>：如果您在新的安装中无法启动 OSD，请检查配置文件以确保其符合标准（例如，确保使用的是 <code>host</code> 而不是 <code>hostname</code> 等）。</li>
+<li><strong>检查路径</strong>：确保配置中指定的路径与实际存在的数据和元数据路径对应（例如，日志、WAL 和 DB 的路径）。将 OSD 数据与元数据分开，以查看配置文件和实际挂载是否存在错误。如果有，这些错误可能解释了为何 OSD 无法启动。要将元数据存储在单独的块设备上，可以对驱动器进行分区或使用 LVM，并为每个 OSD 分配一个分区。</li>
+<li><strong>检查最大线程数</strong>：如果集群中有一个节点的 OSD 数量特别高，可能会达到默认的最大线程数（通常是 32,000）。这在恢复过程中尤其可能发生。将最大线程数增加到允许的最大线程数（4194303）可能有助于解决问题。要将线程数增加到最大值，请运行以下命令：  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl -w kernel.pid_max=4194303</span><br></pre></td></tr></table></figure>
+如果增加线程数解决了问题，您必须通过在 <code>/etc/sysctl.d</code> 文件夹下的文件或在主 <code>/etc/sysctl.conf</code> 文件中包含 <code>kernel.pid_max</code> 设置来使更改永久生效。例如：  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kernel.pid_max = 4194303</span><br></pre></td></tr></table></figure></li>
+<li>**检查 <code>nf_conntrack</code>**：这个连接跟踪和连接限制系统对许多生产 Ceph 集群造成问题。问题往往缓慢而微妙地出现。随着集群拓扑和客户端工作负载的增长，神秘和间歇性的连接失败和性能问题会越来越多，尤其是在一天中的某些时候。为开始评估问题，请检查 syslog 历史中的 “table full” 事件。解决这种问题的一种方法是：首先，使用 sysctl 实用程序将 <code>nf_conntrack_max</code> 设置为更高的值。接下来，将 <code>nf_conntrack_buckets</code> 的值提高到 <code>nf_conntrack_buckets × 8 = nf_conntrack_max</code>；这可能需要在 sysctl 之外运行命令（例如，<code>echo 131072 &gt; /sys/module/nf_conntrack/parameters/hashsize</code>）。另一种解决方法是将相关内核模块列入黑名单，从而完全禁用处理。这种方法强大但脆弱。模块及其列出顺序可能因内核版本而异。即使被列入黑名单，iptables 和 docker 有时仍会激活连接跟踪，因此我们建议对调优参数采用“设置并忘记”的策略。在现代系统中，这种方法不会消耗显著资源。</li>
+<li><strong>内核版本</strong>：确定正在使用的内核版本和发行版。默认情况下，Ceph 使用的第三方工具可能存在缺陷或与某些发行版或内核版本冲突（例如，Google 的 gperftools 和 TCMalloc）。检查操作系统建议和每个 Ceph 版本的发行说明，以确保您已解决与内核相关的任何问题。</li>
+<li><strong>段错误</strong>：如果出现段错误，请提高日志级别并重新启动有问题的守护进程。如果段错误重复发生，请在 Ceph bug 跟踪器（<a target="_blank" rel="noopener" href="https://tracker.ceph.com/projects/ceph%EF%BC%89%E5%92%8C">https://tracker.ceph.com/projects/ceph）和</a> dev 及 ceph-users 邮件列表归档（<a target="_blank" rel="noopener" href="https://ceph.io/resources%EF%BC%89%E4%B8%AD%E6%90%9C%E7%B4%A2%E6%98%AF%E5%90%A6%E6%9C%89%E5%85%B6%E4%BB%96%E4%BA%BA%E9%81%87%E5%88%B0%E5%B9%B6%E6%8A%A5%E5%91%8A%E4%BA%86%E8%BF%99%E4%BA%9B%E9%97%AE%E9%A2%98%E3%80%82%E5%A6%82%E6%9E%9C%E8%BF%99%E7%A1%AE%E5%AE%9E%E6%98%AF%E4%B8%80%E4%B8%AA%E6%96%B0%E7%9A%84%E5%92%8C%E7%8B%AC%E7%89%B9%E7%9A%84%E6%95%85%E9%9A%9C%EF%BC%8C%E8%AF%B7%E5%9C%A8">https://ceph.io/resources）中搜索是否有其他人遇到并报告了这些问题。如果这确实是一个新的和独特的故障，请在</a> dev 邮件列表中发布，并提供以下信息：正在运行的具体 Ceph 版本、ceph.conf（秘密已用 XXX 替换）、监视器状态输出和日志文件摘录。</li>
+</ul>
+<p><strong>OSD 失败</strong><br>当 OSD 失败时，表示 ceph-osd 进程无响应或已死亡，相应的 OSD 已被标记为下线。存活的 ceph-osd 守护进程将向监视器报告该 OSD 似乎已经下线，并且 <code>ceph health</code> 命令的输出中将显示新的状态，如下例所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph health</span><br><span class="line">HEALTH_WARN 1/3 <span class="keyword">in</span> osds are down</span><br></pre></td></tr></table></figure>
+
+<p>当有一个或多个 OSD 被标记为下线时，会引发此健康警报。要查看哪些 OSD 已下线，请为命令添加详细信息，如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ceph health detail</span><br><span class="line">HEALTH_WARN 1/3 <span class="keyword">in</span> osds are down</span><br><span class="line">osd.0 is down since epoch 23, last address 192.168.106.220:6800/11080</span><br></pre></td></tr></table></figure>
+<p>或者，运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd tree down</span><br></pre></td></tr></table></figure>
+
+<p>如果由于驱动器故障或其他故障导致某个 ceph-osd 守护进程无法工作或重新启动，则其日志文件（位于 <code>/var/log/ceph</code> 下）中应存在错误消息。如果 ceph-osd 守护进程因心跳故障或自杀超时错误而停止，则底层驱动器或文件系统可能无响应。检查 dmesg 输出和 syslog 输出中的驱动器错误或内核错误。可能需要指定某些标志（例如，<code>dmesg -T</code> 以查看人类可读的时间戳）以避免将旧错误误认为新错误。</p>
+<p>如果整个主机的 OSD 都下线，请检查是否存在网络错误或主机的硬件问题。如果 OSD 问题是软件错误（例如，断言失败或其他意外错误）的结果，请在 bug 跟踪器、dev 邮件列表归档和 ceph-users 邮件列表归档中搜索是否有问题报告。如果没有明确的修复或现有 bug，请向 ceph-devel 邮件列表报告问题。</p>
+<p><strong>没有可用驱动器空间</strong><br>如果 OSD 已满，Ceph 会通过确保不会将新数据写入 OSD 来防止数据丢失。在正常运行的集群中，当集群的 OSD 和池接近某些“满”比率时，会引发健康检查。<code>mon_osd_full_ratio</code> 阈值默认为 0.95（即 95% 的容量）：这是防止客户端写入数据的点。<code>mon_osd_backfillfull_ratio</code> 阈值默认为 0.90（即 90% 的容量）：这是防止开始回填的点。<code>mon_osd_nearfull_ratio</code> 阈值默认为 0.85（即 85% 的容量）：这是引发 OSD_NEARFULL 健康检查的点。集群中的 OSD 在 Ceph 分配的数据量上会有所不同。要通过显示每个 OSD 的数据使用情况来检查“满”状态，请运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">df</span></span><br></pre></td></tr></table></figure>
+
+<p>要通过显示集群的总体数据使用情况和池之间的数据分布来检查“满”状态，请运行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph <span class="built_in">df</span></span><br></pre></td></tr></table></figure>
+
+<p>在检查 <code>ceph df</code> 命令的输出时，请特别注意最满的 OSD，而不是原始空间使用的百分比。如果单个 OSD 变满，所有对该 OSD 池的写入可能会失败。当 <code>ceph df</code> 报告池的可用空间时，它会考虑相对于池中最满 OSD 的比率设置。为了平衡数据分布，可以采取两种方法：（1）使用 <code>reweight-by-utilization</code> 命令逐步将数据从过满的 OSD 移动到不足满的 OSD，或者（2）在 Luminous 的后续版本及以后的版本中，利用 ceph-mgr balancer 模块自动执行相同任务。要调整“满”比率，请运行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ceph osd set-nearfull-ratio &lt;<span class="built_in">float</span>[0.0-1.0]&gt;</span><br><span class="line">ceph osd set-full-ratio &lt;<span class="built_in">float</span>[0.0-1.0]&gt;</span><br><span class="line">ceph osd set-backfillfull-ratio &lt;<span class="built_in">float</span>[0.0-1.0]&gt;</span><br></pre></td></tr></table></figure>
+
+<p>有时，集群问题的原因是 OSD 失败。这可能发生在测试过程中，或者因为集群较小、非常满或不平衡。当 OSD 或节点占据集群数据的过高比例时，组件故障或自然增长可能导致接近满和满的比率被超过。在测试 Ceph 对 OSD 故障的恢复能力时，建议保留足够的空闲磁盘空间，并考虑暂时降低 OSD 的满比率、回填满比率和接近满比率。<br>OSD 的“满”状态在 <code>ceph health</code> 命令的输出中可见，如下例所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph health</span><br><span class="line">HEALTH_WARN 1 nearfull osd(s)</span><br></pre></td></tr></table></figure>
+
+<p>有关详细信息，请使用详细命令，如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ceph health detail</span><br><span class="line">HEALTH_ERR 1 full osd(s);</span><br><span class="line"></span><br><span class="line"> 1 backfillfull osd(s); 1 nearfull osd(s)</span><br><span class="line">osd.3 is full at 97%</span><br><span class="line">osd.4 is backfill full at 91%</span><br><span class="line">osd.2 is near full at 87%</span><br></pre></td></tr></table></figure>
+
+<p>为解决满集群问题，建议通过添加 OSD 来增加容量。添加新 OSD 允许集群将数据重新分配到新提供的存储空间。查找浪费空间的 rados bench 孤儿对象。</p>
+<p>如果旧版 Filestore OSD 由于已满而无法启动，可以通过删除满 OSD 上的一小部分放置组目录来回收空间。</p>
+<p><strong>重要</strong></p>
+<p>如果您选择在满 OSD 上删除放置组目录，请勿在其他满 OSD 上删除相同的放置组目录。否则，您将丢失数据。您必须在至少一个 OSD 上保留数据的至少一个副本。删除放置组目录是一种罕见且极端的干预，不应轻易进行。</p>
+<h4 id="OSD-运行缓慢-无响应"><a href="#OSD-运行缓慢-无响应" class="headerlink" title="OSD 运行缓慢&#x2F;无响应"></a>OSD 运行缓慢&#x2F;无响应</h4><p>OSD 有时会运行缓慢或无响应。在排查这个常见问题时，建议在调查 OSD 性能问题之前排除其他可能性。例如，确保网络正常工作，确认 OSD 正在运行，并检查 OSD 是否限制了恢复流量。<br><strong>提示</strong><br>在 Luminous 版本之前，某些 up 和 in 状态的 OSD 有时不可用或运行缓慢，因为恢复中的 OSD 消耗了系统资源。更新版本通过防止这种现象提供了更好的恢复处理。</p>
+<ol>
+<li><p><strong>网络问题</strong><br>  作为分布式存储系统，Ceph 依赖网络进行 OSD 对等和复制、故障恢复以及周期性心跳。网络问题可能导致 OSD 延迟和抖动的 OSD。更多信息请参见“抖动 OSD”。要确保 Ceph 进程和 Ceph 相关进程连接正常并在监听，请运行以下命令：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">netstat -a | grep ceph</span><br><span class="line">netstat -l | grep ceph</span><br><span class="line"><span class="built_in">sudo</span> netstat -p | grep ceph</span><br></pre></td></tr></table></figure>
+<p>  要检查网络统计信息，请运行以下命令：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -s</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>驱动器配置</strong><br>  SAS 或 SATA 存储驱动器应仅容纳一个 OSD，但 NVMe 驱动器可以轻松容纳两个或更多。然而，如果其他进程共享驱动器，读写吞吐量可能会受到瓶颈。此类进程包括：日志&#x2F;元数据、操作系统、Ceph 监视器、syslog 日志、其他 OSD 和非 Ceph 进程。<br>  由于 Ceph 在日志记录后确认写入，快速 SSD 是加速响应时间的一个有吸引力的选项——特别是在使用 XFS 或 ext4 文件系统作为传统 FileStore OSD 时。相比之下，Btrfs 文件系统可以同时进行写入和日志记录。（然而，不推荐在生产环境中使用 Btrfs。）<br>  <strong>注意</strong><br>  对驱动器进行分区不会改变其总吞吐量或顺序读&#x2F;写限制。通过在单独的分区中运行日志，吞吐量可能会有所改善，但更好的做法是将日志运行在单独的物理驱动器中。<br>  <strong>警告</strong><br>  Reef 不支持 FileStore。Reef 之后的版本不再支持 FileStore。提到 FileStore 的信息仅适用于 Quincy 版本及 Quincy 之前的版本。</p>
+</li>
+<li><p><strong>坏扇区&#x2F;碎片化磁盘</strong><br>  检查驱动器是否存在坏块、碎片化和其他可能导致性能显著下降的错误。检查驱动器错误的有用工具包括 dmesg、syslog 日志和 smartctl（在 smartmontools 包中）。<br>  <strong>注意</strong><br>  smartmontools 7.0 及更高版本提供 NVMe 状态直通和 JSON 输出。</p>
+</li>
+<li><p><strong>共存的监视器&#x2F;OSD</strong><br>  尽管监视器是相对轻量的进程，但当监视器与 OSD 运行在同一主机上时，可能会出现性能问题。监视器发出许多 fsync() 调用，这可能干扰其他工作负载。当监视器与 OSD 共存在同一存储驱动器上时，性能问题尤其严重。此外，如果监视器运行的是较旧的内核（3.0 之前）或没有 syncfs(2) 系统调用的内核，那么同一主机上运行的多个 OSD 可能会进行太多提交，从而影响彼此的性能。这种问题有时会导致所谓的“突发写入”。</p>
+</li>
+<li><p><strong>共存进程</strong><br>  在与 OSD 运行在同一硬件上时，处理写入数据到 Ceph 的进程（例如基于云的解决方案和虚拟机）可能会导致显著的 OSD 延迟。因此，一般不推荐将这些进程与 OSD 共存在同一硬件上。推荐的做法是优化某些主机用于 Ceph，其他主机用于其他进程。这种将 Ceph 操作与其他应用程序分开的做法可能有助于提高性能，并简化故障排除和维护。在同一硬件上运行共存进程有时被称为“融合”。使用 Ceph 时，仅在具备专业知识和经过考虑后再进行融合。</p>
+</li>
+<li><p><strong>日志级别</strong><br>  高日志级别可能导致性能问题。操作人员有时会提高日志级别以跟踪问题，然后忘记在之后降低它们。在这种情况下，OSD 可能会消耗宝贵的系统资源，将不必要的详细日志写入磁盘。任何希望使用高日志级别的人都应考虑将驱动器挂载到日志的默认路径（例如，&#x2F;var&#x2F;log&#x2F;ceph&#x2F;$cluster-$name.log）。</p>
+</li>
+<li><p><strong>恢复限制</strong><br>  根据您的配置，Ceph 可能会减少恢复速率以保持客户端或 OSD 性能，或者可能会增加恢复速率到影响客户端或 OSD 性能的程度。检查客户端或 OSD 是否正在恢复。</p>
+</li>
+<li><p><strong>内核版本</strong><br>  检查您运行的内核版本。较旧的内核可能缺少改进 Ceph 性能的更新。</p>
+</li>
+<li><p><strong>内核 SyncFS 问题</strong><br>  如果您遇到 SyncFS 的内核问题，请尝试每个主机运行一个 OSD 以查看性能是否提高。旧的内核可能没有足够新的 glibc 版本来支持 syncfs(2)。</p>
+</li>
+<li><p><strong>文件系统问题</strong><br>  在 Luminous 版本之后，我们建议使用 BlueStore 后端部署集群。当运行 Luminous 版本之前的版本时，或者如果您有特别的理由使用旧的 Filestore 后端，我们建议使用 XFS。<br>  我们不推荐使用 Btrfs 或 ext4。Btrfs 文件系统有许多吸引人的特性，但可能会导致性能问题和虚假的 ENOSPC 错误。由于 xattr 限制破坏了对长对象名称的支持，我们不推荐在 Filestore OSD 中使用 ext4。</p>
+</li>
+<li><p><strong>内存不足</strong><br>  我们建议每个 OSD 守护进程至少配备 4GB 内存，并建议将其增加到 6GB 或 8GB。在正常操作期间，您可能会注意到 ceph-osd 进程只使用了其中的一小部分。您可能会被诱使将多余的内存用于共存应用程序，或减少每个节点的内存容量。然而，当 OSD 正在恢复时，其内存使用会急剧增加。如果在恢复过程中没有足够的内存，OSD 性能会显著下降，守护进程可能会崩溃或被 Linux OOM Killer 杀死。</p>
+</li>
+<li><p><strong>请求阻塞或请求缓慢</strong><br>  当 ceph-osd 守护进程对请求响应缓慢时，集群日志会收到报告操作处理时间过长的消息。警告阈值默认为 30 秒，可以通过 osd_op_complaint_time 设置进行配置。<br>  旧版 Ceph 报告旧请求：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">osd.0 192.168.106.220:6800/18813 312 : [WRN] old request osd_op(client.5099.0:790 fatty_26485_object789 [write 0~4096] 2.5e54f643) v4 received at 2012-03-06 15:42:56.054801 currently waiting <span class="keyword">for</span> sub ops</span><br></pre></td></tr></table></figure>
+<p>  新版 Ceph 报告慢请求：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="built_in">date</span>&#125; &#123;osd.num&#125; [WRN] 1 slow requests, 1 included below; oldest blocked <span class="keyword">for</span> &gt; 30.005692 secs</span><br><span class="line">&#123;<span class="built_in">date</span>&#125; &#123;osd.num&#125;  [WRN] slow request 30.005692 seconds old, received at &#123;date-time&#125;: osd_op(client.4240.0:8 benchmark_data_ceph-1_39426_object7 [write 0~4194304] 0.69848840) v4 currently waiting <span class="keyword">for</span> subops from [610]</span><br></pre></td></tr></table></figure>
+<p>  可能的原因包括：</p>
+</li>
+</ol>
+<ul>
+<li>驱动器故障（检查 dmesg 输出）</li>
+<li>内核文件系统中的错误（检查 dmesg 输出）</li>
+<li>集群过载（检查系统负载、iostat 等）</li>
+<li>ceph-osd 守护进程中的错误</li>
+</ul>
+<p>  可能的解决方案：</p>
+<ul>
+<li>从 Ceph 主机中移除虚拟机</li>
+<li>升级内核</li>
+<li>升级 Ceph</li>
+<li>重启 OSD</li>
+<li>更换故障或有问题的组件</li>
+</ul>
+<ol start="13">
+<li><strong>调试缓慢请求</strong><br>  如果您运行 <code>ceph daemon osd.&lt;id&gt; dump_historic_ops</code> 或 <code>ceph daemon osd.&lt;id&gt; dump_ops_in_flight</code>，您将看到一组操作和每个操作经历的事件列表。这些事件简要描述如下。<br>  来自 Messenger 层的事件：<ul>
+<li><code>header_read</code>: Messenger 开始从网络读取消息的时间。</li>
+<li><code>throttled</code>: Messenger 尝试获取内存节流空间以将消息读入内存的时间。</li>
+<li><code>all_read</code>: Messenger 完成从网络读取消息的时间。</li>
+<li><code>dispatched</code>: Messenger 将消息交给 OSD 的时间。</li>
+<li><code>initiated</code>: 这与 <code>header_read</code> 相同。存在这两个事件是历史上的异常。</li>
+</ul>
+</li>
+</ol>
+<p>  来自 OSD 处理操作的事件:<br>    - <code>queued_for_pg</code>: 操作已被放入队列等待 PG 处理。<br>    - <code>reached_pg</code>: PG 开始执行操作。<br>    - <code>waiting for *</code>: 操作在等待其他工作完成后才能继续（例如，新 OSDMap；对象目标的检查；PG 的对等完成；这些都在消息中指定）。<br>    - <code>started</code>: 操作已被接受为 OSD 应执行的任务，并且正在执行中。<br>    - <code>waiting for subops from</code>: 操作已被发送到副本 OSD。</p>
+<p>  来自 Filestore 的事件：<br>    - <code>commit_queued_for_journal_write</code>: 操作已交给 FileStore。<br>    - <code>write_thread_in_journal_buffer</code>: 操作在日志的缓冲区中，等待持久化（作为下一次磁盘写入）。<br>    - <code>journaled_completion_queued</code>: 操作已被写入日志，回调已排队等待调用。</p>
+<p>  来自 OSD 在数据已交给底层存储后的事件：<br>    - <code>op_commit</code>: 操作已由主 OSD 提交（即，写入日志）。<br>    - <code>op_applied</code>: 操作已写入主 OSD 的后台文件系统（即，在内存中应用但未刷新到磁盘）。<br>    - <code>sub_op_applied</code>: 副本的 <code>op_applied</code>。<br>    - <code>sub_op_committed</code>: 副本的 <code>op_commit</code>（仅对 EC 池）。<br>    - <code>sub_op_commit_rec/sub_op_apply_rec from &lt;X&gt;</code>: 主 OSD 在听到上述消息后进行标记，但针对特定副本（即 <X>）。<br>    - <code>commit_sent</code>: 我们向客户端（或主 OSD，针对子操作）发送了回复。</p>
+<p>虽然一些事件可能看起来冗余，但它们跨越了内部代码中的重要边界（例如，跨锁将数据传递到新线程中）。</p>
+<h4 id="OSD抖动"><a href="#OSD抖动" class="headerlink" title="OSD抖动"></a>OSD抖动</h4><p>“抖动”是指 OSD 被快速重复标记为上线然后下线的现象。本节解释如何识别抖动以及如何减轻它。</p>
+<p>当 OSD 进行对等和检查心跳时，它们使用集群（后端）网络。如果您的 OSD 节点有两个网络端口，将一个端口专用于公共网络，另一个端口专用于私有网络，可以避免网络维护和网络故障对集群或客户端造成的重大影响。在这种情况下，可以考虑将两个链接仅用于公共网络：使用绑定（LACP）或等成本路由（例如 FRR），可以获得更高的吞吐量容差、容错能力和减少 OSD 抖动。</p>
+<p>当私有网络（甚至单个主机链接）故障或降级时，而公共网络正常运行，OSD 可能无法很好地处理这种情况。在这种情况下，OSD 使用公共网络向监视器报告彼此故障，同时将自己标记为上线。然后，监视器再次通过公共网络发送更新的集群地图，将受影响的 OSD 标记为下线。这些 OSD 向监视器回复“我还没死！”，然后循环重复。我们称这种情况为“抖动”，它可能很难隔离和修复。没有私有网络时，这种恼人的动态被避免了：OSD 通常要么上线要么下线，没有抖动。</p>
+<p>如果某些原因导致 OSD “抖动”（被反复标记为下线然后再上线），您可以通过暂时冻结其状态来强制监视器停止抖动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">set</span> noup      <span class="comment"># 防止 OSD 被标记为上线</span></span><br><span class="line">ceph osd <span class="built_in">set</span> nodown    <span class="comment"># 防止 OSD 被标记为下线</span></span><br></pre></td></tr></table></figure>
+
+<p>这些标志记录在 osdmap 中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd dump | grep flags</span><br><span class="line">flags no-up,no-down</span><br></pre></td></tr></table></figure>
+
+<p>您可以使用以下命令清除这些标志：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">unset</span> noup</span><br><span class="line">ceph osd <span class="built_in">unset</span> nodown</span><br></pre></td></tr></table></figure>
+
+<p>还有两个其他标志 <code>noin</code> 和 <code>noout</code>，它们分别防止启动的 OSD 被标记为分配数据（in）或保护 OSD 被标记为最终移除（out），无论 <code>mon_osd_down_out_interval</code> 的当前值如何。</p>
+<p><strong>注意</strong></p>
+<p><code>noup</code>、<code>noout</code> 和 <code>nodown</code> 是临时性的，因为清除标志后，它们阻止的操作应该很快能够恢复。但是 <code>noin</code> 标志防止 OSD 在启动时被标记为在线，任何在标志设置期间启动的守护进程将保持这种状态。</p>
+<p><strong>注意</strong></p>
+<p>通过仔细调整 <code>mon_osd_down_out_subtree_limit</code>、<code>mon_osd_reporter_subtree_level</code> 和 <code>mon_osd_min_down_reporters</code> 可以在一定程度上缓解抖动的原因和效果。最佳设置的推导取决于集群大小、拓扑结构和使用的 Ceph 版本。这些因素的交互很微妙，超出了本文档的范围。</p>
+<p>由 Ceph 基金会提供</p>
+<p>Ceph 文档是由非营利组织 Ceph 基金会资助和托管的社区资源。如果您想支持我们以及其他努力，请考虑立即加入。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%20copy/" title="Cpeh OSD常见故障处理" target="_blank" rel="external">https://watsonlu6.github.io/Ceph-Mon常见故障处理 copy/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="Cpeh Mon常见故障处理"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
