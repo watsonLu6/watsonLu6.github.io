@@ -2,6 +2,114 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/2-libvirt%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/7-libvirt%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/6-libvirt%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/4-libvirt%E5%AE%A2%E6%88%B7%E5%9F%9FDomain/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/3-libvirt%E8%BF%9E%E6%8E%A5/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/1-libvirt%E6%A6%82%E8%BF%B0/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/</loc>
+    
+    <lastmod>2025-03-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://watsonlu6.github.io/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</loc>
     
     <lastmod>2024-09-08</lastmod>
@@ -283,7 +391,7 @@
 
   <url>
     <loc>https://watsonlu6.github.io/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -291,28 +399,28 @@
   
   <url>
     <loc>https://watsonlu6.github.io/tags/%E4%BA%91%E5%AD%98%E5%82%A8/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/tags/Ceph/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -321,28 +429,28 @@
   
   <url>
     <loc>https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://watsonlu6.github.io/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/</loc>
-    <lastmod>2024-09-08</lastmod>
+    <lastmod>2025-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
