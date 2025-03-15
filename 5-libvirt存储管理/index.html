@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>5 libvirt存储管理 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Libvirt 存储管理Libvirt 通过存储池和存储卷在物理主机上提供存储管理。存储池是由管理员（通常是专门的存储管理员）为虚拟机预留的一定量的存储空间。存储池被存储管理员或系统管理员划分为存储卷，这些存储卷作为块设备分配给虚拟机。 存储池和存储卷的示例NFS 示例负责 NFS 服务器的存储管理员创建了一个共享以存储虚拟机的数据。系统管理员在虚拟化主机上定义一个包含共享详细信息的池（例如，nf">
+<meta property="og:type" content="article">
+<meta property="og:title" content="5 libvirt存储管理">
+<meta property="og:url" content="https://watsonlu6.github.io/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="Libvirt 存储管理Libvirt 通过存储池和存储卷在物理主机上提供存储管理。存储池是由管理员（通常是专门的存储管理员）为虚拟机预留的一定量的存储空间。存储池被存储管理员或系统管理员划分为存储卷，这些存储卷作为块设备分配给虚拟机。 存储池和存储卷的示例NFS 示例负责 NFS 服务器的存储管理员创建了一个共享以存储虚拟机的数据。系统管理员在虚拟化主机上定义一个包含共享详细信息的池（例如，nf">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-03-05T07:50:26.000Z">
+<meta property="article:modified_time" content="2025-03-15T08:00:30.417Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云计算">
+<meta property="article:tag" content="libvirt">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-5-libvirt存储管理" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      5 libvirt存储管理
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/" class="article-date">
+	  <time datetime="2024-03-05T07:50:26.000Z" itemprop="datePublished">2024-03-05</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/libvirt/" rel="tag">libvirt</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="Libvirt-存储管理"><a href="#Libvirt-存储管理" class="headerlink" title="Libvirt 存储管理"></a>Libvirt 存储管理</h1><p>Libvirt 通过存储池和存储卷在物理主机上提供存储管理。存储池是由管理员（通常是专门的存储管理员）为虚拟机预留的一定量的存储空间。存储池被存储管理员或系统管理员划分为存储卷，这些存储卷作为块设备分配给虚拟机。</p>
+<h2 id="存储池和存储卷的示例"><a href="#存储池和存储卷的示例" class="headerlink" title="存储池和存储卷的示例"></a>存储池和存储卷的示例</h2><h3 id="NFS-示例"><a href="#NFS-示例" class="headerlink" title="NFS 示例"></a>NFS 示例</h3><p>负责 NFS 服务器的存储管理员创建了一个共享以存储虚拟机的数据。系统管理员在虚拟化主机上定义一个包含共享详细信息的池（例如，<code>nfs.example.com:/path/to/share</code> 应挂载在 <code>/vm_data</code>）。当池启动时，libvirt 将共享挂载到指定目录，就像系统管理员登录并执行 <code>mount nfs.example.com:/path/to/share /vmdata</code> 一样。如果池配置为自动启动，当 libvirt 启动时，libvirt 会确保 NFS 共享挂载到指定目录。一旦池启动，NFS 共享中的文件将被报告为卷，可以使用 libvirt API 查询存储卷的路径。这些卷的路径可以复制到虚拟机的 XML 定义部分，用于描述虚拟机块设备的源存储。对于 NFS，使用 libvirt 方法的应用程序可以在池中创建和删除卷（NFS 共享中的文件），直到达到池的大小限制（共享的存储容量）。并非所有池类型都支持创建和删除卷。停止池（virsh 和 API 中不幸地称为“池销毁”）会撤销启动操作，在这种情况下会卸载 NFS 共享。尽管名称如此，但销毁操作不会修改共享上的数据。更多详细信息请参阅 <code>man virsh</code>。</p>
+<h3 id="iSCSI-示例"><a href="#iSCSI-示例" class="headerlink" title="iSCSI 示例"></a>iSCSI 示例</h3><p>存储管理员配置一个 iSCSI 目标以向运行虚拟机的主机提供一组 LUN。当 libvirt 配置为管理该 iSCSI 目标作为池时，libvirt 将确保主机登录到 iSCSI 目标，然后 libvirt 可以报告可用的 LUN 作为存储卷。可以查询这些卷的路径并在虚拟机的 XML 定义中使用，如 NFS 示例中那样。在这种情况下，LUN 在 iSCSI 服务器上定义，libvirt 无法创建和删除卷。</p>
+<h2 id="存储池和存储卷的必要性"><a href="#存储池和存储卷的必要性" class="headerlink" title="存储池和存储卷的必要性"></a>存储池和存储卷的必要性</h2><p>存储池和存储卷不是虚拟机正常运行所必需的。池和卷为 libvirt 提供了一种确保特定存储可供虚拟机使用的方法，但一些管理员可能更愿意自己管理存储，虚拟机在没有定义任何池或卷的情况下也能正常运行。在不使用池的系统上，系统管理员必须使用他们喜欢的工具确保虚拟机存储的可用性，例如，将 NFS 共享添加到主机的 fstab 中，以便在启动时挂载共享。</p>
+<h2 id="Libvirt-的远程协议功能"><a href="#Libvirt-的远程协议功能" class="headerlink" title="Libvirt 的远程协议功能"></a>Libvirt 的远程协议功能</h2><p>如果此时池和卷相对于传统系统管理工具的价值尚不清楚，请注意 libvirt 的一个功能是其远程协议，因此可以管理虚拟机生命周期的所有方面以及虚拟机所需资源的配置。这些操作可以在远程主机上完全通过 Python libvirt 模块执行。换句话说，使用 libvirt 的管理应用程序可以让用户执行配置虚拟机主机所需的所有任务：分配资源、运行虚拟机、关闭虚拟机和释放资源，而无需 shell 访问或任何其他控制通道。</p>
+<h2 id="Libvirt-支持的存储池类型"><a href="#Libvirt-支持的存储池类型" class="headerlink" title="Libvirt 支持的存储池类型"></a>Libvirt 支持的存储池类型</h2><p>Libvirt 支持以下存储池类型：</p>
+<ul>
+<li>目录后台</li>
+<li>本地文件系统后台</li>
+<li>网络文件系统后台</li>
+<li>逻辑后台</li>
+<li>磁盘后台</li>
+<li>iSCSI 后端</li>
+<li>SCSI 后端</li>
+<li>多路径后端</li>
+<li>RBD（RADOS 块设备）后台</li>
+<li>Sheepdog 后台</li>
+<li>Gluster 后端</li>
+<li>ZFS 后端</li>
+</ul>
+<p>存储池 XML 格式在 <a target="_blank" rel="noopener" href="https://libvirt.org/formatstorage.html#StoragePool">https://libvirt.org/formatstorage.html#StoragePool</a> 中指定。</p>
+<h2 id="5-1-概述"><a href="#5-1-概述" class="headerlink" title="5.1 概述"></a>5.1 概述</h2><p>存储池是存储卷的容器。一个系统可以根据需要拥有任意多个存储池，每个存储池可以包含任意多个存储卷。</p>
+<h2 id="5-2-列出存储池"><a href="#5-2-列出存储池" class="headerlink" title="5.2 列出存储池"></a>5.2 列出存储池</h2><p>存储池对象的<strong>列表</strong>可以使用 <strong>virConnect</strong> 类。</p>
+<p><code>flags</code> 参数可以是以下一个或多个常量：</p>
+<ul>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_INACTIVE</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_ACTIVE</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_PERSISTENT</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_TRANSIENT</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_AUTOSTART</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_NO_AUTOSTART</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_DIR</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_FS</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_NETFS</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_LOGICAL</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_DISK</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_ISCSI</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_SCSI</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_MPATH</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_RBD</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_SHEEPDOG</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_GLUSTER</code></li>
+<li><code>VIR_CONNECT_LIST_STORAGE_POOLS_ZFS</code></li>
+</ul>
+<h3 id="示例-5-1：获取存储池列表"><a href="#示例-5-1：获取存储池列表" class="headerlink" title="示例 5.1：获取存储池列表"></a>示例 5.1：获取存储池列表</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-1.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">pools = conn.listAllStoragePools(<span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> pools == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to locate any StoragePool objects.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> pool <span class="keyword">in</span> pools:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Pool: &#x27;</span> + pool.name())</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-3-存储池的使用"><a href="#5-3-存储池的使用" class="headerlink" title="5.3 存储池的使用"></a>5.3 存储池的使用</h2><p><strong>virStoragePool</strong> 类中有许多可用的方法。下面的示例程序介绍了其中一些描述池某些属性的方法。</p>
+<h3 id="示例-5-2：展示一些存储池方法的用法"><a href="#示例-5-2：展示一些存储池方法的用法" class="headerlink" title="示例 5.2：展示一些存储池方法的用法"></a>示例 5.2：展示一些存储池方法的用法</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-2.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">pool = conn.storagePoolLookupByName(<span class="string">&#x27;default&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> pool == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to locate any StoragePool objects.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">info = pool.info()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;Pool: &#x27;</span> + pool.name())</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; UUID: &#x27;</span> + pool.UUIDString())</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Autostart: &#x27;</span> + <span class="built_in">str</span>(pool.autostart()))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Is active: &#x27;</span> + <span class="built_in">str</span>(pool.isActive()))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Is persistent: &#x27;</span> + <span class="built_in">str</span>(pool.isPersistent()))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Num volumes: &#x27;</span> + <span class="built_in">str</span>(pool.numOfVolumes()))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Pool state: &#x27;</span> + <span class="built_in">str</span>(info[<span class="number">0</span>]))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Capacity: &#x27;</span> + <span class="built_in">str</span>(info[<span class="number">1</span>]))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Allocation: &#x27;</span> + <span class="built_in">str</span>(info[<span class="number">2</span>]))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27; Available: &#x27;</span> + <span class="built_in">str</span>(info[<span class="number">3</span>]))</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="示例-5-3：获取存储池的-XML-描述"><a href="#示例-5-3：获取存储池的-XML-描述" class="headerlink" title="示例 5.3：获取存储池的 XML 描述"></a>示例 5.3：获取存储池的 XML 描述</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-3.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">pool = conn.storagePoolLookupByName(<span class="string">&#x27;default&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> pool == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to locate any StoragePool objects.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">xml = pool.XMLDesc(<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(xml)</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-4-生命周期控制"><a href="#5-4-生命周期控制" class="headerlink" title="5.4 生命周期控制"></a>5.4 生命周期控制</h2><h3 id="示例-5-4：创建和销毁存储池"><a href="#示例-5-4：创建和销毁存储池" class="headerlink" title="示例 5.4：创建和销毁存储池"></a>示例 5.4：创建和销毁存储池</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-4.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">xmlDesc = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">&lt;pool type=&#x27;dir&#x27;&gt;</span></span><br><span class="line"><span class="string">  &lt;name&gt;my-pool&lt;/name&gt;</span></span><br><span class="line"><span class="string">  &lt;uuid&gt;8c79f996-cb2a-d24d-9822-ac7547ab2d01&lt;/uuid&gt;</span></span><br><span class="line"><span class="string">  &lt;capacity unit=&#x27;bytes&#x27;&gt;4306780815&lt;/capacity&gt;</span></span><br><span class="line"><span class="string">  &lt;allocation unit=&#x27;bytes&#x27;&gt;237457858&lt;/allocation&gt;</span></span><br><span class="line"><span class="string">  &lt;available unit=&#x27;bytes&#x27;&gt;4069322956&lt;/available&gt;</span></span><br><span class="line"><span class="string">  &lt;source&gt;</span></span><br><span class="line"><span class="string">  &lt;/source&gt;</span></span><br><span class="line"><span class="string">  &lt;target&gt;</span></span><br><span class="line"><span class="string">    &lt;path&gt;/home/dashley/images&lt;/path&gt;</span></span><br><span class="line"><span class="string">    &lt;permissions&gt;</span></span><br><span class="line"><span class="string">      &lt;mode&gt;0755&lt;/mode&gt;</span></span><br><span class="line"><span class="string">      &lt;owner&gt;-1&lt;/owner&gt;</span></span><br><span class="line"><span class="string">      &lt;group&gt;-1&lt;/group&gt;</span></span><br><span class="line"><span class="string">    &lt;/permissions&gt;</span></span><br><span class="line"><span class="string">  &lt;/target&gt;</span></span><br><span class="line"><span class="string">&lt;/pool&gt;&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个新的持久性存储池</span></span><br><span class="line">pool = conn.storagePoolDefineXML(xmlDesc, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> pool == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to create StoragePool object.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 销毁存储池</span></span><br><span class="line">pool.undefine()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个新的非持久性存储池</span></span><br><span class="line">pool = conn.storagePoolCreateXML(xmlDesc, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> pool == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to create StoragePool object.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 销毁存储池</span></span><br><span class="line">pool.undefine()</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-5-发现存储池源"><a href="#5-5-发现存储池源" class="headerlink" title="5.5 发现存储池源"></a>5.5 发现存储池源</h2><h3 id="示例-5-5：发现存储池的源"><a href="#示例-5-5：发现存储池的源" class="headerlink" title="示例 5.5：发现存储池的源"></a>示例 5.5：发现存储池的源</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-5.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"><span class="keyword">from</span> xml.dom <span class="keyword">import</span> minidom</span><br><span class="line"></span><br><span class="line">poolName = <span class="string">&#x27;default&#x27;</span></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">sp = conn.storagePoolLookupByName(poolName)</span><br><span class="line"><span class="keyword">if</span> sp == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to find storage pool &#x27;</span> + poolName, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">raw_xml = sp.XMLDesc(<span class="number">0</span>)</span><br><span class="line">xml = minidom.parseString(raw_xml)</span><br><span class="line"></span><br><span class="line">name = xml.getElementsByTagName(<span class="string">&#x27;name&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;pool name: &#x27;</span> + poolName)</span><br><span class="line"></span><br><span class="line">spType = xml.getElementsByTagName(<span class="string">&#x27;source&#x27;</span>)</span><br><span class="line"><span class="keyword">for</span> spType <span class="keyword">in</span> spType:</span><br><span class="line">    attr = spType.getAttribute(<span class="string">&#x27;name&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> attr != <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27; name = &#x27;</span> + attr)</span><br><span class="line">    attr = spType.getAttribute(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> attr != <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27; path = &#x27;</span> + attr)</span><br><span class="line">    attr = spType.getAttribute(<span class="string">&#x27;dir&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> attr != <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27; dir = &#x27;</span> + attr)</span><br><span class="line">    attr = spType.getAttribute(<span class="string">&#x27;type&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> attr != <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27; type = &#x27;</span> + attr)</span><br><span class="line">    attr = spType.getAttribute(<span class="string">&#x27;username&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> attr != <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27; username = &#x27;</span> + attr)</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="示例-5-6：演示-setAutostart-方法"><a href="#示例-5-6：演示-setAutostart-方法" class="headerlink" title="示例 5.6：演示 setAutostart 方法"></a>示例 5.6：演示 <code>setAutostart</code> 方法</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-6.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">poolName = <span class="string">&#x27;default&#x27;</span></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">sp = conn.storagePoolLookupByName(poolName)</span><br><span class="line"><span class="keyword">if</span> sp == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to find storage pool &#x27;</span> + poolName, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;Current autostart setting: &#x27;</span> + <span class="built_in">str</span>(sp.autostart()))</span><br><span class="line"><span class="keyword">if</span> sp.autostart() == <span class="literal">True</span>:</span><br><span class="line">    sp.setAutostart(<span class="number">0</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    sp.setAutostart(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;Current autostart setting: &#x27;</span> + <span class="built_in">str</span>(sp.autostart()))</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-7-存储卷概述"><a href="#5-7-存储卷概述" class="headerlink" title="5.7 存储卷概述"></a>5.7 存储卷概述</h2><p>存储卷是满足客户域存储需求的基本存储单元。存储卷封装了用于容纳客户域的所有必要分区。存储卷又包含在存储池中。底层磁盘分区能容纳多少存储池，存储池就能容纳多少存储池。</p>
+<p>存储卷 XML 格式在 <a target="_blank" rel="noopener" href="https://libvirt.org/formatstorage.html#StorageVol">https://libvirt.org/formatstorage.html#StorageVol</a> 中指定。</p>
+<h2 id="5-8-列出存储卷"><a href="#5-8-列出存储卷" class="headerlink" title="5.8 列出存储卷"></a>5.8 列出存储卷</h2><h3 id="示例-5-7：演示列出存储卷"><a href="#示例-5-7：演示列出存储卷" class="headerlink" title="示例 5.7：演示列出存储卷"></a>示例 5.7：演示列出存储卷</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-7.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"><span class="keyword">from</span> xml.dom <span class="keyword">import</span> minidom</span><br><span class="line"></span><br><span class="line">poolName = <span class="string">&quot;default&quot;</span></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">sp = conn.storagePoolLookupByName(poolName)</span><br><span class="line"><span class="keyword">if</span> sp == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to find storage pool &#x27;</span> + poolName, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">stgvols = sp.listVolumes()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;Storage pool: &#x27;</span> + poolName)</span><br><span class="line"><span class="keyword">for</span> stgvol <span class="keyword">in</span> stgvols:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27; Storage volume: &#x27;</span> + stgvol)</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-9-存储卷信息"><a href="#5-9-存储卷信息" class="headerlink" title="5.9 存储卷信息"></a>5.9 存储卷信息</h2><h3 id="示例-5-8：列出存储卷信息"><a href="#示例-5-8：列出存储卷信息" class="headerlink" title="示例 5.8：列出存储卷信息"></a>示例 5.8：列出存储卷信息</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-8.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">pool = conn.storagePoolLookupByName(<span class="string">&#x27;default&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> pool == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to locate any StoragePool objects.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">stgvols = pool.listVolumes()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;Pool: &#x27;</span> + pool.name())</span><br><span class="line"><span class="keyword">for</span> stgvolname <span class="keyword">in</span> stgvols:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27; volume: &#x27;</span> + stgvolname)</span><br><span class="line">    stgvol = pool.storageVolLookupByName(stgvolname)</span><br><span class="line">    info = stgvol.info()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27; Type: &#x27;</span> + <span class="built_in">str</span>(info[<span class="number">0</span>]))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27; Capacity: &#x27;</span> + <span class="built_in">str</span>(info[<span class="number">1</span>]))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27; Allocation: &#x27;</span> + <span class="built_in">str</span>(info[<span class="number">2</span>]))</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-10-创建和删除存储卷"><a href="#5-10-创建和删除存储卷" class="headerlink" title="5.10 创建和删除存储卷"></a>5.10 创建和删除存储卷</h2><h3 id="示例-5-9：创建存储卷"><a href="#示例-5-9：创建存储卷" class="headerlink" title="示例 5.9：创建存储卷"></a>示例 5.9：创建存储卷</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-9.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">stgvol_xml = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">&lt;volume&gt;</span></span><br><span class="line"><span class="string">  &lt;name&gt;sparse.img&lt;/name&gt;</span></span><br><span class="line"><span class="string">  &lt;allocation&gt;0&lt;/allocation&gt;</span></span><br><span class="line"><span class="string">  &lt;capacity unit=&quot;G&quot;&gt;2&lt;/capacity&gt;</span></span><br><span class="line"><span class="string">  &lt;target&gt;</span></span><br><span class="line"><span class="string">    &lt;path&gt;/var/lib/virt/images/sparse.img&lt;/path&gt;</span></span><br><span class="line"><span class="string">    &lt;permissions&gt;</span></span><br><span class="line"><span class="string">      &lt;owner&gt;107&lt;/owner&gt;</span></span><br><span class="line"><span class="string">      &lt;group&gt;107&lt;/group&gt;</span></span><br><span class="line"><span class="string">      &lt;mode&gt;0744&lt;/mode&gt;</span></span><br><span class="line"><span class="string">      &lt;label&gt;virt_image_t&lt;/label&gt;</span></span><br><span class="line"><span class="string">    &lt;/permissions&gt;</span></span><br><span class="line"><span class="string">  &lt;/target&gt;</span></span><br><span class="line"><span class="string">&lt;/volume&gt;&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">pool = <span class="string">&#x27;default&#x27;</span></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">pool = conn.storagePoolLookupByName(pool)</span><br><span class="line"><span class="keyword">if</span> pool == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to locate any StoragePool objects.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">stgvol = pool.createXML(stgvol_xml, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> stgvol == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to create a StorageVol object.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除存储卷</span></span><br><span class="line"><span class="comment"># 从底层磁盘介质中物理移除存储卷</span></span><br><span class="line">stgvol.wipe(<span class="number">0</span>)</span><br><span class="line"><span class="comment"># 从逻辑上将存储卷从存储池中删除</span></span><br><span class="line">stgvol.delete(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-11-克隆存储卷"><a href="#5-11-克隆存储卷" class="headerlink" title="5.11 克隆存储卷"></a>5.11 克隆存储卷</h2><h3 id="示例-5-10：克隆现有存储卷"><a href="#示例-5-10：克隆现有存储卷" class="headerlink" title="示例 5.10：克隆现有存储卷"></a>示例 5.10：克隆现有存储卷</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example-10.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> libvirt</span><br><span class="line"></span><br><span class="line">stgvol_xml = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">&lt;volume&gt;</span></span><br><span class="line"><span class="string">  &lt;name&gt;sparse.img&lt;/name&gt;</span></span><br><span class="line"><span class="string">  &lt;allocation&gt;0&lt;/allocation&gt;</span></span><br><span class="line"><span class="string">  &lt;capacity unit=&quot;G&quot;&gt;2&lt;/capacity&gt;</span></span><br><span class="line"><span class="string">  &lt;target&gt;</span></span><br><span class="line"><span class="string">    &lt;path&gt;/var/lib/virt/images/sparse.img&lt;/path&gt;</span></span><br><span class="line"><span class="string">    &lt;permissions&gt;</span></span><br><span class="line"><span class="string">      &lt;owner&gt;107&lt;/owner&gt;</span></span><br><span class="line"><span class="string">      &lt;group&gt;107&lt;/group&gt;</span></span><br><span class="line"><span class="string">      &lt;mode&gt;0744&lt;/mode&gt;</span></span><br><span class="line"><span class="string">      &lt;label&gt;virt_image_t&lt;/label&gt;</span></span><br><span class="line"><span class="string">    &lt;/permissions&gt;</span></span><br><span class="line"><span class="string">  &lt;/target&gt;</span></span><br><span class="line"><span class="string">&lt;/volume&gt;&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">stgvol_xml2 = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">&lt;volume&gt;</span></span><br><span class="line"><span class="string">  &lt;name&gt;sparse2.img&lt;/name&gt;</span></span><br><span class="line"><span class="string">  &lt;allocation&gt;0&lt;/allocation&gt;</span></span><br><span class="line"><span class="string">  &lt;capacity unit=&quot;G&quot;&gt;2&lt;/capacity&gt;</span></span><br><span class="line"><span class="string">  &lt;target&gt;</span></span><br><span class="line"><span class="string">    &lt;path&gt;/var/lib/virt/images/sparse.img&lt;/path&gt;</span></span><br><span class="line"><span class="string">    &lt;permissions&gt;</span></span><br><span class="line"><span class="string">      &lt;owner&gt;107&lt;/owner&gt;</span></span><br><span class="line"><span class="string">      &lt;group&gt;107&lt;/group&gt;</span></span><br><span class="line"><span class="string">      &lt;mode&gt;0744&lt;/mode&gt;</span></span><br><span class="line"><span class="string">      &lt;label&gt;virt_image_t&lt;/label&gt;</span></span><br><span class="line"><span class="string">    &lt;/permissions&gt;</span></span><br><span class="line"><span class="string">  &lt;/target&gt;</span></span><br><span class="line"><span class="string">&lt;/volume&gt;&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">pool = <span class="string">&#x27;default&#x27;</span></span><br><span class="line">conn = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    conn = libvirt.<span class="built_in">open</span>(<span class="string">&quot;qemu:///system&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> libvirt.libvirtError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">repr</span>(e), file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">pool = conn.storagePoolLookupByName(pool)</span><br><span class="line"><span class="keyword">if</span> pool == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to locate any StoragePool objects.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个新的存储卷</span></span><br><span class="line">stgvol = pool.createXML(stgvol_xml, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> stgvol == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to create a StorageVol object.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 现在克隆现有存储卷</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;This could take some time...&#x27;</span>)</span><br><span class="line">stgvol2 = pool.createXMLFrom(stgvol_xml2, stgvol, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> stgvol2 == <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Failed to clone a StorageVol object.&#x27;</span>, file=sys.stderr)</span><br><span class="line">    exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除克隆的存储卷</span></span><br><span class="line"><span class="comment"># 从底层磁盘介质中物理移除存储卷</span></span><br><span class="line">stgvol2.wipe(<span class="number">0</span>)</span><br><span class="line"><span class="comment"># 从逻辑上将存储卷从存储池中删除</span></span><br><span class="line">stgvol2.delete(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除存储卷</span></span><br><span class="line"><span class="comment"># 从底层磁盘介质中物理移除存储卷</span></span><br><span class="line">stgvol.wipe(<span class="number">0</span>)</span><br><span class="line"><span class="comment"># 从逻辑上将存储卷从存储池中删除</span></span><br><span class="line">stgvol.delete(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">conn.close()</span><br><span class="line">exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/" title="5 libvirt存储管理" target="_blank" rel="external">https://watsonlu6.github.io/5-libvirt存储管理/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/6-libvirt%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C/" title="6 libvirt虚拟网络"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/4-libvirt%E5%AE%A2%E6%88%B7%E5%9F%9FDomain/" title="4 libvirt客户域Domain"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
