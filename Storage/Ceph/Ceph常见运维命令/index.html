@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph相关运维命令 | watson Lu&#39;blogs</title>
+  <meta name="description" content="查看 Ceph 的守护进程使用以下命令查看所有 Ceph 守护进程： 1systemctl list-unit-files | grep ceph  按类型在 Ceph 节点上启动特定类型的所有守护进程1234systemctl start&#x2F;restart&#x2F;stop ceph-osd.targetsystemctl start&#x2F;restart&#x2F;stop ceph-mon.targetsystemc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph相关运维命令">
+<meta property="og:url" content="https://watsonlu6.github.io/Storage/Ceph/Ceph%E5%B8%B8%E8%A7%81%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="查看 Ceph 的守护进程使用以下命令查看所有 Ceph 守护进程： 1systemctl list-unit-files | grep ceph  按类型在 Ceph 节点上启动特定类型的所有守护进程1234systemctl start&#x2F;restart&#x2F;stop ceph-osd.targetsystemctl start&#x2F;restart&#x2F;stop ceph-mon.targetsystemc">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-09-07T12:01:00.000Z">
+<meta property="article:modified_time" content="2024-08-02T17:38:18.260Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E5%B8%B8%E8%A7%81%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Storage/Ceph/Ceph常见运维命令" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph相关运维命令
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Storage/Ceph/Ceph%E5%B8%B8%E8%A7%81%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/" class="article-date">
+	  <time datetime="2021-09-07T12:01:00.000Z" itemprop="datePublished">2021-09-07</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Storage/Ceph/Ceph%E5%B8%B8%E8%A7%81%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h4 id="查看-Ceph-的守护进程"><a href="#查看-Ceph-的守护进程" class="headerlink" title="查看 Ceph 的守护进程"></a>查看 Ceph 的守护进程</h4><p>使用以下命令查看所有 Ceph 守护进程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl list-unit-files | grep ceph</span><br></pre></td></tr></table></figure>
+
+<h4 id="按类型在-Ceph-节点上启动特定类型的所有守护进程"><a href="#按类型在-Ceph-节点上启动特定类型的所有守护进程" class="headerlink" title="按类型在 Ceph 节点上启动特定类型的所有守护进程"></a>按类型在 Ceph 节点上启动特定类型的所有守护进程</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">systemctl start/restart/stop ceph-osd.target</span><br><span class="line">systemctl start/restart/stop ceph-mon.target</span><br><span class="line">systemctl start/restart/stop ceph-mds.target</span><br><span class="line">systemctl start/restart/stop ceph-radosgw.target</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动特定守护进程实例"><a href="#启动特定守护进程实例" class="headerlink" title="启动特定守护进程实例"></a>启动特定守护进程实例</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">systemctl start/status/restart/stop ceph-osd@&#123;<span class="built_in">id</span>&#125;</span><br><span class="line">systemctl start/status/restart/stop ceph-mon@&#123;hostname&#125;</span><br><span class="line">systemctl start/status/restart/stop ceph-mds@&#123;hostname&#125;</span><br><span class="line">systemctl start/restart/stop ceph-radosgw@&#123;hostname&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-Ceph-集群状态"><a href="#查看-Ceph-集群状态" class="headerlink" title="查看 Ceph 集群状态"></a>查看 Ceph 集群状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ceph -s</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">ceph health detail</span><br></pre></td></tr></table></figure>
+
+<p>输出信息包括：</p>
+<ul>
+<li>集群的 ID</li>
+<li>集群健康状况</li>
+<li>monitor map 版本和 mon 法定人数状态</li>
+<li>OSD map 版本和 OSD 状态摘要</li>
+<li>PG map 版本</li>
+<li>PG 和 Pool 的数量</li>
+<li>集群存储的数据量，对象的总量，以及集群的已用容量&#x2F;总容量&#x2F;可用容量</li>
+<li>客户端的 IOPS 信息</li>
+</ul>
+<h4 id="观察集群中的状态"><a href="#观察集群中的状态" class="headerlink" title="观察集群中的状态"></a>观察集群中的状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph -w</span><br></pre></td></tr></table></figure>
+
+<p>输出信息包含：</p>
+<ul>
+<li>集群的 ID</li>
+<li>集群健康状况</li>
+<li>monitor map 版本和 mon 法定人数状态</li>
+<li>OSD map 版本和 OSD 状态摘要</li>
+<li>PG map 版本</li>
+<li>PG 和 Pool 的数量</li>
+<li>集群存储的数据量，对象的总量，以及集群的已用容量&#x2F;总容量&#x2F;可用容量</li>
+<li>客户端的 IOPS 信息</li>
+</ul>
+<h4 id="检查集群的容量情况"><a href="#检查集群的容量情况" class="headerlink" title="检查集群的容量情况"></a>检查集群的容量情况</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph <span class="built_in">df</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="修改集群配置"><a href="#修改集群配置" class="headerlink" title="修改集群配置"></a>修改集群配置</h3><h4 id="查看默认配置"><a href="#查看默认配置" class="headerlink" title="查看默认配置"></a>查看默认配置</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph --show-config</span><br></pre></td></tr></table></figure>
+
+<h4 id="修改配置"><a href="#修改配置" class="headerlink" title="修改配置"></a>修改配置</h4><p>Ceph 支持在运行时更改 ceph-osd、ceph-mon、ceph-mds 守护进程的配置。</p>
+<h4 id="使用-tell-的方式"><a href="#使用-tell-的方式" class="headerlink" title="使用 tell 的方式"></a>使用 tell 的方式</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ceph tell &#123;daemon-type&#125;.&#123;<span class="built_in">id</span> or *&#125; injectargs --&#123;name&#125; &#123;value&#125; [--&#123;name&#125; &#123;value&#125;]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 示例：</span></span><br><span class="line">ceph tell osd.0 injectargs --debug-osd 20 --debug-ms 1</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用-daemon-的方式设置"><a href="#使用-daemon-的方式设置" class="headerlink" title="使用 daemon 的方式设置"></a>使用 daemon 的方式设置</h4><p>在设置的角色所在主机上进行设置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看配置</span></span><br><span class="line">ceph daemon osd.1 config get mon_osd_full_ratio</span><br><span class="line"><span class="comment"># 修改配置</span></span><br><span class="line">ceph daemon osd.1 config <span class="built_in">set</span> mon_osd_full_ratio 0.97</span><br></pre></td></tr></table></figure>
+
+<h4 id="在线调整日志级别"><a href="#在线调整日志级别" class="headerlink" title="在线调整日志级别"></a>在线调整日志级别</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph tell osd.0 injectargs --debug-osd 0/5</span><br></pre></td></tr></table></figure>
+
+<h4 id="修改配置文件进行调整"><a href="#修改配置文件进行调整" class="headerlink" title="修改配置文件进行调整"></a>修改配置文件进行调整</h4><p>编辑 <code>/etc/ceph/ceph.conf</code> 中的 [global] 字段添加配置，重启相应服务生效。</p>
+<h4 id="查看-mon-状态"><a href="#查看-mon-状态" class="headerlink" title="查看 mon 状态"></a>查看 mon 状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph mon <span class="built_in">stat</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-mon-的详细状态"><a href="#查看-mon-的详细状态" class="headerlink" title="查看 mon 的详细状态"></a>查看 mon 的详细状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph daemon mon.ceph-xx-mon00 mon_status</span><br></pre></td></tr></table></figure>
+
+<h4 id="mon-法定人数状态"><a href="#mon-法定人数状态" class="headerlink" title="mon 法定人数状态"></a>mon 法定人数状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph quorum_status -f json-pretty</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-mon-选举状态"><a href="#查看-mon-选举状态" class="headerlink" title="查看 mon 选举状态"></a>查看 mon 选举状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph quorum_status</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-mon-的映射信息"><a href="#查看-mon-的映射信息" class="headerlink" title="查看 mon 的映射信息"></a>查看 mon 的映射信息</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-mon-的-admin-socket"><a href="#查看-mon-的-admin-socket" class="headerlink" title="查看 mon 的 admin socket"></a>查看 mon 的 admin socket</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ceph-conf --name mon.ceph-xx-mon00 --show-config-value admin_socket</span><br><span class="line">/var/run/ceph/ceph-mon.ceph-xx-mon00.asok</span><br></pre></td></tr></table></figure>
+
+<h2 id="CRUSH-Map"><a href="#CRUSH-Map" class="headerlink" title="CRUSH Map"></a>CRUSH Map</h2><h4 id="创建-bucket"><a href="#创建-bucket" class="headerlink" title="创建 bucket"></a>创建 bucket</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd crush add-bucket host-xx host</span><br></pre></td></tr></table></figure>
+
+<h4 id="移动-bucket"><a href="#移动-bucket" class="headerlink" title="移动 bucket"></a>移动 bucket</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd crush move host-xx room=default</span><br></pre></td></tr></table></figure>
+
+<h4 id="提取-CRUSH-Map"><a href="#提取-CRUSH-Map" class="headerlink" title="提取 CRUSH Map"></a>提取 CRUSH Map</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd getcrushmap -o crush</span><br></pre></td></tr></table></figure>
+
+<h4 id="反编译-crush-map"><a href="#反编译-crush-map" class="headerlink" title="反编译 crush map"></a>反编译 crush map</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crushtool -d crush -o de_crush </span><br></pre></td></tr></table></figure>
+
+<h4 id="编译-crush-map"><a href="#编译-crush-map" class="headerlink" title="编译 crush map"></a>编译 crush map</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crushtool -c de_crush -o new_crush</span><br></pre></td></tr></table></figure>
+
+<h4 id="测试新的-CRUSH-Map"><a href="#测试新的-CRUSH-Map" class="headerlink" title="测试新的 CRUSH Map"></a>测试新的 CRUSH Map</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crushtool --<span class="built_in">test</span> -i new_crush --num-rep 3 --rule 1 --show-mappings </span><br></pre></td></tr></table></figure>
+
+<h4 id="注入-CRUSH-Map"><a href="#注入-CRUSH-Map" class="headerlink" title="注入 CRUSH Map"></a>注入 CRUSH Map</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd setcrushmap -i new_crush</span><br></pre></td></tr></table></figure>
+
+<h4 id="列出-crush-rule"><a href="#列出-crush-rule" class="headerlink" title="列出 crush_rule"></a>列出 crush_rule</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd crush rule <span class="built_in">ls</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-crush-rule"><a href="#查看-crush-rule" class="headerlink" title="查看 crush_rule"></a>查看 crush_rule</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd crush rule dump &#123;rule&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="PG-和-PGP"><a href="#PG-和-PGP" class="headerlink" title="PG 和 PGP"></a>PG 和 PGP</h2><h4 id="查看-PG-状态"><a href="#查看-PG-状态" class="headerlink" title="查看 PG 状态"></a>查看 PG 状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg <span class="built_in">stat</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-PG-组映射信息"><a href="#查看-PG-组映射信息" class="headerlink" title="查看 PG 组映射信息"></a>查看 PG 组映射信息</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg dump</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看一个-PG-的-map"><a href="#查看一个-PG-的-map" class="headerlink" title="查看一个 PG 的 map"></a>查看一个 PG 的 map</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg map 1.2f6</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-PG-详细信息"><a href="#查看-PG-详细信息" class="headerlink" title="查看 PG 详细信息"></a>查看 PG 详细信息</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg 1.2f6 query</span><br></pre></td></tr></table></figure>
+
+<h4 id="显示集群所有-PG-统计"><a href="#显示集群所有-PG-统计" class="headerlink" title="显示集群所有 PG 统计"></a>显示集群所有 PG 统计</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg dump --format plain</span><br></pre></td></tr></table></figure>
+
+<h4 id="显示非正常状态的-PG"><a href="#显示非正常状态的-PG" class="headerlink" title="显示非正常状态的 PG"></a>显示非正常状态的 PG</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph pg dump_stuck inactive|unclean|stale</span><br></pre></td></tr></table></figure>
+
+<h2 id="OSD"><a href="#OSD" class="headerlink" title="OSD"></a>OSD</h2><h4 id="查看-OSD-状态"><a href="#查看-OSD-状态" class="headerlink" title="查看 OSD 状态"></a>查看 OSD 状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">stat</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="检查-OSD-容量是否均衡"><a href="#检查-OSD-容量是否均衡" class="headerlink" title="检查 OSD 容量是否均衡"></a>检查 OSD 容量是否均衡</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">df</span> tree</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-OSD-映射信息"><a href="#查看-OSD-映射信息" class="headerlink" title="查看 OSD 映射信息"></a>查看 OSD 映射信息</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd dump</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-OSD-目录树"><a href="#查看-OSD-目录树" class="headerlink" title="查看 OSD 目录树"></a>查看 OSD 目录树</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd tree</span><br></pre></td></tr></table></figure>
+
+<h4 id="定位-OSD-在集群中的节点位置"><a href="#定位-OSD-在集群中的节点位置" class="headerlink" title="定位 OSD 在集群中的节点位置"></a>定位 OSD 在集群中的节点位置</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd find [osd]</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看对象在哪些-OSD-上"><a href="#查看对象在哪些-OSD-上" class="headerlink" title="查看对象在哪些 OSD 上"></a>查看对象在哪些 OSD 上</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd map test-pool object1</span><br></pre></td></tr></table></figure>
+
+<h4 id="下线某个-OSD"><a href="#下线某个-OSD" class="headerlink" title="下线某个 OSD"></a>下线某个 OSD</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd down 0</span><br></pre></td></tr></table></figure>
+
+<h4 id="拉起某个-OSD"><a href="#拉起某个-OSD" class="headerlink" title="拉起某个 OSD"></a>拉起某个 OSD</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd up 0</span><br></pre></td></tr></table></figure>
+
+<h4 id="将某个-OSD-逐出集群"><a href="#将某个-OSD-逐出集群" class="headerlink" title="将某个 OSD 逐出集群"></a>将某个 OSD 逐出集群</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd out 0</span><br></pre></td></tr></table></figure>
+
+<h4 id="将某个-OSD-加入集群"><a href="#将某个-OSD-加入集群" class="headerlink" title="将某个 OSD 加入集群"></a>将某个 OSD 加入集群</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="keyword">in</span> 0</span><br></pre></td></tr></table></figure>
+
+<h4 id="删除某个-OSD"><a href="#删除某个-OSD" class="headerlink" title="删除某个 OSD"></a>删除某个 OSD</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd <span class="built_in">rm</span> 0</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-OSD-延迟"><a href="#查看-OSD-延迟" class="headerlink" title="查看 OSD 延迟"></a>查看 OSD 延迟</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd perf</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看当前-OSD-的状态"><a href="#查看当前-OSD-的状态" class="headerlink" title="查看当前 OSD 的状态"></a>查看当前 OSD 的状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph daemon osd.14 perf dump</span><br></pre></td></tr></table></figure>
+
+<h2 id="Pool"><a href="#Pool" class="headerlink" title="Pool"></a>Pool</h2><h4 id="查看-pool-信息"><a href="#查看-pool-信息" class="headerlink" title="查看 pool 信息"></a>查看 pool 信息</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd lspools</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-pool-详细信息"><a href="#查看-pool-详细信息" class="headerlink" title="查看 pool 详细信息"></a>查看 pool 详细信息</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool <span class="built_in">ls</span> detail</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-pool-状态"><a href="#查看-pool-状态" class="headerlink" title="查看 pool 状态"></a>查看 pool 状态</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool stats</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建-pool"><a href="#创建-pool" class="headerlink" title="创建 pool"></a>创建 pool</h3><h4 id="创建副本-pool"><a href="#创建副本-pool" class="headerlink" title="创建副本 pool"></a>创建副本 pool</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool create &#123;pool-name&#125; &#123;pg-num&#125; &#123;pgp-num&#125; replicated &#123;crush-ruleset-name&#125; </span><br></pre></td></tr></table></figure>
+
+<h4 id="创建-EC-pool"><a href="#创建-EC-pool" class="headerlink" title="创建 EC pool"></a>创建 EC pool</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool create &#123;pool-name&#125; &#123;pg-num&#125; &#123;pgp-num&#125; erasure &#123;erasure-code-profile&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建-erasure-code-profile"><a href="#创建-erasure-code-profile" class="headerlink" title="创建 erasure-code-profile"></a>创建 erasure-code-profile</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd erasure-code-profile <span class="built_in">set</span> ec-4-2 k=4 m=2 ruleset-failure-domain=host ruleset-root=hddRoom</span><br></pre></td></tr></table></figure>
+
+<h4 id="列出-erasure-code-profile"><a href="#列出-erasure-code-profile" class="headerlink" title="列出 erasure-code-profile"></a>列出 erasure-code-profile</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd erasure-code-profile <span class="built_in">ls</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-erasure-code-profile"><a href="#查看-erasure-code-profile" class="headerlink" title="查看 erasure-code-profile"></a>查看 erasure-code-profile</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd erasure-code-profile get [name]</span><br></pre></td></tr></table></figure>
+
+<h4 id="删除-pool"><a href="#删除-pool" class="headerlink" title="删除 pool"></a>删除 pool</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除 pool 前需要执行</span></span><br><span class="line">ceph tell mon.* injectargs --mon-allow-pool-delete=<span class="literal">true</span></span><br><span class="line"><span class="comment"># 删除pool</span></span><br><span class="line">ceph osd pool delete test_pool test_pool --yes-i-really-really-mean-it  <span class="comment">#pool的名字需要重复两次</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="设置-pool-的-PG-数量"><a href="#设置-pool-的-PG-数量" class="headerlink" title="设置 pool 的 PG 数量"></a>设置 pool 的 PG 数量</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool <span class="built_in">set</span> test_pool pg_num 100</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-pool-的-PG-数量"><a href="#查看-pool-的-PG-数量" class="headerlink" title="查看 pool 的 PG 数量"></a>查看 pool 的 PG 数量</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool get test_pool pg_num</span><br></pre></td></tr></table></figure>
+
+<h4 id="设置-pool-的-PGP-数量"><a href="#设置-pool-的-PGP-数量" class="headerlink" title="设置 pool 的 PGP 数量"></a>设置 pool 的 PGP 数量</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool <span class="built_in">set</span> test_pool pgp_num 100</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-pool-的-PGP-数量"><a href="#查看-pool-的-PGP-数量" class="headerlink" title="查看 pool 的 PGP 数量"></a>查看 pool 的 PGP 数量</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool get test_pool pgp_num</span><br></pre></td></tr></table></figure>
+
+<h4 id="设置-pool-池副本数"><a href="#设置-pool-池副本数" class="headerlink" title="设置 pool 池副本数"></a>设置 pool 池副本数</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool <span class="built_in">set</span> test_pool size 3</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看-pool-池副本数"><a href="#查看-pool-池副本数" class="headerlink" title="查看 pool 池副本数"></a>查看 pool 池副本数</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool get test_pool size</span><br></pre></td></tr></table></figure>
+
+<h4 id="设置存储池-crush-rule"><a href="#设置存储池-crush-rule" class="headerlink" title="设置存储池 crush rule"></a>设置存储池 crush rule</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool <span class="built_in">set</span> &lt;poolname&gt; crush_ruleset &lt;ruleset&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看存储池-crush-rule"><a href="#查看存储池-crush-rule" class="headerlink" title="查看存储池 crush rule"></a>查看存储池 crush rule</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph osd pool get &lt;poolname&gt; crush_rule</span><br></pre></td></tr></table></figure>
+
+<h2 id="RADOS"><a href="#RADOS" class="headerlink" title="RADOS"></a>RADOS</h2><h4 id="查看对象信息"><a href="#查看对象信息" class="headerlink" title="查看对象信息"></a>查看对象信息</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rados -p test_pool <span class="built_in">stat</span> test-object-1</span><br></pre></td></tr></table></figure>
+
+<h4 id="获取对象内容"><a href="#获取对象内容" class="headerlink" title="获取对象内容"></a>获取对象内容</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rados -p test_pool get test-object-1 test.txt</span><br></pre></td></tr></table></figure>
+
+<h4 id="将指定文件作为对象写入到资源池"><a href="#将指定文件作为对象写入到资源池" class="headerlink" title="将指定文件作为对象写入到资源池"></a>将指定文件作为对象写入到资源池</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rados -p test_pool put test-object-2 test.txt</span><br></pre></td></tr></table></figure>
+
+<h4 id="删除对象"><a href="#删除对象" class="headerlink" title="删除对象"></a>删除对象</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rados -p test_pool <span class="built_in">rm</span> test-object-1</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E5%B8%B8%E8%A7%81%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/" title="Ceph相关运维命令" target="_blank" rel="external">https://watsonlu6.github.io/Storage/Ceph/Ceph常见运维命令/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Storage/Ceph/rbd%E7%9B%B8%E5%85%B3%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/" title="rbd相关运维命令"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Storage/Ceph/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/" title="Ceph线程池实现"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

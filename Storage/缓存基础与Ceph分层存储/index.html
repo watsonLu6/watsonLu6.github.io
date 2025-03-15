@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>缓存基础与Ceph分层存储 | watson Lu&#39;blogs</title>
+  <meta name="description" content="缓存基础 缓存命中率：表示从缓存中获取数据的成功率，即缓存命中的次数与总访问次数的比值。缓存命中率越高，表示缓存系统的效率越高，能够更快地响应用户的请求。  缓存失效率：表示从缓存中获取数据失败的次数与总访问次数的比值。缓存失效率越高，表示缓存系统的效率越低，需要从持久存储介质中读取数据的次数也越多，可能会导致系统的响应速度变慢。  缓存容量：指缓存系统能够存储数据的最大容量。缓存容量的大小会影响">
+<meta property="og:type" content="article">
+<meta property="og:title" content="缓存基础与Ceph分层存储">
+<meta property="og:url" content="https://watsonlu6.github.io/Storage/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="缓存基础 缓存命中率：表示从缓存中获取数据的成功率，即缓存命中的次数与总访问次数的比值。缓存命中率越高，表示缓存系统的效率越高，能够更快地响应用户的请求。  缓存失效率：表示从缓存中获取数据失败的次数与总访问次数的比值。缓存失效率越高，表示缓存系统的效率越低，需要从持久存储介质中读取数据的次数也越多，可能会导致系统的响应速度变慢。  缓存容量：指缓存系统能够存储数据的最大容量。缓存容量的大小会影响">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A81.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A82.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A83.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A84.jpg">
+<meta property="article:published_time" content="2022-08-10T11:59:00.000Z">
+<meta property="article:modified_time" content="2024-09-01T13:34:14.905Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Storage/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Storage/缓存基础与Ceph分层存储" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      缓存基础与Ceph分层存储
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Storage/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/" class="article-date">
+	  <time datetime="2022-08-10T11:59:00.000Z" itemprop="datePublished">2022-08-10</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Storage/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="缓存基础"><a href="#缓存基础" class="headerlink" title="缓存基础"></a>缓存基础</h2><ol>
+<li><p><strong>缓存命中率</strong>：表示从缓存中获取数据的成功率，即缓存命中的次数与总访问次数的比值。缓存命中率越高，表示缓存系统的效率越高，能够更快地响应用户的请求。</p>
+</li>
+<li><p><strong>缓存失效率</strong>：表示从缓存中获取数据失败的次数与总访问次数的比值。缓存失效率越高，表示缓存系统的效率越低，需要从持久存储介质中读取数据的次数也越多，可能会导致系统的响应速度变慢。</p>
+</li>
+<li><p><strong>缓存容量</strong>：指缓存系统能够存储数据的最大容量。缓存容量的大小会影响缓存系统的性能和可靠性，如果缓存容量不足，可能会导致缓存系统频繁地进行evict操作，从而影响系统的响应速度和可用性。</p>
+</li>
+<li><p><strong>缓存算法</strong>：指缓存系统用于决定哪些数据被缓存，哪些数据被删除的算法。常见的缓存算法包括LRU（最近最少使用）、LFU（最不经常使用）、FIFO（先进先出）等。</p>
+</li>
+<li><p><strong>脏数据（Dirty Data）</strong>：指缓存中已经被修改但尚未被写回到持久存储介质（如磁盘）中的数据。这些数据需要及时写回到持久存储介质中以保证数据的一致性。常见的处理策略包括写回（write-back）和写直达（write-through）策略。</p>
+</li>
+<li><p><strong>干净数据（Clean Data）</strong>：指缓存中未被修改或已经被写回到持久存储介质中的数据。干净数据在缓存系统中可以快速读取，减少写入操作，优先选择删除干净数据可以避免写回操作带来的额外开销。</p>
+</li>
+<li><p><strong>evict操作</strong>：从缓存中移除某些数据，以释放缓存空间供其他数据使用。常用的策略包括LRU（Least Recently Used）等，根据最近最少使用的数据进行移除。</p>
+</li>
+<li><p><strong>flush操作</strong>：将缓存中的数据立即写回到持久性存储介质（例如硬盘），以确保缓存中的数据与存储介质中的数据保持一致。</p>
+</li>
+</ol>
+<h4 id="数据一致性和性能考虑"><a href="#数据一致性和性能考虑" class="headerlink" title="数据一致性和性能考虑"></a>数据一致性和性能考虑</h4><ul>
+<li><p><strong>脏数据的处理</strong>：存在脏数据可能导致数据一致性问题和性能问题，因此需要及时处理脏数据。选择适当的写回策略可以平衡数据一致性和系统性能。</p>
+</li>
+<li><p><strong>干净数据的优先删除</strong>：在缓存系统中，干净数据的存在可以提高系统性能，因为它们可以快速读取而不需要进行额外的写入操作。当需要从缓存中删除对象时，通常优先选择删除干净数据。</p>
+</li>
+<li><p><strong>flush操作的选择</strong>：通常在以下情况下使用flush操作：</p>
+<ul>
+<li>数据一致性要求高的场景，如数据库应用</li>
+<li>性能要求不高或系统关闭时需要保证数据的持久性</li>
+</ul>
+</li>
+<li><p><strong>evict操作的选择</strong>：通常在以下情况下使用evict操作：</p>
+<ul>
+<li>缓存空间不足，需要释放空间</li>
+<li>数据访问模式固定或数据访问频率低</li>
+<li>基于缓存替换算法（如LRU、LFU、FIFO等）</li>
+</ul>
+</li>
+</ul>
+<h4 id="缓存替换算法"><a href="#缓存替换算法" class="headerlink" title="缓存替换算法"></a>缓存替换算法</h4><ul>
+<li><strong>LRU（Least Recently Used）</strong>：根据最近的访问时间来决定删除哪些数据。</li>
+<li><strong>LFU（Least Frequently Used）</strong>：基于数据的访问频率选择删除数据。</li>
+<li><strong>FIFO（First In First Out）</strong>：按照数据进入缓存的时间顺序移除数据。</li>
+<li><strong>Random（随机）</strong>：随机选择数据进行删除，简单但效果不如其他算法。</li>
+</ul>
+<h4 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h4><ul>
+<li><p><strong>优化evict操作</strong>：通过使用动态策略（基于数据使用情况）和静态策略（基于数据属性），可以提升缓存性能。了解系统的负载和压力情况也有助于优化evict操作。</p>
+</li>
+<li><p><strong>缓存命中率影响</strong>：evict操作可能导致缓存命中率下降，因为被删除的数据可能被访问到。flush操作通常不会直接影响缓存命中率，但需要高效的实现以避免影响系统性能。</p>
+</li>
+</ul>
+<p>这些基本要素和策略可以帮助优化缓存系统的性能和可靠性，根据具体的应用需求进行适当的调整和选择。</p>
+<h2 id="Ceph分层存储Cache-Tier"><a href="#Ceph分层存储Cache-Tier" class="headerlink" title="Ceph分层存储Cache Tier"></a>Ceph分层存储Cache Tier</h2><p>分层存储是存储领域中的一个重要分支，其思想基石是存储的金字塔模型——描述了快速设备通常容量小而性能高，慢速设备通常容量大而性能低。对于数据访问而言，通常在一段时间内，真实数据的访问是具有时间局部性和空间局部性的。时间局部性是指被访问的数据在短时间内可能再次被访问，空间局部性是指与被访问数据临近的数据有更大的概率被访问。故基于时间局部性理论产生了通常所说的缓存，如：cpu缓存、内存等；而基于空间局部性原理，产生了数据预取，如：指令预取（prefetch）、数据预读（read ahead）等。</p>
+<p>目前Ceph的OSD主要可以基于SSD或者HDD的裸盘进行构建，机械盘通常比固态盘容量大、价格比固态盘低、但读写比固态盘慢，如何用机械盘和固态盘来提供一个高可靠、高性能、高性价比的分布式存储是需要解决的重要问题。如果全部基于SSD进行构建，其性能一定会最优，但是SSD价格昂贵，出于成本考虑，不可能全部采用SSD进行构建，那么SSD与HDD混合硬件架构就显得很有必要。</p>
+<p>Ceph的缓存分层理论基础是数据存在热点，数据访问不均匀。通常，80%的应用只访问20%的数据，这20%的数据被称为热点数据。为了减少响应时间，可以将热点数据保存到性能较高的存储设备（如固态硬盘）中。在Cache Tiering中，有一个分层代理，当保存在缓存层的数据变冷或不再活跃时，该代理会将这些数据刷到存储层，并将其从缓存层中移除。这种操作称为刷新或逐出。在客户端读写数据时，Ceph的对象处理器负责决定对象存储的位置，而Cache Tier则决定何时将缓存层中的对象刷回后端存储层。对于写操作，请求到达缓存层后，完成写操作后直接应答客户端，之后由缓存层的代理线程负责将数据写入存储层。对于读操作，如果命中缓存层，直接在缓存层读取，否则可以重定向到存储层访问。如果数据近期有访问过，说明比较热，可以提升到缓存层中。对于Ceph客户端来说，缓存层和后端存储层是完全透明的。所有Ceph客户端都可以使用缓存层，因此Cache Tier具有提升块设备、Ceph对象存储、Ceph文件系统和原生绑定的I&#x2F;O性能的潜力。<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8.jpg" alt="Cache Tier"></p>
+<p>Ceph Cache Tier提供了快速存储池与慢速存储池间的分层缓存特性。通常来说，对于块存储用户而言，数据访问会有明显的时间局部性与空间局部性，故可以通过分层存储思想，改善资源配置及效率。Ceph提供了Cache Tier的解决方案，能够融合两种存储，通过合理配比提供容量与性能介于SSD与HDD之间的虚拟存储资源池。对于对象存储而言，目前主要对外提供基于S3与Swift restful api的访问接口。RGW对象存储可以通过对数据池进行Cache Tier，从而提高其访问效率。</p>
+<p>在Ceph中，分层存储系统通过缓存和存储池的方式实现，热资源池可以将数据存储至那些管理SSD磁盘的OSD上，而冷资源池可以将数据存储至那些管理HDD磁盘的OSD上。若客户命中被访问的数据落在热资源池中，可以直接被访问，此时IO速度最快，接近SSD磁盘的性能。<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A81.jpg" alt="Cache Tier命中"></p>
+<p>若客户被访问的数据不落在热资源池中，出现缓存丢失的情况，需要转向去HDD盘上读取数据，而HDD盘处理请求访问速度为毫秒级别，故网络延时与请求处理延时可以近似忽略，认为其访问速度接近HDD磁盘的性能。这时候的处理分为两种：代理读写和数据拉取。当读写请求出现缓存丢失时，代理读写向后端请求冷数据，但缓存池不对数据进行缓存，直接将请求内容返回给客户端。<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A82.jpg" alt="缓存池的代理读写"></p>
+<p>读写请求出现缓存丢失时，缓存池向后端请求冷数据，在向后端请求冷数据后，会将数据读入缓存池，继续处理客户端请求并返回请求内容。此外，短时间内被多次访问的数据会被认为是热数据而拉取到热池中，这将消耗HDD磁盘的读带宽与SSD磁盘的写入带宽。<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A83.jpg" alt="缓存池的数据拉取"></p>
+<p>另一方面，在热池中的数据，需要定期回写入冷池，此时，回写数据将暂用SSD与HDD磁盘的部分带宽，这个过程叫数据回写。<br><img src="/images/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A84.jpg" alt="缓存池的数据回写"></p>
+<p>还未回写入冷资源池的数据，在热资源池中再次被修改，这种情况越多，缓存效率越高，即相当于热资源池带宽充分利用，帮助冷资源池挡掉了大量的写入带宽。可以简单的认为，有1%的数据是需要脏回刷的（即回刷后的1%数据为clean状态，所以后续的命中会是非脏命中），如果所有数据都不脏回刷，且都访问命中的话，那么脏命中率为100%。</p>
+<p>根据上述原理，不难发现，Ceph Cache Tier的性能取决于访问命中率。访问命中率越高时，存储系统越接近SSD磁盘的性能；反之，访问命中率越低时，越接近HDD磁盘的性能。另一方面，在Ceph中，缓存粒度以对象方式进行拉取与回写，故在实际情况下，如果缓存丢失过多，将会有大量的数据会被拉取，从而占用SSD磁盘的带宽，使得其访问带宽比SATA磁盘更差。然而，在实际生产使用过程中，数据总使用量总是逐步增加的，与此同时，热数据的量也将逐步的增加。那么，在整个使用周期中，随着数据量的增加，就必然会经历以下过程：首先刚刚开始使用时，数据量还很少。此时，所有数据全部能够被缓存，数据命中率为100%，效果很好。随着总数据量与热数据量不断的增加，缓存池已经无法容纳所有数据，只能容纳较多的热数据，此时缓存命中率会随之逐步的下降。随着数据的进一步增加，缓存命中率低于某个临界值了，此时保持同样大小的缓存池已经无法给使用带来足够好的收益。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Storage/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/" title="缓存基础与Ceph分层存储" target="_blank" rel="external">https://watsonlu6.github.io/Storage/缓存基础与Ceph分层存储/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Storage/Ceph/Ceph-Cache-Tier%E4%BD%BF%E7%94%A8%E4%BB%8B%E7%BB%8D/" title="Ceph Cache Tier使用介绍"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Storage/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F%E7%BC%93%E5%AD%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87/" title="存储系统缓存/分层相关论文"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

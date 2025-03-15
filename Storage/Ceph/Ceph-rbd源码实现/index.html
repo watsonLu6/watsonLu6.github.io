@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph_rbd客户端实现 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Ceph RBD介绍随着云计算的发展，Ceph已经成为目前最为流行的分布式存储系统，俨然存储界的Linux操作系统。Ceph集块存储、文件存储和对象存储于一身，适用场景广泛，用户众多。RBD是 Ceph 分布式存储系统中提供的块存储服务，Ceph的块存储通过一个客户端模块实现，这个客户端可以直接从数据守护进程读写数据（不需要经过一个网关）。根据客户端整合生态系统的差异，使用Ceph的块设备有两种实">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph_rbd客户端实现">
+<meta property="og:url" content="https://watsonlu6.github.io/Storage/Ceph/Ceph-rbd%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="Ceph RBD介绍随着云计算的发展，Ceph已经成为目前最为流行的分布式存储系统，俨然存储界的Linux操作系统。Ceph集块存储、文件存储和对象存储于一身，适用场景广泛，用户众多。RBD是 Ceph 分布式存储系统中提供的块存储服务，Ceph的块存储通过一个客户端模块实现，这个客户端可以直接从数据守护进程读写数据（不需要经过一个网关）。根据客户端整合生态系统的差异，使用Ceph的块设备有两种实">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B01.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B02.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B03.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B04.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B05.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B06.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B07.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B08.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B09.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B010.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B011.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B012.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B013.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B014.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B015.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B016.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B017.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B018.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B019.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B020.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B021.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B022.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B023.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B024.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B025.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B026.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B027.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B028.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B029.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B030.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B031.jpg">
+<meta property="og:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B032.png">
+<meta property="article:published_time" content="2021-08-15T14:26:55.000Z">
+<meta property="article:modified_time" content="2024-09-08T10:08:22.331Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B01.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Storage/Ceph/Ceph-rbd%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Storage/Ceph/Ceph-rbd源码实现" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph_rbd客户端实现
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Storage/Ceph/Ceph-rbd%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" class="article-date">
+	  <time datetime="2021-08-15T14:26:55.000Z" itemprop="datePublished">2021-08-15</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Storage/Ceph/Ceph-rbd%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="Ceph-RBD介绍"><a href="#Ceph-RBD介绍" class="headerlink" title="Ceph RBD介绍"></a>Ceph RBD介绍</h2><p>随着云计算的发展，Ceph已经成为目前最为流行的分布式存储系统，俨然存储界的Linux操作系统。Ceph集块存储、文件存储和对象存储于一身，适用场景广泛，用户众多。RBD是 Ceph 分布式存储系统中提供的块存储服务，Ceph的块存储通过一个客户端模块实现，这个客户端可以直接从数据守护进程读写数据（不需要经过一个网关）。根据客户端整合生态系统的差异，使用Ceph的块设备有两种实现方式：librbd (用户态)和krbd (内核态)。RBD：RADOS Block Devices. Ceph block devices are thin-provisioned, resizable and store data striped over multiple OSDs in a Ceph cluster.<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B01.png"></p>
+<p>使用Ceph的块设备有两种路径（内核态与用户态）：(rbd map就是内核使用ceph块设备，调用librbd&#x2F;librados API访问ceph块设备是用户态)</p>
+<ul>
+<li>通过Kernel Module(内核态RBD)：即创建了RBD设备后，把它映射到内核中（使用rbd map命令映射到操作系统上），成为一个虚拟的块设备，这时这个块设备同其他通用块设备一样，设备文件一般为&#x2F;dev&#x2F;rbd0，后续直接使用这个块设备文件就可以了，可以把&#x2F;dev&#x2F;rbd0格式化后挂载到某目录，也可以直接作为裸设备进行使用。krbd是一个内核模块。其在内核中以一个块设备的方式加以实现。这整个Ceph客户端都是以内核模块的方式实现（没有与之相关的用户态进程或者守护进程）。krbd在内核的源码目录源文件:drivers&#x2F;block&#x2F;rbd.c、drivers&#x2F;block&#x2F;rbd_types.h、net&#x2F;ceph&#x2F;、include&#x2F;linux&#x2F;ceph<ul>
+<li><a target="_blank" rel="noopener" href="https://www.likecs.com/show-203739919.html">https://www.likecs.com/show-203739919.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/cfb92440ee71adcc2105b0890bb01ac3cddb8507/drivers/block/rbd.c">https://github.com/torvalds/linux/blob/cfb92440ee71adcc2105b0890bb01ac3cddb8507/drivers/block/rbd.c</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/tree/85c7000fda0029ec16569b1eec8fd3a8d026be73/include/linux/ceph">https://github.com/torvalds/linux/tree/85c7000fda0029ec16569b1eec8fd3a8d026be73/include/linux/ceph</a></li>
+</ul>
+</li>
+<li>通过librbd(用户态RBD)：即创建了RBD设备后，使用librbd&#x2F;librados库访问和管理块设备。这种方式直接调用librbd提供的接口，实现对RBD设备的访问和管理，不会在客户端产生设备文件，这种方式主要是为虚拟机提供块存储设备，在虚拟机场景中，一般会用QEMU&#x2F;KVM中的RBD驱动部署Ceph块设备，宿主机通过librbd向客户端提供块存储服务。应用方案有：SPDK+librbd&#x2F;librados<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/ceph/ceph/tree/acf835db0376b1b71152949fdfec36e68f4a8474/src/librbd">https://github.com/ceph/ceph/tree/acf835db0376b1b71152949fdfec36e68f4a8474/src/librbd</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/spdk/spdk/tree/cff525d336fb2c4c087413d4c53474b9e61cbdbe/module/bdev/rbd">https://github.com/spdk/spdk/tree/cff525d336fb2c4c087413d4c53474b9e61cbdbe/module/bdev/rbd</a><br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B02.png"></li>
+</ul>
+</li>
+</ul>
+<p>RBD 的块设备由于元数据信息少而且访问不频繁，故 RBD 在 Ceph 集群中不需要单独的守护进程将元数据加载到内存进行元数据访问加速，所有的元数据和数据操作直接与集群中的 Monitor 服务和 OSD 服务进行交互。</p>
+<h2 id="RBD-模块相关IO流图"><a href="#RBD-模块相关IO流图" class="headerlink" title="RBD 模块相关IO流图"></a>RBD 模块相关IO流图</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B03.png"><br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B04.png"><br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B05.png"></p>
+<p>客户端写数据osd过程：</p>
+<ol>
+<li>采用的是 librbd 的形式，使用 librbd 创建一个块设备，向这个块设备中写入数据</li>
+<li>在客户端本地同过调用 librados 接口，然后经过 pool，rbd，object，pg 进行层层映射（CRUSH 算法）,在 PG 这一层中，可以知道数据保存在哪几个 OSD 上，这几个 OSD 分为主从的关系</li>
+<li>客户端与 primary OSD 建立 SOCKET 通信，将要写入的数据传给 primary OSD，由 primary OSD 再将数据发送给其他 replica OSD 数据节点。</li>
+</ol>
+<h2 id="IO-时序图"><a href="#IO-时序图" class="headerlink" title="IO 时序图"></a>IO 时序图</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B06.png"><br>librbd提供了针对image的数据读写和管理操作两种访问接口，其中数据读写请求入io_work_queue，然后由线程池中的线程将io请求以object粒度切分并分别调用rados层的aio接口（IoCtxImpl）下发，当所有的object请求完成时，调用librbd io回调（librbd::io::AioCompletion）完成用户层的数据io。而对image的管理操作通常需要涉及单个或多个对象的多次访问以及对内部状态的多次更新，其第一次访问将从用户线程调用至rados层 aio 接口或更新状态后入 op_work_queue 队列进行异步调用，当 rados aio 层回调或 Context 完成时再根据实现逻辑调用新的 rados aio 或构造 Context 回调，如此反复，最后调用应用层的回调完成管理操作请求。<br>      此外为了支持多客户端共享访问 image，librbd 提供了构建于 rados watch&#x2F;notify 之上的通知、远程执行以及 exclusive lock 分布式锁机制。每个 librbd 客户端在打开 image 时（以非只读方式打开）都会 watch image 的 header 对象，从远程发往本地客户端的通知消息或者内部的 watch 错误消息会通过 RadosClient 的 Finisher 线程入 op_work_queue 队列进行异步处理。</p>
+<h2 id="RBD读写流程"><a href="#RBD读写流程" class="headerlink" title="RBD读写流程"></a>RBD读写流程</h2><p>对于任何RBD客户端的读写都要经过以下步骤：</p>
+<ol>
+<li>集群句柄创建、读取配置<br> 集群句柄的创建即是librados:Rados的创建，初始化，读取配置<br> 创建：librados::Rados rados;<br> 初始化：librados::Rados::init(const char * const id)<br>     主要是初始化librados::RadosClient<br>     读取配置：<br>     librados::Rados::conf_read_file(const char * const path) const<br>     librados::Rados::conf_parse_argv(int argc, const char ** argv) const</li>
+<li>集群连接<br> librados::Rados::connect()</li>
+<li>IO上下文环境初始化（pool创建读写等）<br> librados::Rados::ioctx_create(const char *name, IoCtx &amp;io)<br> 主要是IoCtxImpl即librados::IoCtx</li>
+<li>rbd创建<br> librbd::RBD rbd;<br> RBD::create2(IoCtx&amp; io_ctx, const char *name, uint64_t size,uint64_t features, int *order)</li>
+<li>rbd的读写<br> librbd::Image image;<br> RBD::open(IoCtx&amp; io_ctx, Image&amp; image, const char *name)<br> Image::write(uint64_t ofs, size_t len, bufferlist&amp; bl)<br> Image::read(uint64_t ofs, size_t len, bufferlist&amp; bl)</li>
+<li>IO上下文环境关闭<br> librbd::Image::close()<br> librados::IoCtx::close()</li>
+<li>集群句柄关闭<br> librados::Rados::shutdown()</li>
+</ol>
+<h2 id="RBD源码介绍"><a href="#RBD源码介绍" class="headerlink" title="RBD源码介绍"></a>RBD源码介绍</h2><p>librbd以及librados都是属于ceph 的客户端，其提供ceph的接口向上提供块存储服务。<br>librados提供客户端访问Ceph集群的原生态统一接口。其它接口或者命令行工具都基于该动态库实现。在librados中实现了Crush算法和网络通信等公共功能，数据请求操作在librados计算完成后可以直接与对应的OSD交互进行数据传输。<br>librbd 是Ceph提供的在librados上封装的块存储接口的抽象。</p>
+<p>librados主要的类是Rados和IoCtx<br>librados::Rados负责初始化集群、读取配置、连接集群<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B07.jpg"></p>
+<p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B08.jpg"></p>
+<p>librados::IoCtx负责创建IO上下文环境<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B09.jpg"></p>
+<p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B010.jpg"></p>
+<p>librados::bufferlist负责读写缓存<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B011.jpg"></p>
+<p>librbd最主要的两个类是：RBD和Image<br>librbd::rbd主要负责 Image 的创建、删除、重命名、克隆映像等操作，包括对存储池的元数据的管理，针对部分操作提供异步接口<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B012.jpg"></p>
+<p>librbd::image负责image的读写(read&#x2F;write)，以及快照相关的操作等等。同时提供了相关异步操作的接口。<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B013.png"></p>
+<p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B014.png"></p>
+<h2 id="rbd-Image的创建"><a href="#rbd-Image的创建" class="headerlink" title="rbd Image的创建"></a>rbd Image的创建</h2><p>rbd卷的创建接口：<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B015.jpg"></p>
+<p>函数输入参数：</p>
+<ul>
+<li>io_ctx: 针对pool的上下文环境，对pool的操作都要首先建立一个相应的上下文环境</li>
+<li>*name：rbd卷名字</li>
+<li>size：rbd卷大小</li>
+<li>features: rbd卷的特性</li>
+<li>order: rbd卷的分块大小<br>其具体实现在internal.cc中：<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B016.jpg"></li>
+</ul>
+<p>继续往下调用：<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B017.jpg"><br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B018.jpg"></p>
+<p>根据format格式调用不同的创建接口，现在主流采用新的format2，所用调用新的接口：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">create_v2</span><span class="params">(IoCtx&amp; io_ctx, <span class="type">const</span> <span class="type">char</span> *imgname, <span class="type">uint64_t</span> bid, <span class="type">uint64_t</span> size,<span class="type">int</span> order, <span class="type">uint64_t</span> features, <span class="type">uint64_t</span> stripe_unit,<span class="type">uint64_t</span> stripe_count, <span class="type">uint8_t</span> journal_order,<span class="type">uint8_t</span> journal_splay_width, <span class="type">const</span> std::string &amp;journal_pool,<span class="type">const</span> std::string &amp;non_primary_global_image_id,</span></span></span><br><span class="line"><span class="params"><span class="function"><span class="type">const</span> std::string &amp;primary_mirror_uuid,<span class="type">bool</span> negotiate_features)</span></span></span><br></pre></td></tr></table></figure>
+<p>这个接口会做如下工作：<br>创建rbd_id.{volume_name}的object：<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B019.png"></p>
+<p>然后想这个object写入block_name_prefix中的id号：<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B020.png"></p>
+<p>然后向rbd_directory写入卷名和id的一一映射。<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B021.jpg"></p>
+<p>创建名为rbd_header.id的object，并向这个object写入size,order,features,RBD_DATA_PREFIX等信息。<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B022.png"></p>
+<p>如果有条带化，则会设置条带化信息：<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B023.png"></p>
+<p>创建名为rbd_object_map.{id}的对象：<br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B024.jpg"></p>
+<h2 id="rbd-Image的打开"><a href="#rbd-Image的打开" class="headerlink" title="rbd Image的打开"></a>rbd Image的打开</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B025.jpg"><br><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B026.jpg"></p>
+<p>其实就是生成一个ImageCtx实例，调用其open接口。</p>
+<h2 id="rbd-Image的写"><a href="#rbd-Image的写" class="headerlink" title="rbd Image的写"></a>rbd Image的写</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B027.jpg"></p>
+<h2 id="rbd-Image的读"><a href="#rbd-Image的读" class="headerlink" title="rbd Image的读"></a>rbd Image的读</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B028.jpg"></p>
+<h2 id="rbd-Image的快照"><a href="#rbd-Image的快照" class="headerlink" title="rbd Image的快照"></a>rbd Image的快照</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B029.jpg"></p>
+<h2 id="rbd-Image的克隆"><a href="#rbd-Image的克隆" class="headerlink" title="rbd Image的克隆"></a>rbd Image的克隆</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B030.jpg"></p>
+<h2 id="rbd-Image的删除"><a href="#rbd-Image的删除" class="headerlink" title="rbd Image的删除"></a>rbd Image的删除</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B031.jpg"></p>
+<h2 id="rbd的读写"><a href="#rbd的读写" class="headerlink" title="rbd的读写"></a>rbd的读写</h2><p><img src="/images/rbd/rbd%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B032.png"></p>
+<p>要使用librbd, 需要先安装下面两个包。可以通过yum安装, 也可以通过下载ceph源码编译后, 通过make install进行安装。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">  yum list | grep librbd</span></span><br><span class="line">librbd1.x86_64                  1:0.80.7-3.el7                    base</span><br><span class="line">librbd1-devel.x86_64            1:0.80.7-3.el7                    base</span><br></pre></td></tr></table></figure>
+
+<p>至于如何使用librbd来编程, 请参考下面的代码, 这是使用librbd的一般流程。<br>编译时记得加上链接参数: g++ librbdtest.cpp -lrados -lrbd。<br>更多函数的使用请参考 librbd.hpp。 另外 这里 有一些不错的示例。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rbd/librbd.hpp&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rados/librados.hpp&gt;</span></span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Storage/Ceph/Ceph-rbd%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" title="Ceph_rbd客户端实现" target="_blank" rel="external">https://watsonlu6.github.io/Storage/Ceph/Ceph-rbd源码实现/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Storage/Ceph/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/" title="Ceph线程池实现"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Storage/Ceph/Ceph-rbd%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/" title="Ceph_rbd介绍与使用"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

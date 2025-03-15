@@ -18,8 +18,8 @@
   
   <entry>
     <title>12 libvirt使用示例</title>
-    <link href="https://watsonlu6.github.io/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/"/>
-    <id>https://watsonlu6.github.io/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/</id>
     <published>2024-03-12T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:51.913Z</updated>
     
@@ -47,8 +47,8 @@
   
   <entry>
     <title>11 libvirt调试与日志</title>
-    <link href="https://watsonlu6.github.io/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/"/>
-    <id>https://watsonlu6.github.io/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/</id>
     <published>2024-03-11T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:49.288Z</updated>
     
@@ -75,8 +75,8 @@
   
   <entry>
     <title>10 libvirt安全模式</title>
-    <link href="https://watsonlu6.github.io/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/"/>
-    <id>https://watsonlu6.github.io/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/</id>
     <published>2024-03-10T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:47.056Z</updated>
     
@@ -103,8 +103,8 @@
   
   <entry>
     <title>9 libvirt事件和计时器处理</title>
-    <link href="https://watsonlu6.github.io/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/"/>
-    <id>https://watsonlu6.github.io/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/</id>
     <published>2024-03-09T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:44.903Z</updated>
     
@@ -131,8 +131,8 @@
   
   <entry>
     <title>8 libvirt错误处理</title>
-    <link href="https://watsonlu6.github.io/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/"/>
-    <id>https://watsonlu6.github.io/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/</id>
     <published>2024-03-08T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:39.705Z</updated>
     
@@ -159,8 +159,8 @@
   
   <entry>
     <title>7 libvirt网络接口</title>
-    <link href="https://watsonlu6.github.io/7-libvirt%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3/"/>
-    <id>https://watsonlu6.github.io/7-libvirt%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/7-libvirt%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/7-libvirt%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3/</id>
     <published>2024-03-07T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:36.794Z</updated>
     
@@ -188,8 +188,8 @@
   
   <entry>
     <title>6 libvirt虚拟网络</title>
-    <link href="https://watsonlu6.github.io/6-libvirt%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C/"/>
-    <id>https://watsonlu6.github.io/6-libvirt%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/6-libvirt%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/6-libvirt%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C/</id>
     <published>2024-03-06T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:32.848Z</updated>
     
@@ -216,8 +216,8 @@
   
   <entry>
     <title>5 libvirt存储管理</title>
-    <link href="https://watsonlu6.github.io/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/"/>
-    <id>https://watsonlu6.github.io/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/5-libvirt%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/</id>
     <published>2024-03-05T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:30.417Z</updated>
     
@@ -244,8 +244,8 @@
   
   <entry>
     <title>4 libvirt客户域Domain</title>
-    <link href="https://watsonlu6.github.io/4-libvirt%E5%AE%A2%E6%88%B7%E5%9F%9FDomain/"/>
-    <id>https://watsonlu6.github.io/4-libvirt%E5%AE%A2%E6%88%B7%E5%9F%9FDomain/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/4-libvirt%E5%AE%A2%E6%88%B7%E5%9F%9FDomain/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/4-libvirt%E5%AE%A2%E6%88%B7%E5%9F%9FDomain/</id>
     <published>2024-03-04T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:27.746Z</updated>
     
@@ -272,8 +272,8 @@
   
   <entry>
     <title>3 libvirt连接</title>
-    <link href="https://watsonlu6.github.io/3-libvirt%E8%BF%9E%E6%8E%A5/"/>
-    <id>https://watsonlu6.github.io/3-libvirt%E8%BF%9E%E6%8E%A5/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/3-libvirt%E8%BF%9E%E6%8E%A5/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/3-libvirt%E8%BF%9E%E6%8E%A5/</id>
     <published>2024-03-03T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:25.244Z</updated>
     
@@ -300,8 +300,8 @@
   
   <entry>
     <title>2 libvirt对象模型</title>
-    <link href="https://watsonlu6.github.io/2-libvirt%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/"/>
-    <id>https://watsonlu6.github.io/2-libvirt%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/2-libvirt%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/2-libvirt%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/</id>
     <published>2024-03-02T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:21.967Z</updated>
     
@@ -328,8 +328,8 @@
   
   <entry>
     <title>1 libvirt概述</title>
-    <link href="https://watsonlu6.github.io/1-libvirt%E6%A6%82%E8%BF%B0/"/>
-    <id>https://watsonlu6.github.io/1-libvirt%E6%A6%82%E8%BF%B0/</id>
+    <link href="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/1-libvirt%E6%A6%82%E8%BF%B0/"/>
+    <id>https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/1-libvirt%E6%A6%82%E8%BF%B0/</id>
     <published>2024-03-01T07:50:26.000Z</published>
     <updated>2025-03-15T08:00:16.606Z</updated>
     
@@ -356,8 +356,8 @@
   
   <entry>
     <title>Cpeh PG常见故障处理</title>
-    <link href="https://watsonlu6.github.io/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/"/>
-    <id>https://watsonlu6.github.io/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</id>
+    <link href="https://watsonlu6.github.io/Storage/Ceph/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/"/>
+    <id>https://watsonlu6.github.io/Storage/Ceph/Ceph-PG%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</id>
     <published>2022-10-08T06:53:31.000Z</published>
     <updated>2024-09-08T09:47:49.358Z</updated>
     
@@ -384,8 +384,8 @@
   
   <entry>
     <title>Cpeh OSD常见故障处理</title>
-    <link href="https://watsonlu6.github.io/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/"/>
-    <id>https://watsonlu6.github.io/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</id>
+    <link href="https://watsonlu6.github.io/Storage/Ceph/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/"/>
+    <id>https://watsonlu6.github.io/Storage/Ceph/Ceph-OSD%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</id>
     <published>2022-10-07T06:53:31.000Z</published>
     <updated>2024-09-08T14:58:28.932Z</updated>
     
@@ -412,8 +412,8 @@
   
   <entry>
     <title>Cpeh Mon常见故障处理</title>
-    <link href="https://watsonlu6.github.io/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/"/>
-    <id>https://watsonlu6.github.io/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</id>
+    <link href="https://watsonlu6.github.io/Storage/Ceph/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/"/>
+    <id>https://watsonlu6.github.io/Storage/Ceph/Ceph-Mon%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</id>
     <published>2022-10-06T06:53:31.000Z</published>
     <updated>2024-09-08T09:47:41.847Z</updated>
     
@@ -440,8 +440,8 @@
   
   <entry>
     <title>Ceph Cache Tier源码实现</title>
-    <link href="https://watsonlu6.github.io/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/"/>
-    <id>https://watsonlu6.github.io/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/</id>
+    <link href="https://watsonlu6.github.io/Storage/Ceph/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/"/>
+    <id>https://watsonlu6.github.io/Storage/Ceph/Ceph-Cache-Tier%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/</id>
     <published>2022-09-28T12:45:54.000Z</published>
     <updated>2024-09-01T13:34:00.917Z</updated>
     
@@ -468,8 +468,8 @@
   
   <entry>
     <title>Ceph Cache Tier使用介绍</title>
-    <link href="https://watsonlu6.github.io/Ceph-Cache-Tier%E4%BD%BF%E7%94%A8%E4%BB%8B%E7%BB%8D/"/>
-    <id>https://watsonlu6.github.io/Ceph-Cache-Tier%E4%BD%BF%E7%94%A8%E4%BB%8B%E7%BB%8D/</id>
+    <link href="https://watsonlu6.github.io/Storage/Ceph/Ceph-Cache-Tier%E4%BD%BF%E7%94%A8%E4%BB%8B%E7%BB%8D/"/>
+    <id>https://watsonlu6.github.io/Storage/Ceph/Ceph-Cache-Tier%E4%BD%BF%E7%94%A8%E4%BB%8B%E7%BB%8D/</id>
     <published>2022-08-25T08:45:47.000Z</published>
     <updated>2024-09-01T13:33:52.799Z</updated>
     
@@ -496,8 +496,8 @@
   
   <entry>
     <title>缓存基础与Ceph分层存储</title>
-    <link href="https://watsonlu6.github.io/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/"/>
-    <id>https://watsonlu6.github.io/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/</id>
+    <link href="https://watsonlu6.github.io/Storage/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/"/>
+    <id>https://watsonlu6.github.io/Storage/%E7%BC%93%E5%AD%98%E5%9F%BA%E7%A1%80%E4%B8%8ECeph%E5%88%86%E5%B1%82%E5%AD%98%E5%82%A8/</id>
     <published>2022-08-10T11:59:00.000Z</published>
     <updated>2024-09-01T13:34:14.905Z</updated>
     
@@ -525,8 +525,8 @@
   
   <entry>
     <title>存储系统缓存/分层相关论文</title>
-    <link href="https://watsonlu6.github.io/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F%E7%BC%93%E5%AD%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87/"/>
-    <id>https://watsonlu6.github.io/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F%E7%BC%93%E5%AD%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87/</id>
+    <link href="https://watsonlu6.github.io/Storage/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F%E7%BC%93%E5%AD%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87/"/>
+    <id>https://watsonlu6.github.io/Storage/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F%E7%BC%93%E5%AD%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87/</id>
     <published>2022-02-10T07:31:33.000Z</published>
     <updated>2024-08-04T07:59:18.239Z</updated>
     
@@ -553,8 +553,8 @@
   
   <entry>
     <title>Ceph PG介绍</title>
-    <link href="https://watsonlu6.github.io/ceph-PG%E4%BB%8B%E7%BB%8D/"/>
-    <id>https://watsonlu6.github.io/ceph-PG%E4%BB%8B%E7%BB%8D/</id>
+    <link href="https://watsonlu6.github.io/Storage/Ceph/ceph-PG%E4%BB%8B%E7%BB%8D/"/>
+    <id>https://watsonlu6.github.io/Storage/Ceph/ceph-PG%E4%BB%8B%E7%BB%8D/</id>
     <published>2021-11-10T10:22:25.000Z</published>
     <updated>2024-09-01T13:29:00.495Z</updated>
     

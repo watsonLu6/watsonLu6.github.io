@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph线程池实现 | watson Lu&#39;blogs</title>
+  <meta name="description" content="线程池和工作队列是紧密相连的，基本流程就是将任务送入到对应的工作队列中，线程池中的线程从工作队列中取出任务并进行处理。Ceph 为了支持高并发读写，源码设计中大量采用线程池来进行io的推进。Ceph的线程池实现了多种不同的工作队列。一般情况下，一个线程池对应一个类型的工作队列。在要求不高的情况下，也可以一个线程池对应多种类型的工作队列，让线程池处理不同类型的任务。 mutex的实现src&amp;#x2F">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph线程池实现">
+<meta property="og:url" content="https://watsonlu6.github.io/Storage/Ceph/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="线程池和工作队列是紧密相连的，基本流程就是将任务送入到对应的工作队列中，线程池中的线程从工作队列中取出任务并进行处理。Ceph 为了支持高并发读写，源码设计中大量采用线程池来进行io的推进。Ceph的线程池实现了多种不同的工作队列。一般情况下，一个线程池对应一个类型的工作队列。在要求不高的情况下，也可以一个线程池对应多种类型的工作队列，让线程池处理不同类型的任务。 mutex的实现src&amp;#x2F">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B01.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B02.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B03.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B04.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B05.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B06.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B07.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B08.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B09.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B010.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B011.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B012.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B013.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B014.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B015.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B016.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B017.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B018.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B019.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B020.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B021.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B022.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B023.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B024.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B025.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B026.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B027.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B028.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B029.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B030.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B031.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B032.png">
+<meta property="article:published_time" content="2021-08-27T14:26:42.000Z">
+<meta property="article:modified_time" content="2024-07-28T10:16:50.698Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B01.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Storage/Ceph/Ceph线程池实现" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph线程池实现
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Storage/Ceph/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/" class="article-date">
+	  <time datetime="2021-08-27T14:26:42.000Z" itemprop="datePublished">2021-08-27</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Storage/Ceph/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>线程池和工作队列是紧密相连的，基本流程就是将任务送入到对应的工作队列中，线程池中的线程从工作队列中取出任务并进行处理。Ceph 为了支持高并发读写，源码设计中大量采用线程池来进行io的推进。Ceph的线程池实现了多种不同的工作队列。一般情况下，一个线程池对应一个类型的工作队列。在要求不高的情况下，也可以一个线程池对应多种类型的工作队列，让线程池处理不同类型的任务。</p>
+<h2 id="mutex的实现"><a href="#mutex的实现" class="headerlink" title="mutex的实现"></a>mutex的实现</h2><p>src&#x2F;common&#x2F;mutex.h<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B01.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B02.png"></p>
+<p>condition variable的实现<br>src&#x2F;common&#x2F;cond.h<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B03.png"></p>
+<p><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B04.png"></p>
+<h2 id="线程的实现"><a href="#线程的实现" class="headerlink" title="线程的实现"></a>线程的实现</h2><p>Ceph中线程的在src&#x2F;common&#x2F;Thread.h中定义<br>线程编程接口中，一个线程在创建时调用pthread_create函数来传入entry函数，杀死线程调用pthread_kill函数，当线程被杀死之后，必须调用pthread_join函数来进行线程资源的回收，如果不调用此函数，就会出现类似zombie process。如果要想让系统自己回收线程资源，就要将线程与父线程分离即调用pthread_detach。通过接口对比，src&#x2F;common&#x2F;Thread.h中定义的class thread，实际上是Ceph自己封装了一个线程类，这个线程类其实就是对Linux线程接口的一层封装。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B05.png"></p>
+<p>Ceph中所有要用的线程必须继承Thread类，通过查找发现如下一些线程：</p>
+<ol>
+<li>Accepter.h (src\msg)：class Accepter : public Thread  &#x2F;&#x2F;用来socket bind的线程,   accepter线程入口函数里定义了poll的网络通讯结构，用来放入管道</li>
+<li>Admin_socket.h (src\common)：class AdminSocket : public Thread</li>
+<li>Ceph_context.cc (src\common)：class CephContextServiceThread : public Thread</li>
+<li>DispatchQueue.h (src\msg):  class DispatchThread : public Thread   &#x2F;&#x2F;用来进行消息分发的线程，  在simpleMessenger中有dispatch_queue成员变量,</li>
+<li>FileJournal.h (src\os):  class Writer : public Thread     &#x2F;&#x2F;用来进行写数据到journal中的线程</li>
+<li>FileJournal.h (src\os):  class WriteFinisher : public Thread   &#x2F;&#x2F;当用aio异步模式写数据到journal完成后，此线程用来接管其他剩余操作</li>
+<li>FileStore.h (src\os):  struct SyncThread : public Thread    &#x2F;&#x2F;用来同步数据执行同步的线程，主要是将已经完成的journal的序列号写入到文件中</li>
+<li>Finisher.h (src\common):  struct FinisherThread : public Thread   &#x2F;&#x2F;公用的finisher线程，用来查看某些特定的操作是否结束，结束后进行后续处理工作</li>
+<li>MDLog.h (src\mds):  class ReplayThread : public Thread </li>
+<li>OSD.h (src\osd):  struct T_Heartbeat : public Thread   &#x2F;&#x2F;维系osd进程之间互相心跳连接的线程</li>
+<li>OutputDataSocket.h (src\common):class OutputDataSocket : public Thread</li>
+<li>Pipe.h (src\msg): class Reader : public Thread   &#x2F;&#x2F;用来处理所有对socket的读操作，由acepter线程将socket accept以后打入到SimpleMessenger::dispatch_queue中交由此线程处理</li>
+<li>Pipe.h (src\msg): class Writer : public Thread   &#x2F;&#x2F;用来处理所有对socket的写操作，由acepter线程将socket accept以后打入到SimpleMessenger::dispatch_queue中交由此线程处理</li>
+<li>Pipe.h (src\msg):    class DelayedDelivery: public Thread    &#x2F;&#x2F;用来处理所有对socket的延时操作</li>
+<li>Signal_handler.cc (src\global)：struct SignalHandler : public Thread </li>
+<li>SimpleMessenger.h (src\msg):  class ReaperThread : public Thread &#x2F;&#x2F;用来进行消息通信的主要线程 reaper是用来在通讯完成时拆除管道，其中成员有accepter线程（用来bind，accept socket文件放入管道），还有dispatch_queue线程</li>
+<li>Throttle.cc (src\test\common):  class Thread_get : public Thread </li>
+<li>Timer.cc (src\common)：class SafeTimerThread : public Thread </li>
+<li>WorkQueue.h (src\common):  struct WorkThread : public Thread</li>
+</ol>
+<p>可以将这些线程分为四类线程</p>
+<ol>
+<li>普通类线程：<br> 使用此类线程类直接申明继承自Thread，重写一个entry函数，在进程启动最初时，调用了create函数创建了线程，同时使用它的人必须自己定义消息队列。上面大部分线程都是此类，比如FileJournal::write_thread就是一个FileJournal::Writer类对象，它自己定义了消息队列FileJournal::writeq</li>
+<li>SafeTimerThread类线程:<br> 此类线程使用者可以直接申明一个SafeTimer成员变量，因为SafeTimer中已经封装了SafeTimerThread类和一个消息队列（成员是Context回调类），并完成了entry函数的逻辑流程。使用者使用方法，就是设置回调函数，通过SafeTimer::add_event_after函数将钩子埋入，等待规定时间到达后执行。</li>
+<li>FinisherThread类线程:<br> 此类线程使用者可以直接申明一个Finisher成员变量，因为Finsher中已经封装了FinisherThread类和一个消息队列（成员是Context回调类），并完成entry函数的逻辑流程。使用者使用方法，就是设置回调函数，通过Finisher::queue函数将钩子埋入，等待某类操作完成后执行。</li>
+<li>ThreadPool内部线程：<br> 这类线程由于是具体工作类线程，所以他们一般都是以线程池形式一下创建多个。ThreadPool类内部有多个线程set&lt;WorkThread*&gt;和多个消息队列vector&lt;WorkQueue_*&gt;组成。工作流程就是线程不断的轮询从队列中拿去数据进行操作。</li>
+</ol>
+<p>可以看到Ceph线程的所有接口都只是对相应的Linux接口的封装。继承其的子类主要在于实现entry()函数：<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B06.png"></p>
+<p><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B07.png"></p>
+<p><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B08.png"></p>
+<h2 id="线程池的实现"><a href="#线程池的实现" class="headerlink" title="线程池的实现"></a>线程池的实现</h2><p>Ceph中线程池的在src&#x2F;common&#x2F;WorkQueue.h中定义<br>线程池和工作队列其实是密不可分的，从Ceph的代码中也可以看出来。让任务推入工作队列，而线程池中的线程负责从工作队列中取出任务进行处理。工作队列和线程池的关系，类似于狡兔和走狗的关系，正是因为有任务，所以才需要雇佣线程来完成任务，没有了狡兔，走狗也就失去了存在的意义。而线程必须要可以从工作队列中认领任务并完成，这就类似于猎狗要有追捕狡兔的功能。正因为两个数据结构拥有如此紧密的关系，因此，Ceph中他们的相关函数都位于WorkQueue.cc和WorkQueue.h中。</p>
+<p><strong>void ThreadPool::start()</strong><br>函数ThreadPool::start()用来启动线程池，其在加锁的情况下，调用函数start_threads()，start_threads()检查当前的线程数，如果小于配置的线程池线程数，就创建新的工作线程。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B09.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B010.png"></p>
+<p><strong>struct WorkThread : public Thread</strong><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B011.png"></p>
+<p><strong>ThreadPool::worker()</strong><br>线程池的关键在于线程的主函数做的事情。首先是工作线程。线程池中会有很多的WorkThread，它的基类就是Thread。线程的主函数为pool-&gt;worker，即ThreadPool::worker函数。其entry函数其实就是调用线程池的worker函数进行具体的工作。</p>
+<p>ThreadPool::worker函数内定义了WorkThread类线程的操作逻辑。基本流程就是轮询所有WorkQueue_，当发现某种类型WorkQueue_中有数据时拿出，然后依次调用该WorkQueue_自己定义的函数_void_process和_void_process_finish等函数来顺序执行操作。（worker函数的主要实现其实很常规，就是遍历work_queues，从其中找出每一个消息队列实例，并调用WorkQueue_自己定义的函数_void_process和_void_process_finish等函数来顺序执行操作。）<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B012.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B013.png"></p>
+<p>线程池是支持动态调整线程个数的。所谓调整，有两种可能性，一种是线程个数增加，一种线程个数减少。当添加OSD的时候，数据会重分布，恢复的速度可以调节，其中一个重要的参数为osd-max-recovery-threads，该值修改可以实时生效。</p>
+<p><strong>ThreadPool::join_old_threads()</strong><br>线程本身是一个loop，不停地处理WorkQueue中的任务，在一个loop的开头，线程个数是否超出了配置的个数，如果超出了，就需要自杀，所谓自杀即将自身推送到_old_threads中，然后跳出loop，直接返回了。线程池中的其他兄弟在busy-loop开头的join_old_threads函数会判断是否存在自杀的兄弟，如果存在的话，执行join，为兄弟收尸。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B014.png"></p>
+<p><strong>ThreadPool::start_threads()</strong><br>start_threads函数不仅仅可以用在初始化时启动所有工作线程，而且可以用于动态增加，它会根据配置要求的线程数_num_threads和当前线程池中线程的个数，来创建WorkThread，当然了，他会调整线程的io优先级。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B015.png"></p>
+<p><strong>ThreadPool::handle_conf_change()</strong><br>线程池的线程个数如果不够用，也可以动态的增加，通过配置的变化来做到：<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B016.png"></p>
+<p><strong>ThreadPool::pause()</strong><br>线程池的工作线程，绝大部分时间内，自然是busy－loop中处理工作队列上的任务，但是有一种场景是，需要让工作暂时停下来，停止工作，不要处理WorkQueue中的任务。线程池提供了一个标志为_pause,只要_pause不等于0，那么线程池中线程就在loop中就不会处理工作队列中的任务，而是空转。为了能够及时的醒来，也不是sleep，而是通过条件等待，等待执行的时间。</p>
+<p>当下达pause指令的时候，很可能线程池中的某几个线程正在处理工作队列中的任务，这种情况下并不是立刻就能停下的，只有处理完手头的任务，在下一轮loop中检查_pause标志位才能真正地停下。那么pause指令就面临选择，要不要等工作线程WorkThread处理完手头的任务。pause函数是等，pauser_new函数并不等，pause_new函数只负责设置标志位，当其返回的时候，某几个线程可能仍然在处理工作队列中的任务。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B017.png"></p>
+<p><strong>struct WorkQueue_</strong><br>在ThreadPool这个类中，set&lt;WorkThread*&gt; _threads保存着线程池中的多个线程，vector&lt;WorkQueue_*&gt; work_queues保存着线程池中的待线程处理的消息队列。整个线程池的原理思想比较简单就是生成一定数目的线程，然后线程从队列中遍历获取队列实例，调用实例自带的处理函数_void_process和_void_process_finish处理。 ThreadPool中的WorkQueue_，这是一种抽象的类，只定义了一个队列应该有的一些特定的函数，这些函数几乎都是虚函数，目的是为了调用到自己三个子类BatchWorkQueue、WorkQueueVal、WorkQueue自己定义的函数。而在三个子类中对应函数_void_process、_void_process_finish中又分别调用了使用者自己继承它们而自己实现的具体操作函数如_process,_process_finish。存放在work_queues里面的WorkQueue_类：<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B018.png"></p>
+<p>这是一个纯虚基类，也就是说不同的线程池要实现自己的队列，继承WorkQueues_并且实现其接口。线程池已经有4个纯虚基类继承这个类：</p>
+<ul>
+<li>BatchWorkQueue<br>  批量处理队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B019.png"></li>
+<li>WorkQueueVal<br>  存值队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B020.png"></li>
+<li>WorkQueue<br>  存指针队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B021.png"></li>
+<li>PointerWQ<br>  存指针队列<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B022.png"></li>
+</ul>
+<p><strong>add_work_queue()&#x2F;remove_work_queue()</strong><br>ThreadPool中的add_work_queue和remove_work_queue就是用来建立和移除与WorkQueue关联的函数<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B023.png"></p>
+<p><strong>TPHandle</strong><br>超时检查，每次线程函数执行时，都会设置一个grace超时时间，当线程执行超过该时间，就认为是unhealthy的状态。当执行时间超过suicide_grace时，OSD就会产生断言而导致自杀。heartbeat_handle_d记录了相关信息，并把该结构添加到HeartbeatMap的系统链表中保存。OSD会有一个定时器，定时检查是否超时。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B024.png"></p>
+<p>线程池使用步骤<br>先创建线程池，然后创建WorkQueue的时候，将线程池作为参数传递给WorkQueue，就能建立关系。</p>
+<ol>
+<li>声明线程池成员ThreadPool *_tp</li>
+<li>声明队列类型ThreadPool::WorkQueue_*_wq</li>
+<li>重写WorkQueue中对应函数_void_process,_void_process_finish</li>
+<li>调用*_tp.add_work_queue(*_wq)将队列传入</li>
+</ol>
+<h2 id="基本线程池扩展"><a href="#基本线程池扩展" class="headerlink" title="基本线程池扩展"></a>基本线程池扩展</h2><p>在Ceph中有不少线程池会实现继承以上基类：<br>ThreadPool op_tp: 处理client请求<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B025.png"></p>
+<p>struct recovery_tp: 处理recovery_tp操作<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B026.png"></p>
+<p>struct command_tp: 处理命令行来的操作<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B027.png"></p>
+<p>ShardedThreadPool: Ceph还实现了另外一种线程池ShardedThreadPool，这种线程池与上面的线程池不同之处在于这种线程池是多线程共享队列的方式。只有一个队列，多个线程同时对这个队列进行处理。<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B028.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B029.png"></p>
+<p>SharededWQ: shardedThreadPool类型线程池内部有个比较重要的消息队列SharededWQ，该队列将多种OP放入其中<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B030.png"></p>
+<p>Ceph 在实际使用中，会用到这种线程池<br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B031.png"><br><img src="/images/thread/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B032.png"></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E7%8E%B0/" title="Ceph线程池实现" target="_blank" rel="external">https://watsonlu6.github.io/Storage/Ceph/Ceph线程池实现/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Storage/Ceph/Ceph%E5%B8%B8%E8%A7%81%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4/" title="Ceph相关运维命令"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Storage/Ceph/Ceph-rbd%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0/" title="Ceph_rbd客户端实现"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

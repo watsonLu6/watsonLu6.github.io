@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph硬件要求 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Ceph 设计用于在普通硬件上运行，这使得构建和维护PB级数据集群变得灵活且经济可行。在规划集群的硬件时，仍需要平衡多个考虑因素，包括故障域、成本和性能。硬件规划应包括将 Ceph 守护进程和使用 Ceph 的其他进程分布在多个主机上。通常，建议在配置为特定类型守护进程的主机上运行该类型的 Ceph 守护进程。每个 Ceph 集群的需求各不相同，但以下是一些通用指南。 CPU MON节点和MGR节">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph硬件要求">
+<meta property="og:url" content="https://watsonlu6.github.io/Storage/Ceph/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="Ceph 设计用于在普通硬件上运行，这使得构建和维护PB级数据集群变得灵活且经济可行。在规划集群的硬件时，仍需要平衡多个考虑因素，包括故障域、成本和性能。硬件规划应包括将 Ceph 守护进程和使用 Ceph 的其他进程分布在多个主机上。通常，建议在配置为特定类型守护进程的主机上运行该类型的 Ceph 守护进程。每个 Ceph 集群的需求各不相同，但以下是一些通用指南。 CPU MON节点和MGR节">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/Ceph%E7%A1%AC%E4%BB%B6%E6%8E%A8%E8%8D%90.png">
+<meta property="article:published_time" content="2021-05-09T08:37:13.000Z">
+<meta property="article:modified_time" content="2024-08-18T12:38:47.171Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/Ceph%E7%A1%AC%E4%BB%B6%E6%8E%A8%E8%8D%90.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Storage/Ceph/Ceph硬件要求" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph硬件要求
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Storage/Ceph/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/" class="article-date">
+	  <time datetime="2021-05-09T08:37:13.000Z" itemprop="datePublished">2021-05-09</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Storage/Ceph/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>Ceph 设计用于在普通硬件上运行，这使得构建和维护PB级数据集群变得灵活且经济可行。在规划集群的硬件时，仍需要平衡多个考虑因素，包括故障域、成本和性能。硬件规划应包括将 Ceph 守护进程和使用 Ceph 的其他进程分布在多个主机上。通常，建议在配置为特定类型守护进程的主机上运行该类型的 Ceph 守护进程。每个 Ceph 集群的需求各不相同，但以下是一些通用指南。</p>
+<h2 id="CPU"><a href="#CPU" class="headerlink" title="CPU"></a>CPU</h2><ul>
+<li><strong>MON节点和MGR节点</strong>对 CPU 的要求不高，只需要适度的处理器。如果主机除了运行 Ceph 守护进程之外还要运行 CPU 密集型进程，请确保有足够的处理能力来同时运行这些 CPU 密集型进程和 Ceph 守护进程。建议将非 Ceph 的 CPU 密集型进程运行在独立的主机上（即不在MON节点和MGR节点上），以避免资源竞争。如果集群部署了 Ceph 对象网关，RGW 守护进程可以与MON和MGR服务共存在于资源充足的节点上。</li>
+<li><strong>OSD节点</strong>需要足够的处理能力来运行 RADOS 服务，计算 CRUSH 数据放置，复制数据，并维护自身的集群映射副本。在早期的 Ceph 版本中，我们会根据每个 OSD 的核心数量来制定硬件建议，但这种每 OSD 核心数的指标现在不如每 IOP 的周期数和每 OSD 的 IOPS 数量有用。例如，使用 NVMe OSD 驱动器时，Ceph 可以轻松利用真实集群中的五到六个核心，并在单个 OSD 中达到大约十四个核心。因此，每 OSD 的核心数不再像以前那样成为主要问题。选择硬件时，应选择每核心的 IOPS 数量。</li>
+<li><strong>MDS节点</strong>对 CPU 要求很高。它们是单线程的，具有高时钟速率 (GHz) 的 CPU 表现最佳。除非 MDS 服务器还托管其他服务（例如用于 CephFS 元数据池的 SSD OSD），否则它们不需要大量的 CPU 内核。</li>
+</ul>
+<h2 id="内存"><a href="#内存" class="headerlink" title="内存"></a>内存</h2><ul>
+<li><strong>MON节点和MGR节点</strong>：一般来说，更多的 RAM 更好。对于一个适中的集群，可能用 64GB 就足够了；对于一个拥有数百个 OSD 的大型集群，建议使用 128GB。MON和MGR守护进程的内存使用量会随着集群规模的扩大而增加。请注意，在启动时、拓扑更改和恢复期间，这些守护进程需要的内存会比在稳定运行状态下更多，因此需要计划应对峰值使用量。对于非常小的集群，32GB 的内存就足够了。对于最多 300 个 OSD 的集群，建议使用 64GB。对于构建中或将要扩展到更多 OSD 的集群，应配备 128GB 的内存。您还可能需要考虑调整以下设置：<code>mon_osd_cache_size</code>和<code>rocksdb_cache_size</code>。</li>
+<li><strong>OSD节点</strong>：Bluestore 使用其自己的内存来缓存数据，而不是依赖操作系统的页面缓存。在 Bluestore 中，可以通过更改 osd_memory_target 配置选项来调整 OSD 尝试消耗的内存量，默认值为 4GB。不建议将 <code>osd_memory_target</code> 设置低于 2GB。Ceph 可能无法将内存消耗控制在 2GB 以下，可能会导致极其缓慢的性能。将内存目标设置在 2GB 到 4GB 之间通常能正常工作，但可能会导致性能下降：如果活动数据集相对较大，元数据可能需要从磁盘读取。4GB 是当前 <code>osd_memory_target</code> 的默认值。这一默认值适用于典型用例，旨在平衡 RAM 成本和 OSD 性能。将 <code>osd_memory_target</code> 设置高于 4GB 可以在处理大量（小）对象或大型（256GB&#x2F;OSD 或更多）数据集时提高性能。特别是在使用快速 NVMe OSD 时，这种效果尤为显著。 <ul>
+<li>OSD 内存管理是“尽力而为”的。虽然 OSD 可能会解除内存映射以允许内核回收内存，但不能保证内核会在特定时间框架内实际回收释放的内存。这一点在旧版本的 Ceph 中尤其明显，因为透明大页面可能会阻止内核回收从碎片化的大页面中释放的内存。现代版本的 Ceph 在应用级别禁用了透明大页面，以避免这种情况，但这并不能保证内核会立即回收未映射的内存。OSD 仍然有可能在某些时候超出其内存目标。因此，我们建议在系统上预留至少 20% 的额外内存，以防止 OSD 在临时内存峰值或由于内核回收释放页面的延迟而发生 OOM（内存不足）。具体所需的 20% 值可能会因系统的确切配置而有所不同。</li>
+</ul>
+</li>
+<li><strong>MDS节点</strong>：CephFS 元数据守护进程的内存利用率取决于其缓存的配置大小。对于大多数系统，建议至少配置 1 GB 的内存。相关设置为 <code>mds_cache_memory_limit</code>。</li>
+<li>不建议通过为操作系统配置交换空间来为守护进程提供额外的虚拟内存。这样做可能会导致性能下降。</li>
+</ul>
+<h2 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a>磁盘</h2><ul>
+<li>在规划数据存储时需要考虑显著的成本和性能权衡。操作系统的并发操作和多个守护进程对单个驱动器进行读写操作的请求可能会影响性能。OSD 需要大量的存储驱动器空间来存储 RADOS 数据。我们建议至少使用 1 TB 的驱动器。小于 1 TB 的 OSD 驱动器会将相当大一部分容量用于元数据，小于 100 GB 的驱动器效果更差，几乎不具备有效性。<br>强烈建议为 Ceph MON和 Ceph Mgr主机、CephFS MDS元数据池和 Ceph RGW索引池配置企业级 SSD。</li>
+<li>硬盘驱动器: 仔细考虑更大磁盘的每 GB 成本优势。我们建议将磁盘驱动器的价格除以其容量来得出每 GB 成本，因为较大的驱动器可能对每 GB 成本产生显著影响。例如，一个价格为 75 美元的 1 TB 硬盘，其每 GB 成本为 0.07 美元（即 75 美元 &#x2F; 1024 GB &#x3D; 0.0732 美元&#x2F;GB）。相比之下，一个价格为 150 美元的 3 TB 硬盘，其每 GB 成本为 0.05 美元（即 150 美元 &#x2F; 3072 GB &#x3D; 0.0488 美元&#x2F;GB）。在上述示例中，使用 1 TB 磁盘通常会使每 GB 成本增加 40%，从而使您的集群在成本效率上显著降低。<br>不建议在单个 SAS&#x2F;SATA HDD 上托管多个 OSD。最好只托管一个 OSD 并直接访问磁盘（即 OSD 在非 LVM 上），因为 LVM 和其他抽象层可能会显着降低性能。</li>
+<li>固态硬盘 (SSD): 使用固态硬盘 (SSD) 时，Ceph 的性能得到显著提升。SSD 减少了随机访问时间和延迟，同时增加了吞吐量。虽然 SSD 的每 GB 成本高于 HDD，但 SSD 通常提供至少比 HDD 快 100 倍的访问时间。SSD 可以避免热点问题和繁忙集群中的瓶颈问题，并且在综合评估总拥有成本 (TCO) 时，它们可能提供更好的经济效益。尤其是在给定 IOPS 数量的情况下，SSD 的摊销驱动器成本远低于 HDD。SSD 不会遭受旋转或寻道延迟，除了改进客户端性能外，它们还大幅提高了集群变化（包括 OSD 或监视器的增加、移除或故障）时的速度和对客户端的影响。由于 SSD 没有移动机械部件，因此它们不受 HDD 的许多限制。但 SSD 也有一些重要的限制。在评估 SSD 时，必须考虑顺序和随机读写的性能。</li>
+</ul>
+<h2 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h2><ul>
+<li>Ceph 是一个高吞吐量、低延迟的分布式存储系统，对网络配置有较高的要求。集群网络的吞吐量和延迟对 Ceph 集群的性能有直接影响。因此，在配置 Ceph 网络时，应尽量选择高性能、低延迟的网络设备和网络拓扑。</li>
+<li>对于 Ceph 集群的网络配置，建议使用 10GbE 或更高速率的网络设备，并配置两个网络，一个用于 Ceph 集群的内部通信（cluster network），一个用于 Ceph 客户端与 Ceph 集群之间的通信（public network）。这种网络配置可以有效地隔离 Ceph 集群的内部通信和外部通信，从而提高网络的性能和安全性。</li>
+<li>在 1 Gb&#x2F;s 网络上复制 1 TB 数据需要 3 个小时，在 1 Gb&#x2F;s 网络上复制 10 TB 数据需要 30 个小时。但在 10 Gb&#x2F;s 网络上复制 1 TB 数据仅需 20 分钟，在 10 Gb&#x2F;s 网络上复制 10 TB 数据仅需 1 个小时。</li>
+</ul>
+<h2 id="最低硬件建议"><a href="#最低硬件建议" class="headerlink" title="最低硬件建议"></a>最低硬件建议</h2><p>Ceph 可以运行在廉价的通用硬件上。小型生产集群和开发集群可以在配置适中的硬件上成功运行。正如我们之前提到的，当我们讨论 CPU 核心时，在启用超线程 (HT) 的情况下，我们指的是逻辑线程。每个现代物理 x64 CPU 核心通常提供两个逻辑 CPU 线程；其他 CPU 架构可能有所不同。<br><img src="/images/Ceph%E7%A1%AC%E4%BB%B6%E6%8E%A8%E8%8D%90.png"></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82/" title="Ceph硬件要求" target="_blank" rel="external">https://watsonlu6.github.io/Storage/Ceph/Ceph硬件要求/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Storage/Ceph/Ceph%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE/" title="Ceph相关配置"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Storage/Ceph/Ceph%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" title="Ceph体系架构"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

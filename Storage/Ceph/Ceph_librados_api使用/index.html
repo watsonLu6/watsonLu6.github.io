@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph_librados_api使用 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Librados API概述Ceph存储集群提供基本的存储服务，Ceph以独特的方式将对象、块和文件存储集成到一个存储系统中。基于RADOS，可以不限于RESTful或POSIX接口，使用librados API能够创建自定义的Ceph存储集群接口（除了块存储、对象存储和文件系统存储外）。librados API能够与Ceph存储集群中的两种类型的守护进程进行交互：  Ceph Mon守护进程，维">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph_librados_api使用">
+<meta property="og:url" content="https://watsonlu6.github.io/Storage/Ceph/Ceph_librados_api%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="Librados API概述Ceph存储集群提供基本的存储服务，Ceph以独特的方式将对象、块和文件存储集成到一个存储系统中。基于RADOS，可以不限于RESTful或POSIX接口，使用librados API能够创建自定义的Ceph存储集群接口（除了块存储、对象存储和文件系统存储外）。librados API能够与Ceph存储集群中的两种类型的守护进程进行交互：  Ceph Mon守护进程，维">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://watsonlu6.github.io/images/Ceph_Librados_api%E4%BD%BF%E7%94%A8_1.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/Ceph_Librados_api%E4%BD%BF%E7%94%A8_2.png">
+<meta property="og:image" content="https://watsonlu6.github.io/images/Ceph_Librados_api%E4%BD%BF%E7%94%A8_3.png">
+<meta property="article:published_time" content="2021-06-18T06:28:31.000Z">
+<meta property="article:modified_time" content="2024-07-27T14:37:33.694Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://watsonlu6.github.io/images/Ceph_Librados_api%E4%BD%BF%E7%94%A8_1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Storage/Ceph/Ceph_librados_api%E4%BD%BF%E7%94%A8/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Storage/Ceph/Ceph_librados_api使用" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph_librados_api使用
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Storage/Ceph/Ceph_librados_api%E4%BD%BF%E7%94%A8/" class="article-date">
+	  <time datetime="2021-06-18T06:28:31.000Z" itemprop="datePublished">2021-06-18</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Storage/Ceph/Ceph_librados_api%E4%BD%BF%E7%94%A8/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="Librados-API概述"><a href="#Librados-API概述" class="headerlink" title="Librados API概述"></a>Librados API概述</h1><p>Ceph存储集群提供基本的存储服务，Ceph以独特的方式将对象、块和文件存储集成到一个存储系统中。基于RADOS，可以不限于RESTful或POSIX接口，使用librados API能够创建自定义的Ceph存储集群接口（除了块存储、对象存储和文件系统存储外）。<br>librados API能够与Ceph存储集群中的两种类型的守护进程进行交互：</p>
+<ul>
+<li>Ceph Mon守护进程，维护集群映射的主副本</li>
+<li>Ceph OSD守护进程，它将数据作为对象存储在存储节点上<br><img src="/images/Ceph_Librados_api%E4%BD%BF%E7%94%A8_1.png"><br>要使用 API，您需要一个正在运行的 Ceph 存储集群。（本教程教程使用ceph编译的vstart启动的开发编程环境）<br>编译模拟启动环境<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">make vstart  #模拟启动</span><br><span class="line">MDS=0 RGW=1 ../src/vstart.sh -d -l -n --bluestore  #模拟集群所有的指令都在 build/bin 目录</span><br><span class="line">bin/ceph -s  #查看 ceph 集群状态</span><br><span class="line">../src/stop.sh #停止模拟集群</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="第-1-步：获取librados"><a href="#第-1-步：获取librados" class="headerlink" title="第 1 步：获取librados"></a>第 1 步：获取librados</h3><p>Ceph客户端应用必须绑定librados才能连接Ceph存储集群。在写使用librados的ceph客户端应用前，要安装librados及其依赖包。librados API本身是用C++实现，也有C、Python、Java和PHP的API。（本教程仅限于librados C&#x2F;C++API）<br>获取C&#x2F;C++的librados</p>
+<ul>
+<li>要在 Debian&#x2F;Ubuntu 发行版上安装C&#x2F;C++ 的librados开发支持文件，执行以下命令：<br>  <code>sudo apt-get install librados-dev</code></li>
+<li>要在 RHEL&#x2F;CentOS 发行版上安装C&#x2F;C++ 的librados开发支持文件，执行以下命令：<br>  <code>sudo yum install librados2-devel</code></li>
+<li>安装librados 后，可以在&#x2F;usr&#x2F;include&#x2F;rados 下找到 C&#x2F;C++所需的头文件<br>  <code>ls /usr/include/rados</code></li>
+</ul>
+<h2 id="第-2-步：配置集群句柄"><a href="#第-2-步：配置集群句柄" class="headerlink" title="第 2 步：配置集群句柄"></a>第 2 步：配置集群句柄</h2><p>一个Ceph客户端，通过librados直接与OSD交互，来存储和取出数据。为了与OSD交互，客户端应用必须直接调用libradosAPI连接一个Ceph Monitor。一旦连接好以后，librados会从Monitor处取回一个Cluster map。当客户端的应用想读或者取数据的时候，它会创建一个I&#x2F;O上下文并且与一个pool绑定。通过这个I&#x2F;O上下文，客户端将Object的名字提供给librados，然后librados会根据Object的名字和Cluster map计算出相应的PG和OSD的位置。然后客户端就可以读或者写数据。客户端的应用无需知道这个集群的拓扑结构。<br><img src="/images/Ceph_Librados_api%E4%BD%BF%E7%94%A8_2.png"><br>Ceph存储集群手柄封装客户端配置，包括：</p>
+<ul>
+<li>基于用户ID的rados_create() 或者基于用户名的rados_create2()(首选) </li>
+<li>cephx认证密钥</li>
+<li>Mon ID和IP地址</li>
+<li>日志记录级别</li>
+<li>调试级别</li>
+</ul>
+<p>因此，Ceph客户端应用程序使用Ceph群集的步骤：</p>
+<ol>
+<li>创建一个集群句柄，客户端应用将使用该句柄连接到存储集群中；</li>
+<li>使用该手柄进行连接。要连接到集群的客户端应用必须提供Mon地址，用户名和认证密钥（默认启用cephx）。<br>提示：与不同的 Ceph 存储集群或与具有不同用户的同一个集群通信需要不同的集群句柄。RADOS 提供了多种设置所需值的方法。对于Mon和加密密钥设置，处理它们的一种简单方法是确保 Ceph 配置文件包含密钥环文件的密钥环路径和至少一个Mon地址（例如mon host）。例如:<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[global]</span><br><span class="line">mon host = 192.168.1.1</span><br><span class="line">keyring = /etc/ceph/ceph.client.admin.keyring</span><br></pre></td></tr></table></figure></li>
+<li>创建句柄后，读取 Ceph 配置文件来配置句柄。可以将参数传递给客户端应用程序并使用解析命令行参数的函数（例如rados_conf_parse_argv()）或解析 Ceph 环境变量（例如rados_conf_parse_env()）来解析它们。</li>
+<li>连接后，客户端应用程序可以调用仅使用集群句柄影响整个集群的函数。例如，一旦有了集群句柄，就可以：<br> • 获取集群统计信息<br> • 使用池操作（存在、创建、列出、删除）<br> • 获取和设置配置</li>
+</ol>
+<p>Ceph 的强大功能之一是能够绑定到不同的池。每个池可能有不同数量的归置组、对象副本和复制策略。例如，可以将池设置为使用 SSD 存储常用对象的“热”池或使用纠删码的“冷”池。各种语言的librados 绑定的主要区别在于 C 与C++、Java 和 Python 的面向对象绑定之间。面向对象的绑定使用对象来表示集群句柄、IO 上下文、迭代器、异常等。</p>
+<p><strong>C调用librados 示例</strong><br>对于 C，使用管理员用户创建一个简单的集群句柄，配置它并连接到集群如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rados/librados.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc,<span class="type">const</span> <span class="type">char</span>* argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="type">rados_t</span> cluster;</span><br><span class="line">        <span class="type">char</span> cluster_name[] = <span class="string">&quot;ceph&quot;</span>;</span><br><span class="line">        <span class="type">char</span> user_name[] = <span class="string">&quot;client.admin&quot;</span>;</span><br><span class="line">        <span class="type">char</span> conf_flie[] = <span class="string">&quot;/home/watson/ceph/build/ceph.conf&quot;</span>;</span><br><span class="line">        <span class="type">uint64_t</span> flags;</span><br><span class="line">        <span class="type">int</span> err;</span><br><span class="line">        err = rados_create2(&amp;cluster,cluster_name,user_name,flags);</span><br><span class="line">        <span class="keyword">if</span>(err &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">&quot;%s: Couldn&#x27;t create the cluster handle!%s\n&quot;</span>,argv[<span class="number">0</span>],strerror(-err));</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Create a cluster handle!!!\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        err = rados_conf_read_file(cluster,conf_flie);</span><br><span class="line">        <span class="keyword">if</span>(err &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">&quot;%s: cannot read config file: %s\n&quot;</span>,argv[<span class="number">0</span>],strerror(-err));</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Read the config flie\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        err = rados_conf_parse_argv(cluster,argc,argv);</span><br><span class="line">        <span class="keyword">if</span>(err &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">&quot;%s: cannot parse command line arguments: %s\n&quot;</span>,argv[<span class="number">0</span>],strerror(-err));</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Read the command line arguments\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        err = rados_connect(cluster);</span><br><span class="line">        <span class="keyword">if</span>(err &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">&quot;%s: cannot connect to cluster: %s\n&quot;</span>,argv[<span class="number">0</span>],strerror(-err));</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Connected to the cluster\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用-lrados编译客户端应用代码并链接到librados，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc ceph-client.c -lrados -o ceph-client</span><br></pre></td></tr></table></figure>
+<p>ceph源码开发vstart环境下的编译，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -g rados_write.c -lrados -L/home/watson/ceph/build/lib -o rados_write -Wl,-rpath,/home/watson/ceph/build/lib</span><br></pre></td></tr></table></figure>
+
+<p><strong>C++调用librados示例</strong><br>Ceph项目在ceph&#x2F;examples&#x2F;librados目录中提供了一个 C++ 示例。对于 C++，使用管理员用户的简单集群句柄需要初始化librados::Rados集群句柄对象</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rados/librados.hpp&gt;</span></span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    *通过librados::Rados句柄处理整个RADOS系统层面以及pool层面的管理。</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc,<span class="type">const</span> <span class="type">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> ret = <span class="number">0</span>;</span><br><span class="line">    librados::Rados cluster;    <span class="comment">//定义一个操控集群的句柄对象</span></span><br><span class="line">    <span class="type">char</span> cluster_name[] = <span class="string">&quot;ceph&quot;</span>;     <span class="comment">//集群名字</span></span><br><span class="line">    <span class="type">char</span> user_name[] = <span class="string">&quot;client.admin&quot;</span>;   <span class="comment">//集群用户名</span></span><br><span class="line">    <span class="type">char</span> conf_flie[] = <span class="string">&quot;/home/watson/ceph/build/ceph.conf&quot;</span>;   <span class="comment">//集群配置文件</span></span><br><span class="line">    <span class="type">uint64_t</span> flags;</span><br><span class="line">    ret = cluster.<span class="built_in">init2</span>(user_name,cluster_name,flags);      <span class="comment">//初始化句柄对象</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t initialize the cluster handle! error: &quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;Create a cluster handle.&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ret = cluster.<span class="built_in">conf_read_file</span>(conf_flie);     <span class="comment">//读配置文件获取Mon的信息</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t read the ceph configuration file! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;Read the ceph configuration file.&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ret = cluster.<span class="built_in">conf_parse_argv</span>(argc,argv);   <span class="comment">//解析命令行输入的参数</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t parsed command line options!error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;Parsed command line options.&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ret = cluster.<span class="built_in">connect</span>();   <span class="comment">//连接集群</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t connect to cluster! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;Connected to the cluster.&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    cluster.<span class="built_in">pool_create</span>(<span class="string">&quot;testpool&quot;</span>); <span class="comment">//创建存储池</span></span><br><span class="line">    std::list&lt;std::string&gt; poolList; </span><br><span class="line">    cluster.<span class="built_in">pool_list</span>(poolList);   <span class="comment">//获取存储池列表</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">auto</span> iter : poolList)&#123;</span><br><span class="line">        std::cout&lt;&lt;iter&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译源码，然后，使用-lrados链接librados，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">g++ -g -c ceph-client.cc -o ceph-client.o </span><br><span class="line">g++ -g ceph-client.o -lrados -o ceph-client</span><br></pre></td></tr></table></figure>
+<p>ceph源码开发vstart环境下的编译，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ -g librados_rados.cpp -lrados -L/home/watson/ceph/build/lib -o librados_rados -Wl,-rpath,/home/watson/ceph/build/lib</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="第-3-步：创建-I-O-上下文"><a href="#第-3-步：创建-I-O-上下文" class="headerlink" title="第 3 步：创建 I&#x2F;O 上下文"></a>第 3 步：创建 I&#x2F;O 上下文</h2><p>一旦客户端应用程序拥有集群句柄并连接到 Ceph 存储集群，就可以创建 I&#x2F;O 上下文并开始读取和写入数据。I&#x2F;O 上下文将连接绑定到特定池。用户必须具有适当的CAPS权限才能访问指定的池。例如，具有读取权限但没有写入权限的用户将只能读取数据。I&#x2F;O 上下文功能包括：</p>
+<ul>
+<li>写入&#x2F;读取数据和扩展属性</li>
+<li>列出并迭代对象和扩展属性</li>
+<li>快照池、列表快照等<br><img src="/images/Ceph_Librados_api%E4%BD%BF%E7%94%A8_3.png"><br>RADOS 使客户端应用程序能够进行同步和异步交互。一旦应用程序具有 I&#x2F;O 上下文，读&#x2F;写操作只需要知道对象&#x2F;xattr 名称。librados中封装的 CRUSH 算法使用Cluster map来选择合适的 OSD。OSD 守护进程自动处理副本。librados库将对象映射到归置组。以下示例使用默认数据池。但是，也可以使用 API 列出池、确保它们存在或创建和删除池。对于写操作，示例说明了如何使用同步模式。对于读取操作，示例说明了如何使用异步模式。<code>(提示：使用此 API 删除池时要小心。如果删除池，则该池和池中的所有数据都将丢失。)</code><br><strong>C创建Ceph IO上下文示例</strong><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rados/librados.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc,<span class="type">const</span> <span class="type">char</span>* argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">rados_t</span> cluster;      <span class="comment">//集群句柄</span></span><br><span class="line">    <span class="type">rados_ioctx_t</span> io;     <span class="comment">//io上下文</span></span><br><span class="line">    <span class="type">char</span> cluster_name[] = <span class="string">&quot;ceph&quot;</span>;</span><br><span class="line">    <span class="type">char</span> user_name[] = <span class="string">&quot;client.admin&quot;</span>;</span><br><span class="line">    <span class="type">char</span> conf_flie[] = <span class="string">&quot;/home/watson/ceph/build/ceph.conf&quot;</span>;</span><br><span class="line">    <span class="type">char</span> poolname[] = <span class="string">&quot;testpool&quot;</span>;</span><br><span class="line">    <span class="type">uint64_t</span> flags;</span><br><span class="line">    <span class="type">int</span> err;</span><br><span class="line">    <span class="comment">/*  为了使示例代码更可观性，不对返回值判错，实际应用中需要进行判错，请养成良好习惯！  */</span></span><br><span class="line">    err = rados_create2(&amp;cluster,cluster_name,user_name,flags);</span><br><span class="line">    err = rados_conf_read_file(cluster,conf_flie);</span><br><span class="line">    err = rados_conf_parse_argv(cluster,argc,argv);</span><br><span class="line">    err = rados_connect(cluster);</span><br><span class="line">    <span class="keyword">if</span>(err &lt; <span class="number">0</span>)                     <span class="comment">//检查是否连接到集群上</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">&quot;%s: Cannot connect to cluster: %s\n&quot;</span>,argv[<span class="number">0</span>],strerror(-err));</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Connected to the cluster......\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//err = rados_pool_delete(cluster,poolname);</span></span><br><span class="line">    <span class="type">int</span> poolID = rados_pool_lookup(cluster,poolname);  <span class="comment">//通过poolname获取pool的ID，若池不存在返回-ENOENT</span></span><br><span class="line">    <span class="keyword">if</span>(poolID == -ENOENT)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;this pool does not exist,and create the pool...... \n&quot;</span>);</span><br><span class="line">        rados_pool_create(cluster,poolname);</span><br><span class="line">    &#125;</span><br><span class="line">    err = rados_ioctx_create(cluster,poolname,&amp;io);    <span class="comment">//初始化io上下文</span></span><br><span class="line">    <span class="type">char</span> obj_name[] = <span class="string">&quot;obj&quot;</span>;</span><br><span class="line">    <span class="type">char</span> obj_content[] = <span class="string">&quot;Hello librados&quot;</span>;</span><br><span class="line">    err = rados_write(io,obj_name,obj_content,<span class="built_in">strlen</span>(obj_content),<span class="number">0</span>);    <span class="comment">//往集群写入对象</span></span><br><span class="line">    <span class="keyword">if</span>(err == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;rados_write success......\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">char</span> xattr[] = <span class="string">&quot;en_US&quot;</span>;</span><br><span class="line">    err = rados_setxattr(io,obj_name,<span class="string">&quot;lang&quot;</span>,xattr,<span class="number">5</span>);     <span class="comment">//给对象设置属性</span></span><br><span class="line">    <span class="keyword">if</span>(err == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Set object xattr success......\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">rados_completion_t</span> comp;</span><br><span class="line">    err = rados_aio_create_completion(<span class="literal">NULL</span>,<span class="literal">NULL</span>,<span class="literal">NULL</span>,&amp;comp);      <span class="comment">//异步读</span></span><br><span class="line">    <span class="type">char</span> read_ret[<span class="number">1024</span>];</span><br><span class="line">    err = rados_aio_read(io,obj_name,comp,read_ret,<span class="keyword">sizeof</span>(read_ret),<span class="number">0</span>);</span><br><span class="line">    rados_aio_wait_for_complete(comp);</span><br><span class="line">    <span class="keyword">if</span>( err == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%s\&#x27;s content is %s\n&quot;</span>,obj_name,read_ret);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;read_aio_read: err\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    rados_aio_release(comp);</span><br><span class="line">    err = rados_read(io,obj_name,read_ret,<span class="keyword">sizeof</span>(read_ret),<span class="number">0</span>);        <span class="comment">//同步读</span></span><br><span class="line">    <span class="keyword">if</span>( err &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%s\&#x27;s content is %s\n&quot;</span>,obj_name,read_ret);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;read_read: err\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">char</span> xattr_ret[<span class="number">100</span>];</span><br><span class="line">    err = rados_getxattr(io,obj_name,<span class="string">&quot;lang&quot;</span>,xattr_ret,<span class="number">6</span>);     <span class="comment">//获取对象属性</span></span><br><span class="line">    <span class="keyword">if</span>( err &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Read %s\&#x27;s xattr \&quot;lang\&quot; is %s\n&quot;</span>,obj_name,xattr_ret);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;rados_getxattr: err\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    err = rados_rmxattr(io,obj_name,<span class="string">&quot;lang&quot;</span>);     <span class="comment">//删除对象属性</span></span><br><span class="line">    err = rados_remove(io,obj_name);     <span class="comment">//删除对象</span></span><br><span class="line">    rados_ioctx_destroy(io);   <span class="comment">//释放io上下文</span></span><br><span class="line">    rados_shutdown(cluster);    <span class="comment">//关闭集群句柄</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<strong>C++创建Ceph IO上下文示例</strong><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rados/librados.hpp&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc,<span class="type">const</span> <span class="type">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    librados::Rados cluster;</span><br><span class="line">    librados::IoCtx io_ctx;</span><br><span class="line">    <span class="type">char</span> cluster_name[] = <span class="string">&quot;ceph&quot;</span>;</span><br><span class="line">    <span class="type">char</span> user_name[] = <span class="string">&quot;client.admin&quot;</span>;</span><br><span class="line">    <span class="type">char</span> conf_flie[] = <span class="string">&quot;/home/watson/ceph/build/ceph.conf&quot;</span>;</span><br><span class="line">    <span class="type">char</span> poolname[] = <span class="string">&quot;testpool&quot;</span>;</span><br><span class="line">    <span class="type">uint64_t</span> flags;</span><br><span class="line">    <span class="type">int</span> ret;</span><br><span class="line">    <span class="comment">/*  为了使示例代码更可观性，不对返回值判错，实际应用中需要进行判错，请养成良好习惯！  */</span></span><br><span class="line">    ret = cluster.<span class="built_in">init2</span>(user_name,cluster_name,flags);</span><br><span class="line">    ret = cluster.<span class="built_in">conf_read_file</span>(conf_flie);</span><br><span class="line">    ret = cluster.<span class="built_in">conf_parse_argv</span>(argc,argv);</span><br><span class="line">    ret = cluster.<span class="built_in">connect</span>();       </span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span> )           <span class="comment">//测试集群连接情况</span></span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t connect to cluster! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;Connected to the cluster.&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> poolID = cluster.<span class="built_in">pool_lookup</span>(poolname);     <span class="comment">//通过pool名检测是否存在pool</span></span><br><span class="line">    <span class="keyword">if</span>(poolID == -ENOENT)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;this pool does not exist,and create the pool...... \n&quot;</span>);</span><br><span class="line">        cluster.<span class="built_in">pool_create</span>(poolname);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;pool &quot;</span>&lt;&lt;poolID&lt;&lt;<span class="string">&quot;  is using......&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ret = cluster.<span class="built_in">ioctx_create</span>(poolname,io_ctx);    <span class="comment">//初始化io_ctx</span></span><br><span class="line">    <span class="type">char</span> obj_name[] = <span class="string">&quot;obj&quot;</span>;</span><br><span class="line">    librados::bufferlist bl;</span><br><span class="line">    bl.<span class="built_in">append</span>(<span class="string">&quot;Hello Librados!&quot;</span>);</span><br><span class="line">    ret = io_ctx.<span class="built_in">write_full</span>(obj_name,bl);         <span class="comment">//往集群写入数据</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t write object! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;Write success......&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    librados::bufferlist lang_bl;</span><br><span class="line">    lang_bl.<span class="built_in">append</span>(<span class="string">&quot;en_US&quot;</span>);</span><br><span class="line">    ret = io_ctx.<span class="built_in">setxattr</span>(obj_name,<span class="string">&quot;lang&quot;</span>,lang_bl);          <span class="comment">//给对象设置属性</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t write object xattr! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;<span class="string">&quot;Set xattr success......&quot;</span>&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    librados::bufferlist read_bl;                 <span class="comment">//异步读</span></span><br><span class="line">    <span class="type">int</span> read_len = <span class="number">1024</span>;</span><br><span class="line">    librados::AioCompletion *read_completion = librados::Rados::<span class="built_in">aio_create_completion</span>();</span><br><span class="line">    ret = io_ctx.<span class="built_in">aio_read</span>(obj_name,read_completion,&amp;read_bl,read_len,<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t read object! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line">    read_completion-&gt;<span class="built_in">wait_for_complete</span>();    <span class="comment">//等待异步完成</span></span><br><span class="line">    ret = read_completion-&gt;<span class="built_in">get_return_value</span>();       <span class="comment">//获取返回值</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t read object! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;read_bl.<span class="built_in">c_str</span>()&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    librados::bufferlist lang_res;</span><br><span class="line">    ret = io_ctx.<span class="built_in">getxattr</span>(obj_name,<span class="string">&quot;lang&quot;</span>,lang_res);       <span class="comment">//获取属性</span></span><br><span class="line">    <span class="keyword">if</span>(ret &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr&lt;&lt;<span class="string">&quot;Couldn&#x27;t read object xattr! error&quot;</span>&lt;&lt;ret&lt;&lt;std::endl;</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        std::cout&lt;&lt;lang_res.<span class="built_in">c_str</span>()&lt;&lt;std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ret = io_ctx.<span class="built_in">rmxattr</span>(obj_name,<span class="string">&quot;lang&quot;</span>);     <span class="comment">//删除对象属性</span></span><br><span class="line">    ret = io_ctx.<span class="built_in">remove</span>(obj_name);           <span class="comment">//删除对象</span></span><br><span class="line">    io_ctx.<span class="built_in">close</span>();       <span class="comment">//关闭io</span></span><br><span class="line">    cluster.<span class="built_in">shutdown</span>();      <span class="comment">//关闭集群句柄</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="第-4-步：结束会话"><a href="#第-4-步：结束会话" class="headerlink" title="第 4 步：结束会话"></a>第 4 步：结束会话</h2><p>一旦客户端应用程序完成了 I&#x2F;O 上下文和集群句柄，应用程序应该关闭连接并关闭句柄。对于异步 I&#x2F;O，应用程序还应确保挂起的异步操作已完成。<br><strong>C结束会话示例</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rados_ioctx_destroy(io); </span><br><span class="line">rados_shutdown(cluster);</span><br></pre></td></tr></table></figure>
+<p><strong>C++结束会话示例</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">io_ctx.<span class="built_in">close</span>(); </span><br><span class="line">cluster.<span class="built_in">shutdown</span>();</span><br></pre></td></tr></table></figure>
+<p>补充：查看pool下的object对象 –all 显示所有namespace的object</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rados ls -p pool --all</span><br></pre></td></tr></table></figure>
+
+<h2 id="LIBRADOS常用接口"><a href="#LIBRADOS常用接口" class="headerlink" title="LIBRADOS常用接口"></a>LIBRADOS常用接口</h2><ol>
+<li><p>集群配置：提供了获取和设置配置值的方法，读取Ceph配置文件，并解析参数。<br> Rados.conf_get(option)<br> Rados.conf_set(option, val)<br> Rados.conf_read_file(path)<br> Rados.conf_parse_argv(args)<br> Rados.version()</p>
+</li>
+<li><p>连接管理：连接到集群、检查集群、检索集群的统计数据，并从集群断开连接。也可以断言集群句柄处于一个特定的状态（例如，”配置”，”连接”等等）。<br> Rados.connect(timeout)<br> Rados.shutdown()<br> Rados.get_fsid()<br> Rados.get_cluster_stats()</p>
+</li>
+<li><p>池操作：列出可用的池，创建一个池，检查一个池是否存在，并删除一个池。<br> Rados.list_pools()<br> Rados.create_pool(pool_name, crush_rule, auid)<br> Rados.pool_exists(pool_name)<br> Rados.delete_pool(pool_name)</p>
+</li>
+<li><p>CLI 命令：Ceph CLI命令在内部使用以下librados Python绑定方法。<br> Rados.mon_command(cmd, inbuf, timeout, target)<br> Rados.osd_command(osdid, cmd, inbuf, timeout)<br> Rados.mgr_command(cmd, inbuf, timeout, target)<br> Rados.pg_command(pgid, cmd, inbuf, timeout)</p>
+</li>
+<li><p>I&#x2F;O上下文：为了将数据写入Ceph对象存储和从Ceph对象存储读取数据，必须创建一个输入&#x2F;输出上下文（ioctx）。Rados类提供了open_ioctx()和open_ioctx2()方法。其余的操作涉及调用Ioctx和其他类的方法。<br> Rados.open_ioctx(ioctx_name)<br> Ioctx.require_ioctx_open()<br> Ioctx.get_stats()<br> Ioctx.get_last_version()<br> Ioctx.close()</p>
+</li>
+<li><p>对象操作：同步或异步地读和写对象。一个对象有一个名称（或键）和数据。<br> Ioctx.aio_write(object_name, to_write, offset, oncomplete, onsafe)<br> Ioctx.aio_write_full(object_name, to_write, oncomplete, onsafe)<br> Ioctx.aio_append(object_name, to_append, oncomplete, onsafe)<br> Ioctx.write(key, data, offset)<br> Ioctx.write_full(key, data)<br> Ioctx.aio_flush()<br> Ioctx.set_locator_key(loc_key)<br> Ioctx.aio_read(object_name, length, offset, oncomplete)<br> Ioctx.read(key, length, offset)<br> Ioctx.stat(key)<br> Ioctx.trunc(key, size)<br> Ioctx.remove_object(key)</p>
+</li>
+<li><p>对象扩展属性：在一个对象上设置扩展属性(XATTRs)。<br> Ioctx.set_xattr(key, xattr_name, xattr_value)<br> Ioctx.get_xattrs(oid)<br> XattrIterator.<strong>next</strong>()<br> Ioctx.get_xattr(key, xattr_name)<br> Ioctx.rm_xattr(key, xattr_name)</p>
+</li>
+<li><p>对象接口：从一个池中检索一个对象的列表，并对它们进行迭代。提供的对象接口使每个对象看起来像一个文件，可以对对象进行同步操作。对于异步操作，应该使用I&#x2F;O上下文的方法。<br> Ioctx.list_objects()<br> ObjectIterator.<strong>next</strong>()<br> Object.read(length&#x3D;1024 * 1024)<br> Object.write(string_to_write)<br> Object.get_xattrs()<br> Object.get_xattr(xattr_name)<br> Object.set_xattr(xattr_name, xattr_value)<br> Object.rm_xattr(xattr_name)<br> Object.stat()<br> Object.remove()</p>
+</li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Storage/Ceph/Ceph_librados_api%E4%BD%BF%E7%94%A8/" title="Ceph_librados_api使用" target="_blank" rel="external">https://watsonlu6.github.io/Storage/Ceph/Ceph_librados_api使用/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Storage/Ceph/Ceph%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E8%B0%83%E8%AF%95/" title="Ceph源码编译调试"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Storage/Ceph/Ceph_librados%E4%BB%8B%E7%BB%8D/" title="Ceph_librados介绍"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

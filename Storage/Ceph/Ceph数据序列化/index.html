@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Ceph序列化 | watson Lu&#39;blogs</title>
+  <meta name="description" content="Ceph 数据序列化Ceph 作为主要处理磁盘和网络的分布式存储系统，数据序列化是其最基本的功能之一。当一个结构通过网络发送或写入磁盘时，它会被编码为一串字节。可序列化的结构体具有 encode 和 decode 方法，用于将结构体序列化后存入 bufferlist，或从 bufferlist 读取字节串并反序列化为结构体。 在 Ceph 中，经常需要将一个 bufferlist 编码（encod">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ceph序列化">
+<meta property="og:url" content="https://watsonlu6.github.io/Storage/Ceph/Ceph%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="watson&#39;blogs">
+<meta property="og:description" content="Ceph 数据序列化Ceph 作为主要处理磁盘和网络的分布式存储系统，数据序列化是其最基本的功能之一。当一个结构通过网络发送或写入磁盘时，它会被编码为一串字节。可序列化的结构体具有 encode 和 decode 方法，用于将结构体序列化后存入 bufferlist，或从 bufferlist 读取字节串并反序列化为结构体。 在 Ceph 中，经常需要将一个 bufferlist 编码（encod">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-07-10T04:43:01.000Z">
+<meta property="article:modified_time" content="2024-07-27T14:36:56.441Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="云存储">
+<meta property="article:tag" content="Ceph">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="watson&#39;blogs" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/watsonLu6/" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">watson</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Cloud computing development engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> BeiJing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/">个人生活</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a><span class="category-list-count">29</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a><span class="category-list-count">24</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/">存储基础</a><span class="category-list-count">5</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><span class="category-list-count">12</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a><span class="category-list-count">12</span></li></ul></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ceph/" rel="tag">Ceph</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/libvirt/" rel="tag">libvirt</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" rel="tag">个人生活</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a><span class="tag-list-count">29</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag">云计算</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" rel="tag">存储基础</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Ceph/" style="font-size: 13.75px;">Ceph</a> <a href="/tags/libvirt/" style="font-size: 13.5px;">libvirt</a> <a href="/tags/%E4%B8%AA%E4%BA%BA%E7%94%9F%E6%B4%BB/" style="font-size: 13px;">个人生活</a> <a href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" style="font-size: 14px;">云存储</a> <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" style="font-size: 13.5px;">云计算</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80/" style="font-size: 13.25px;">存储基础</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">三月 2024</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">十月 2022</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">八月 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">二月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">十一月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">十月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">九月 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">八月 2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/12-libvirt%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="title">12 libvirt使用示例</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-12T07:50:26.000Z" itemprop="datePublished">2024-03-12</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/11-libvirt%E8%B0%83%E8%AF%95%E4%B8%8E%E6%97%A5%E5%BF%97/" class="title">11 libvirt调试与日志</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-11T07:50:26.000Z" itemprop="datePublished">2024-03-11</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/10-libvirt%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F/" class="title">10 libvirt安全模式</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-10T07:50:26.000Z" itemprop="datePublished">2024-03-10</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/9-libvirt%E4%BA%8B%E4%BB%B6%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8%E5%A4%84%E7%90%86/" class="title">9 libvirt事件和计时器处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-09T07:50:26.000Z" itemprop="datePublished">2024-03-09</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/libvirt/">libvirt</a>
+              </p>
+              <p class="item-title">
+                <a href="/libvirt%E6%96%87%E6%A1%A3/8-libvirt%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="title">8 libvirt错误处理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2024-03-08T07:50:26.000Z" itemprop="datePublished">2024-03-08</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Storage/Ceph/Ceph数据序列化" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Ceph序列化
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/Storage/Ceph/Ceph%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96/" class="article-date">
+	  <time datetime="2021-07-10T04:43:01.000Z" itemprop="datePublished">2021-07-10</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/">云存储</a>►<a class="article-category-link" href="/categories/%E4%BA%91%E5%AD%98%E5%82%A8/Ceph/">Ceph</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Ceph/" rel="tag">Ceph</a>, <a class="article-tag-link-link" href="/tags/%E4%BA%91%E5%AD%98%E5%82%A8/" rel="tag">云存储</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/Storage/Ceph/Ceph%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="Ceph-数据序列化"><a href="#Ceph-数据序列化" class="headerlink" title="Ceph 数据序列化"></a>Ceph 数据序列化</h2><p>Ceph 作为主要处理磁盘和网络的分布式存储系统，数据序列化是其最基本的功能之一。当一个结构通过网络发送或写入磁盘时，它会被编码为一串字节。可序列化的结构体具有 encode 和 decode 方法，用于将结构体序列化后存入 bufferlist，或从 bufferlist 读取字节串并反序列化为结构体。</p>
+<p>在 Ceph 中，经常需要将一个 bufferlist 编码（encode）到另一个 bufferlist 中。例如，在 msg 发送消息时，msg 通常会接收到由 OSD 等逻辑层传递给它的 bufferlist，然后 msg 需要给这个 bufferlist 添加消息头和消息尾，而消息头和消息尾也是用 bufferlist 表示的。在这种情况下，msg 通常会构造一个空的 bufferlist，然后将消息头、消息尾和内容都编码到这个空的 bufferlist 中。</p>
+<p>在 bufferlist 之间进行编码实际上只需要进行指针的复制，而不涉及系统内存的申请和复制，因此效率较高。encode 和 decode 方法的主要作用是方便 Ceph 不同模块之间的参数传输。</p>
+<p>在Ceph代码中有很多例子，这里有一个例子。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">AcmeClass</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> member1;</span><br><span class="line">    std::string member2;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">encode</span><span class="params">(bufferlist &amp;bl)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">ENCODE_START</span>(<span class="number">1</span>, <span class="number">1</span>, bl);</span><br><span class="line">        ::<span class="built_in">encode</span>(member1, bl);</span><br><span class="line">        ::<span class="built_in">encode</span>(member2, bl);</span><br><span class="line">        <span class="built_in">ENCODE_FINISH</span>(bl);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">decode</span><span class="params">(bufferlist::iterator &amp;bl)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">DECODE_START</span>(<span class="number">1</span>, bl);</span><br><span class="line">        ::<span class="built_in">decode</span>(member1, bl);</span><br><span class="line">        ::<span class="built_in">decode</span>(member2, bl);</span><br><span class="line">        <span class="built_in">DECODE_FINISH</span>(bl);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><code>ENCODE_START</code>宏写入标头 说明version和 compat_version（初值均为 1）。每当对encode进行更改时，version就会增加。仅当更改会影响decode时compat_version才会增加  - 比如新结构体只在尾部添加字段，不会影响旧结构体的解析，因此在结构末尾添加字段的更改不需要增加 compat_version。<br><code>DECODE_START</code>宏采用一个参数，指定encode代码可以处理的最新消息版本。这与消息中编码的 compat_version 进行比较，如果消息太新，则会抛出异常。因为对 compat_verison 的更改很少，所以在添加字段时通常不需要担心。</p>
+<h2 id="Ceph序列化的方式"><a href="#Ceph序列化的方式" class="headerlink" title="Ceph序列化的方式"></a>Ceph序列化的方式</h2><p>序列化（在 Ceph 中称为 encode）的目的是将数据结构表示为二进制流，以便通过网络传输或保存在磁盘等存储介质上。其逆过程称为反序列化（在 Ceph 中称为 decode）。例如，对于字符串“abc”，其序列化结果为7个字节（bytes）：03 00 00 00 61 62 63，其中前四个字节（03 00 00 00）表示字符串的长度为3个字符，后三个字节（61 62 63）分别是字符“abc”的 ASCII 码的十六进制表示。Ceph 采用 little-endian 的序列化方式，即低地址存放最低有效字节，因此32位整数0x12345678的序列化结果为78 56 34 12。</p>
+<p>由于序列化在整个 Ceph 系统中是非常基础且常用的功能，Ceph 将其序列化方式设计为统一的结构，即任何支持序列化的数据结构都必须提供一对定义在全局命名空间中的序列化&#x2F;反序列化（encode&#x2F;decode）函数。例如，如果我们定义了一个结构体 inode，就必须在全局命名空间中定义以下两个方法：</p>
+<ol>
+<li><code>encode(struct inode, bufferlist bl);</code></li>
+<li><code>decode(struct inode, bufferlist::iterator bl);</code></li>
+</ol>
+<p>在此基础上，序列化的使用变得非常简单。对于任意可序列化的类型 T 的实例 instance_T，可以通过如下语句将 instance_T 序列化并保存到 bufferlist 类的实例 instance_bufferlist 中。</p>
+<p>bufferlist类（定义于include&#x2F;buffer.h）是ceph核心的缓存类，用于保存序列化结果、数据缓存、网络通信等，能够将bufferlist理解为一个可变长度的char数组。</p>
+<p>如下代码演示了将一个时间戳以及一个inode序列化到一个bufferlist中。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">utime_t</span> timestamp;</span><br><span class="line"><span class="type">inode_t</span> inode;</span><br><span class="line">bufferlist bl;</span><br><span class="line">::<span class="built_in">encode</span>(timetamp, bl)</span><br><span class="line">::<span class="built_in">encode</span>(inode, bl);</span><br></pre></td></tr></table></figure>
+
+<p>序列化后的数据能够经过反序列化方法读取，例如如下代码片断从一个bufferlist中反序列化一个时间戳和一个inode（前提是该bl中已经被序列化了一个utime_t和一个inode，不然会报错）。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bufferlist::iterator bl;</span><br><span class="line">::<span class="built_in">decode</span>(timetamp, bl)</span><br><span class="line">::<span class="built_in">decode</span>(inode, bl);</span><br></pre></td></tr></table></figure>
+
+<h2 id="各种数据类型的序列化"><a href="#各种数据类型的序列化" class="headerlink" title="各种数据类型的序列化"></a>各种数据类型的序列化</h2><p>Ceph为其全部用到数据类型提供了序列化方法或反序列化方法，这些数据类型包括了绝大部分<code>基础数据类型（int、bool等）</code>、<code>结构体类型的序列化（ceph_mds_request_head等）</code>、<code>集合类型（vector、list、set、map等）</code>、以及<code>自定义的复杂数据类型（例如表示inode的inode_t等）</code>，如下分别介绍不一样数据类型的序列化实现方式。</p>
+<h4 id="1、基本数据类型的序列化"><a href="#1、基本数据类型的序列化" class="headerlink" title="1、基本数据类型的序列化"></a>1、基本数据类型的序列化</h4><p>基本数据类型的序列化结果基本就是该类型在内存中的表示形式。基本数据类型的序列化方法使用手工编写，定义在include&#x2F;encoding.h中，包括如下类型：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">__u8, __s8, <span class="type">char</span>, <span class="type">bool</span></span><br><span class="line">ceph_le64, ceph_le32, ceph_le16,</span><br><span class="line"><span class="type">float</span>, <span class="type">double</span>,</span><br><span class="line"><span class="type">uint64_t</span>, <span class="type">int64_t</span>, <span class="type">uint32_t</span>, <span class="type">int32_t</span>, <span class="type">uint16_t</span>, <span class="type">int16_t</span>,</span><br><span class="line">string, <span class="type">char</span>*</span><br></pre></td></tr></table></figure>
+
+<p>在手工编写encode方法过程当中，为了不重复代码，借助了WRITE_RAW_ENCODER和WRITE_INTTYPE_ENCODER两个宏。</p>
+<h4 id="2、结构体类型的序列化"><a href="#2、结构体类型的序列化" class="headerlink" title="2、结构体类型的序列化"></a>2、结构体类型的序列化</h4><p>结构体类型的序列化方法与基本数据类型的序列化方法一致，即便用结构体的内存布局做为序列化的形式。在结构体定义完成后，经过调用WRITE_RAW_ENCODER宏函数生成结构体的全局encode方法，例如结构体ceph_mds_request_head相关结构实现以下。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">ceph_mds_request_head</span> &#123;</span><br><span class="line">    __le64 oldest_client_tid;</span><br><span class="line">    __le32 mdsmap_epoch;</span><br><span class="line">    __le32 flags;</span><br><span class="line">    __u8 num_retry, num_fwd;</span><br><span class="line">    __le16 num_releases;</span><br><span class="line">    __le32 op;</span><br><span class="line">    __le32 caller_uid, caller_gid;</span><br><span class="line">    __le64 ino;</span><br><span class="line">&#125; __attribute__ ((packed));</span><br><span class="line"><span class="built_in">WRITE_RAW_ENCODER</span>(ceph_mds_request_head)</span><br></pre></td></tr></table></figure>
+<p>其中：<br>    ceph_mds_request_head结构体定义在include&#x2F;ceph_fs.h . WRITE_RAW_ENCODER(ceph_mds_request_head)语句位于include&#x2F;types.h WRITE_RAW_ENCODER宏函数定义在include&#x2F;encoding.h WRITE_RAW_ENCODER宏函数其实是经过调用encode_raw实现的，而encode_raw调用bufferlist的append的方法，经过内存拷贝，将数据结构放入到bufferlist中。相关代码为：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">void</span> <span class="title">encode_raw</span><span class="params">(<span class="type">const</span> T&amp; t, bufferlist&amp; bl)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    bl.<span class="built_in">append</span>((<span class="type">char</span>*)&amp;t, <span class="built_in">sizeof</span>(t));</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">void</span> <span class="title">decode_raw</span><span class="params">(T&amp; t, bufferlist::iterator &amp;p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    p.<span class="built_in">copy</span>(<span class="built_in">sizeof</span>(t), (<span class="type">char</span>*)&amp;t);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3、集合数据类型的序列化"><a href="#3、集合数据类型的序列化" class="headerlink" title="3、集合数据类型的序列化"></a>3、集合数据类型的序列化</h4><p>集合数据类型序列化的基本思路包括两步：</p>
+<ul>
+<li>序列化集合大小，</li>
+<li>序列化集合内的全部元素</li>
+</ul>
+<p>例如vector<T>&amp; v的序列化方法：其中元素的序列化经过调用该元素的encode方法实现。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">void</span> <span class="title">encode</span><span class="params">(<span class="type">const</span> std::vector&lt;T&gt;&amp; v, bufferlist&amp; bl)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    __u32 n = v.<span class="built_in">size</span>();</span><br><span class="line">    <span class="built_in">encode</span>(n, bl);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">typename</span> std::vector&lt;T&gt;::const_iterator p = v.<span class="built_in">begin</span>(); p != v.<span class="built_in">end</span>(); ++p)</span><br><span class="line">    <span class="built_in">encode</span>(*p, bl);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>经常使用集合数据类型的序列化已经由Ceph实现，位于include&#x2F;encoding.h中，包括如下集合类型：pair, triple, list, set, vector, map, multimap, hash_map, hash_set, deque。集合类型的序列化方法皆为基于泛型（模板类）的实现方式，适用于全部泛型派生类。</p>
+<h4 id="4、复杂数据类型的序列化"><a href="#4、复杂数据类型的序列化" class="headerlink" title="4、复杂数据类型的序列化"></a>4、复杂数据类型的序列化</h4><p>除以上两种业务无关的数据类型外，其它数据类型的序列化实现包括两部分： 在类型内部现实encode方法，将类型内部的encode方法重定义为全局方法。如下以utime_t类为例：utime_t内部实现了encode和decode两个方法，WRITE_CLASS_ENCODER宏函数将这两个方法转化为全局方法。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">utime_t</span> &#123;</span><br><span class="line">    <span class="keyword">struct</span> &#123;</span><br><span class="line">    __u32 tv_sec, tv_nsec;</span><br><span class="line">    &#125; tv;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">encode</span><span class="params">(bufferlist &amp;bl)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    ::<span class="built_in">encode</span>(tv.tv_sec, bl);</span><br><span class="line">    ::<span class="built_in">encode</span>(tv.tv_nsec, bl);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">decode</span><span class="params">(bufferlist::iterator &amp;p)</span> </span>&#123;</span><br><span class="line">    ::<span class="built_in">decode</span>(tv.tv_sec, p);</span><br><span class="line">    ::<span class="built_in">decode</span>(tv.tv_nsec, p);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="built_in">WRITE_CLASS_ENCODER</span>(<span class="type">utime_t</span>)</span><br></pre></td></tr></table></figure>
+
+<p>复杂数据结构内部的encode方法的实现方式一般是调用其内部主要数据结构的encode方法，例如utime_t类的encode方法其实是序列化内部的tv.tv_sec和tv.tv_nsec两个成员。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://watsonlu6.github.io/Storage/Ceph/Ceph%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96/" title="Ceph序列化" target="_blank" rel="external">https://watsonlu6.github.io/Storage/Ceph/Ceph数据序列化/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/watsonLu6/" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/watsonLu6/" target="_blank"><span class="text-dark">watson</span><small class="ml-1x">Cloud computing development engineer</small></a></h3>
+        <div>内心要狂热，头脑要冷静，四肢要发达</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/Storage/Ceph/Ceph_Bufferlist%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E4%BD%BF%E7%94%A8/" title="Ceph_Bufferlist的设计与使用"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/Storage/Ceph/Ceph%E7%9B%B8%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="Ceph相关数据结构"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/watsonLu6/" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
