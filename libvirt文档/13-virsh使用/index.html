@@ -18,15 +18,15 @@
   
   
   <title>13 virsh使用 | watson Lu&#39;blogs</title>
-  <meta name="description" content="1 概述virsh [选项]… [命令字符串]virsh [选项]… 命令 [参数]… 2 描述virsh 程序是用于管理 virsh 客户域的主要接口。该程序可用于创建、暂停和关闭域，还可以用于列出当前域。Libvirt 是一个 C 工具包，用于与 Linux（及其他操作系统）最新版本的虚拟化功能交互。它是在 GNU 宽通用公共许可证下可用的免费软件。Linux 操作系统的虚拟化意味着能够在单个">
+  <meta name="description" content="原文链接：https:&#x2F;&#x2F;www.libvirt.org&#x2F;manpages&#x2F;virsh.html 1 概述virsh [选项]… [命令字符串]virsh [选项]… 命令 [参数]… 2 描述virsh 程序是用于管理 virsh 客户域的主要接口。该程序可用于创建、暂停和关闭域，还可以用于列出当前域。Libvirt 是一个 C 工具包，用于与 Linux（及其他操作系统）最新版本的虚拟化功能交">
 <meta property="og:type" content="article">
 <meta property="og:title" content="13 virsh使用">
 <meta property="og:url" content="https://watsonlu6.github.io/libvirt%E6%96%87%E6%A1%A3/13-virsh%E4%BD%BF%E7%94%A8/index.html">
 <meta property="og:site_name" content="watson&#39;blogs">
-<meta property="og:description" content="1 概述virsh [选项]… [命令字符串]virsh [选项]… 命令 [参数]… 2 描述virsh 程序是用于管理 virsh 客户域的主要接口。该程序可用于创建、暂停和关闭域，还可以用于列出当前域。Libvirt 是一个 C 工具包，用于与 Linux（及其他操作系统）最新版本的虚拟化功能交互。它是在 GNU 宽通用公共许可证下可用的免费软件。Linux 操作系统的虚拟化意味着能够在单个">
+<meta property="og:description" content="原文链接：https:&#x2F;&#x2F;www.libvirt.org&#x2F;manpages&#x2F;virsh.html 1 概述virsh [选项]… [命令字符串]virsh [选项]… 命令 [参数]… 2 描述virsh 程序是用于管理 virsh 客户域的主要接口。该程序可用于创建、暂停和关闭域，还可以用于列出当前域。Libvirt 是一个 C 工具包，用于与 Linux（及其他操作系统）最新版本的虚拟化功能交">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-04-01T07:50:26.000Z">
-<meta property="article:modified_time" content="2025-04-29T13:59:18.428Z">
+<meta property="article:modified_time" content="2025-04-29T14:32:00.485Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="云计算">
 <meta property="article:tag" content="libvirt">
@@ -369,7 +369,8 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1 概述"></a>1 <strong>概述</strong></h1><p>virsh [<em>选项</em>]… [<em>命令字符串</em>]<br>virsh [<em>选项</em>]… <em>命令</em> [<em>参数</em>]…</p>
+        <p>原文链接：<a target="_blank" rel="noopener" href="https://www.libvirt.org/manpages/virsh.html">https://www.libvirt.org/manpages/virsh.html</a></p>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1 概述"></a>1 <strong>概述</strong></h1><p>virsh [<em>选项</em>]… [<em>命令字符串</em>]<br>virsh [<em>选项</em>]… <em>命令</em> [<em>参数</em>]…</p>
 <h1 id="2-描述"><a href="#2-描述" class="headerlink" title="2 描述"></a>2 <strong>描述</strong></h1><p>virsh 程序是用于管理 virsh 客户域的主要接口。该程序可用于创建、暂停和关闭域，还可以用于列出当前域。Libvirt 是一个 C 工具包，用于与 Linux（及其他操作系统）最新版本的虚拟化功能交互。它是在 GNU 宽通用公共许可证下可用的免费软件。Linux 操作系统的虚拟化意味着能够在单个硬件系统上同时运行多个操作系统实例，其中基本资源由 Linux 实例驱动。该库旨在提供长期稳定的 C API。目前支持 Xen、QEMU、KVM、LXC、OpenVZ、VirtualBox 和 VMware ESX。</p>
 <p>大多数 virsh 使用的基本结构如下：</p>
 <p>virsh [<em>选项</em>]… &lt;*命令*&gt; &lt;*域*&gt; [<em>参数</em>]…</p>
@@ -1715,7 +1716,7 @@
 <li><code>zero</code> - 1次全零写入  </li>
 <li><code>nnsa</code> - 4次NNSA Policy Letter NAP-14.1-C (XVI-8)擦除可移动和不可移动硬盘：随机x2，0x00，验证。  </li>
 <li><code>dod</code> - 4次DoD 5220.22-M第8-306节擦除可移动和不可移动硬盘：随机，0x00，0xff，验证。  </li>
-<li><code>bsi</code> - 德国信息安全中心（<a href="https://www.bsi.bund.de）推荐的9次方法：0xff">https://www.bsi.bund.de）推荐的9次方法：0xff</a>, 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f。  </li>
+<li><code>bsi</code> - 德国信息安全中心 （<a target="_blank" rel="noopener" href="https://www.bsi.bund.de)/">https://www.bsi.bund.de）</a> 推荐的9次方法：0xff, 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f。  </li>
 <li><code>gutmann</code> - Gutmann论文中描述的经典35次序列。  </li>
 <li><code>schneier</code> - Bruce Schneier在《应用密码学》（1996）中描述的7次方法：0x00, 0xff, 随机x5。  </li>
 <li><code>pfitzner7</code> - Roy Pfitzner的7次随机方法：随机x7。  </li>
